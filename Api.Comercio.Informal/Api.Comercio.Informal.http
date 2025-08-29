@@ -1,0 +1,6 @@
+@Api.Comercio.Informal_HostAddress = http://localhost:5263
+
+GET {{Api.Comercio.Informal_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
