@@ -5,30 +5,25 @@ using System.Text;
 using System.Threading.Tasks;
 using Api.Entities;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
 
 namespace Api.Data.Access
 {
-    public class DataCategoria
+    public class DataCategoria(MySQLiteContext context)
     {
-        private readonly MySQLiteContext _context;
-        public DataCategoria(MySQLiteContext context)
-        {
-            _context = context;
-        }
-
         public async Task<bool> Create(Categoria categoria)
         {
             bool result;
 
             try
             {
-                _context.Categoria.Add(categoria);
-                await _context.SaveChangesAsync();
+                context.Categoria.Add(categoria);
+                await context.SaveChangesAsync();
                 result = true;
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
                 throw new Exception("Error al crear la categoria: " + ex.Message);
             }
 
@@ -41,12 +36,15 @@ namespace Api.Data.Access
 
             try
             {
-                _context.Categoria.Remove(_context.Categoria.Find(id)!);
-                await _context.SaveChangesAsync();
+                context.Categoria.Remove(context.Categoria.Find(id)!);
+                await context.SaveChangesAsync();
                 result = true;
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+
                 throw new Exception("Error al eliminar la categoria: " + ex.Message);
             }
 
@@ -58,10 +56,13 @@ namespace Api.Data.Access
             IEnumerable<Categoria> categorias;
 
             try { 
-                categorias = await _context.Categoria.ToListAsync();
+                categorias = await context.Categoria.ToListAsync();
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener las categorias: " + ex.InnerException.Message);
+
                 throw new Exception("Error al obtener las categorias: " + ex.Message);
             }
 
@@ -74,10 +75,13 @@ namespace Api.Data.Access
 
             try
             {
-                categoria = await _context.Categoria.FindAsync(id) ?? throw new Exception("Categoria no encontrada");
+                categoria = await context.Categoria.FindAsync(id) ?? throw new Exception("Categoria no encontrada");
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+
                 throw new Exception("Error al obtener la categoria: " + ex.Message);
             }
 
@@ -90,12 +94,15 @@ namespace Api.Data.Access
 
             try
             {
-                _context.Categoria.Update(categoria);
-                await _context.SaveChangesAsync();
+                context.Categoria.Update(categoria);
+                await context.SaveChangesAsync();
                 result = true;
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al actualizar la categoria: " + ex.InnerException.Message);
+
                 throw new Exception("Error al actualizar la categoria: " + ex.Message);
             }
 

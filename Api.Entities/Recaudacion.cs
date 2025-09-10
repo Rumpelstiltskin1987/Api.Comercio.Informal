@@ -8,12 +8,12 @@ namespace Api.Entities
 {
     public class Recaudacion
     {
-        public int id_cobro { get; set; }
-        public int id_padron { get; set; }
-        public int id_concepto { get; set; }
-        public decimal monto { get; set; }
-        public int id_cobrador { get; set; }
-        public DateTime fecha_cobro { get; set; }
+        public int Id_recaudacion { get; set; }
+        public int Id_padron { get; set; }
+        public int Id_concepto { get; set; }
+        public decimal Monto { get; set; }
+        public int Id_cobrador { get; set; }
+        public DateTime Fecha_cobro { get; set; }
         
     }
 }
