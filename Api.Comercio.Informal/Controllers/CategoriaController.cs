@@ -10,14 +10,11 @@ namespace Api.Comercio.Informal.Controllers
     public class CategoriaController : ControllerBase
     {
         private readonly ILogger<CategoriaController> _logger;
-        private readonly MySQLiteContext _context;
         private readonly Business.BusinessCategoria _categoria;
-        public CategoriaController(ILogger<CategoriaController> logger, Business.BusinessCategoria categoria,
-            MySQLiteContext context)
+        public CategoriaController(ILogger<CategoriaController> logger, MySQLiteContext context)
         {
             _logger = logger;
-            _context = context;
-            _categoria = new(_context);
+            _categoria = new(context);
 
         }
 
