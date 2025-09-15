@@ -12,6 +12,7 @@ namespace Api.Entities
         public int Id_concepto { get; set; }
         public required string Descripcion { get; set; }
         public required string Estado { get; set; }
+        public string? Tipo_movimiento { get; set; }
         public string? Usuario_modificacion { get; set; }
         public DateTime? Fecha_modificacion { get; set; }
     }

@@ -13,6 +13,7 @@ namespace Api.Entities
         public string descripcion { get; set; }
         public int id_lider { get; set; }
         public string estado { get; set; }
+        public string? Tipo_movimiento { get; set; }
         public string? usuario_modificacion { get; set; }
         public DateTime? fecha_modificacion { get; set; }
     }

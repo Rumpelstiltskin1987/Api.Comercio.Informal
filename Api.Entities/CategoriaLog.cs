@@ -10,9 +10,10 @@ namespace Api.Entities
     {
         public int Id_movimiento { get; set; }
         public int Id_categoria { get; set; }
-        public string Descripcion { get; set; }
-        public string Estado { get; set; }
-        public string Usuario_modificacion { get; set; }
-        public DateTime Fecha_modificacion { get; set; } = DateTime.Now;
+        public string? Nombre { get; set; }
+        public string? Estado { get; set; }
+        public string? Tipo_movimiento { get; set; }
+        public string? Usuario_modificacion { get; set; }
+        public DateTime? Fecha_modificacion { get; set; }
     }
 }

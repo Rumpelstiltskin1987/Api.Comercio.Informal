@@ -12,8 +12,8 @@ namespace Api.Interfaces
         public Task<IEnumerable<Cobrador>> GetAll();
         public Task<Cobrador> GetById(int id);
         public Task<bool> Create(Cobrador categoria);
-        public Task<bool> Update(int id, string nombre, string aParterno, string aMaterno,
-            string telefono, string email, string status);
+        public Task<bool> Update(int id, string nombre, string aPaterno, string aMaterno,
+            string telefono, string email, string status, string usuario);
         public Task<bool> Delete(int id);
     }
 }

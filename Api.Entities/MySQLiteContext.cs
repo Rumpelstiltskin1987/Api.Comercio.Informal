@@ -35,7 +35,7 @@ namespace Api.Entities
             modelBuilder.Entity<Categoria>(entity =>
             {
                 entity.HasKey(e => e.Id_categoria);
-                entity.Property(e => e.Descripcion).IsRequired();
+                entity.Property(e => e.Nombre).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
@@ -48,8 +48,9 @@ namespace Api.Entities
                 entity.HasKey(e => new { e.Id_movimiento, e.Id_categoria });
                 entity.Property(e => e.Id_movimiento).IsRequired();
                 entity.Property(e => e.Id_categoria).IsRequired();
-                entity.Property(e => e.Descripcion).IsRequired();
+                entity.Property(e => e.Nombre).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
                 entity.Property(e => e.Fecha_modificacion).IsRequired();
             });
@@ -81,6 +82,7 @@ namespace Api.Entities
                 entity.Property(e => e.Telefono);
                 entity.Property(e => e.Email);
                 entity.Property(e => e.Estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
                 entity.Property(e => e.Fecha_modificacion).IsRequired();
             });
@@ -103,6 +105,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_concepto).IsRequired();
                 entity.Property(e => e.Descripcion).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
                 entity.Property(e => e.Fecha_modificacion).IsRequired();
             });
@@ -125,6 +128,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_cuota).IsRequired();
                 entity.Property(e => e.Monto).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
                 entity.Property(e => e.Fecha_modificacion).IsRequired();
             });
@@ -156,6 +160,7 @@ namespace Api.Entities
                 entity.Property(e => e.descripcion).IsRequired();
                 entity.Property(e => e.id_lider).IsRequired();
                 entity.Property(e => e.estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.usuario_modificacion).IsRequired();
                 entity.Property(e => e.fecha_modificacion).IsRequired();
             });
@@ -187,7 +192,8 @@ namespace Api.Entities
                 entity.Property(e => e.telefono);
                 entity.Property(e => e.email);
                 entity.Property(e => e.direccion);
-                entity.Property(e => e.estado).IsRequired();                
+                entity.Property(e => e.estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.usuario_modificacion).IsRequired();
                 entity.Property(e => e.fecha_modificacion).IsRequired();
             });

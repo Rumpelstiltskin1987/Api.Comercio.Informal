@@ -18,7 +18,7 @@ namespace Api.Comercio.Informal.Controllers
 
         }
 
-        [Route("GetCategorias")]
+        [Route("GetAll")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -39,7 +39,7 @@ namespace Api.Comercio.Informal.Controllers
             return Ok(categorias);
         }
 
-        [Route("GetCategoriaById")]
+        [Route("GetById")]
         [HttpGet]
         public async Task<IActionResult> GetById(int id)
         {
@@ -63,14 +63,14 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<IActionResult> Create(string categoryName, string user)
+        public async Task<IActionResult> Create(string nombre, string usuario)
         {
-            if (categoryName == null)
+            if (nombre == null)
             {
                 return BadRequest("El nombre de la categoria es necesario.");
             }
 
-            if (categoryName == null)
+            if (nombre == null)
             {
                 return BadRequest("El usuario es necesario.");
             }
@@ -79,8 +79,8 @@ namespace Api.Comercio.Informal.Controllers
             {
                 Entities.Categoria categoria = new()
                 {
-                    Descripcion = categoryName,
-                    Usuario_alta = user
+                    Nombre = nombre,
+                    Usuario_alta = usuario
                 };
                 var result = await _categoria.Create(categoria);
 
@@ -116,9 +116,9 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Update")]
         [HttpPost]
-        public async Task<IActionResult> Update(int id, string categoryName, string status)
+        public async Task<IActionResult> Update(int id, string nombre, string status, string usuario)
         {            
-            if (categoryName == null)
+            if (nombre == null)
             {
                 return BadRequest("El nombre de la categoria es necesario.");
             }
@@ -132,7 +132,7 @@ namespace Api.Comercio.Informal.Controllers
 
             try
             {
-                var result = await _categoria.Update(id, categoryName, status);
+                var result = await _categoria.Update(id, nombre, status, usuario);
                 return Ok("Categoria actualizada correctamente");
             }
             catch (Exception ex)

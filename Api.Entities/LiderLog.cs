@@ -17,6 +17,7 @@ namespace Api.Entities
         public string? email { get; set; }
         public string? direccion { get; set; }
         public string estado { get; set; }
+        public string? Tipo_movimiento { get; set; }
         public string? usuario_modificacion { get; set; }
         public DateTime? fecha_modificacion { get; set; }
     }

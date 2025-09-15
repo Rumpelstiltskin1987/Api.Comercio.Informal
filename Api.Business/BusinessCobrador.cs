@@ -69,20 +69,21 @@ namespace Api.Business
             return await _cobrador.GetById(id);
         }
 
-        public async Task<bool> Update(int id, string nombre, string aParterno, string aMaterno, string telefono, string email, string status)
+        public async Task<bool> Update(int id, string nombre, string aPaterno, string aMaterno,
+            string telefono, string email, string status, string usuario)
         {
             Cobrador cobrador = await _cobrador.GetById(id);
 
             if (cobrador == null)
-                throw new Exception("La categoría que intenta actualizar no existe en la base de datos.");
+                throw new Exception("El cobrador que intenta actualizar no existe en la base de datos.");
 
             cobrador.Nombre = nombre;
-            cobrador.A_paterno = aParterno;
+            cobrador.A_paterno = aPaterno;
             cobrador.A_paterno = aMaterno;
             cobrador.Telefono = telefono;
             cobrador.Email = email;
             cobrador.Estado = status;
-            cobrador.Usuario_modificacion = "system";
+            cobrador.Usuario_modificacion = usuario;
             cobrador.Fecha_modificacion = DateTime.Now;
 
             using (var transaction = _context.Database.BeginTransaction())
