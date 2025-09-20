@@ -9,16 +9,10 @@ namespace Api.Comercio.Informal.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class CobradorController : ControllerBase
+    public class CobradorController(ILogger<CobradorController> logger, MySQLiteContext context) : ControllerBase
     {
-        private readonly ILogger<CobradorController> _logger;
-        private readonly BusinessCobrador _cobrador;
-
-        public CobradorController(ILogger<CobradorController> logger, MySQLiteContext context)
-        {
-            _logger = logger;
-            _cobrador = new BusinessCobrador(context);
-        }
+        private readonly BusinessCobrador _cobrador = new BusinessCobrador(context);
+        private readonly ILogger<CobradorController> _logger = logger;
 
         [Route("GetAll")]
         [HttpGet]
@@ -28,11 +22,6 @@ namespace Api.Comercio.Informal.Controllers
             try
             {
                 cobradores = await _cobrador.GetAll();
-
-                foreach (Cobrador cobrador in cobradores)
-                {
-                    cobrador.Fecha_alta = DateTime.Now;
-                }
             }
             catch (Exception ex)
             {
@@ -47,7 +36,7 @@ namespace Api.Comercio.Informal.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("El id del cobrador es necesario.");
+                return BadRequest("Id incorrecto.");
             }
 
             Cobrador cobrador;
@@ -68,14 +57,9 @@ namespace Api.Comercio.Informal.Controllers
         public async Task<IActionResult> Create(string nombre, string aPaterno, string aMaterno,
             string telefono, string email, string status, string usuario)
         {
-            if (nombre == null)
+            if (nombre == null || aPaterno == null || aMaterno == null || status == null || usuario == null)
             {
-                return BadRequest("El nombre del cobrador es necesario.");
-            }
-
-            if (usuario == null)
-            {
-                return BadRequest("El usuario es necesario.");
+                return BadRequest("Datos incompletos. Verifique.");
             }
 
             try
@@ -93,7 +77,6 @@ namespace Api.Comercio.Informal.Controllers
                 };
 
                 var result = await _cobrador.Create(cobrador);
-
                 return Ok("Cobrador registrado correctamente");
             }
             catch (Exception ex)
@@ -108,8 +91,9 @@ namespace Api.Comercio.Informal.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("El id del cobrador es necesario.");
+                return BadRequest("Id incorrecto.");
             }
+
             try
             {
                 var result = await _cobrador.Delete(id);
@@ -118,7 +102,7 @@ namespace Api.Comercio.Informal.Controllers
             catch (Exception ex)
             {
                 if (ex.Message.Contains("Cobrador no encontrado"))
-                    return StatusCode(500, "La Cobrador que intenta eliminar no existe en la base de datos");
+                    return StatusCode(500, "El Cobrador que intenta eliminar no existe en la base de datos.");
 
                 return StatusCode(500, ex.Message);
             }
@@ -129,29 +113,21 @@ namespace Api.Comercio.Informal.Controllers
         public async Task<IActionResult> Update(int id, string nombre, string aPaterno, string aMaterno,
             string telefono, string email, string status, string usuario)
         {
-            if (nombre == null || aPaterno == null || aMaterno == null || telefono == null || email == null ||
-                status == null)
+            if (nombre == null || aPaterno == null || aMaterno == null || status == null || usuario == null)
             {
-                return BadRequest("Dato del cobrador incompletos, verifique.");
+                return BadRequest("Datos incompletos. Verifique.");
             }
-
-            if (id <= 0)
-            {
-                return BadRequest("El id del trabajador no es válido, verifique.");
-            }
-
-            Cobrador cobrador;
 
             try
             {
                 var result = await _cobrador.Update(id, nombre, aPaterno, aMaterno, telefono,
                     email, status, usuario);
-                return Ok("Categoria actualizada correctamente");
+                return Ok("Cobrador actualizado correctamente");
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("Categoria no encontrada"))
-                    return StatusCode(500, "La categoría que intenta actualizar no existe en la base de datos");
+                if (ex.Message.Contains("Cobrador no encontrado"))
+                    return StatusCode(500, "El cobrador que intenta actualizar no existe en la base de datos");
 
                 return StatusCode(500, ex.Message);
             }

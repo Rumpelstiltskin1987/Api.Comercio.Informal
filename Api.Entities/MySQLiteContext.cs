@@ -20,11 +20,16 @@ namespace Api.Entities
         public DbSet<Categoria> Categoria { get; set; }
         public DbSet<CategoriaLog> CategoriaLog { get; set; }
         public DbSet<Cobrador> Cobrador { get; set; }
+        public DbSet<CobradorLog> CobradorLog { get; set; }
         public DbSet<Concepto> Concepto { get; set; }
+        public DbSet<ConceptoLog> ConceptoLog { get; set; }
         public DbSet<Cuota> Cuota { get; set; }
+        public DbSet<CuotaLog> CuotaLog { get; set; }
         public DbSet<Folio> Folio { get; set; }
         public DbSet<Gremio> Gremio { get; set; }
+        public DbSet<GremioLog> GremioLog { get; set; }
         public DbSet<Lider> Lider { get; set; }
+        public DbSet<LiderLog> LiderLog { get; set; }   
         public DbSet<Padron> Padron { get; set; }
         public DbSet<Recaudacion> Recaudacion { get; set; }
 
@@ -67,8 +72,8 @@ namespace Api.Entities
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
-                entity.Property(e => e.Usuario_modificacion).IsRequired();
-                entity.Property(e => e.Fecha_modificacion).IsRequired();
+                entity.Property(e => e.Usuario_modificacion);
+                entity.Property(e => e.Fecha_modificacion);
             });
 
             modelBuilder.Entity<CobradorLog>(entity =>
@@ -94,8 +99,8 @@ namespace Api.Entities
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
-                entity.Property(e => e.Usuario_modificacion).IsRequired();
-                entity.Property(e => e.Fecha_modificacion).IsRequired();
+                entity.Property(e => e.Usuario_modificacion);
+                entity.Property(e => e.Fecha_modificacion);
             });
 
             modelBuilder.Entity<ConceptoLog>(entity =>

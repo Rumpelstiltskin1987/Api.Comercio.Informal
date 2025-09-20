@@ -10,41 +10,6 @@ namespace Api.Data.Access
 {
     public class DataCobrador(MySQLiteContext context)
     {
-        public async Task<bool> Create(Cobrador cobrador)
-        {
-            bool result;
-            try
-            {
-                context.Cobrador.Add(cobrador);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al crear el cobrador: " + ex.InnerException.Message);
-                throw new Exception("Error al crear el cobrador: " + ex.Message);
-            }
-            return result;
-        }
-        public async Task<bool> Delete(int id)
-        {
-            bool result;
-            try
-            {
-                context.Categoria.Remove(context.Categoria.Find(id)!);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar el cobrador: " + ex.InnerException.Message);
-                throw new Exception("Error al eliminar el cobrador: " + ex.Message);
-            }
-            return result;
-        }
-
         public async Task<IEnumerable<Cobrador>> GetAll()
         {
             IEnumerable<Cobrador> cobradores;
@@ -52,6 +17,9 @@ namespace Api.Data.Access
             try
             {
                 cobradores = await context.Cobrador.ToListAsync();
+
+                if (!cobradores.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
@@ -79,6 +47,24 @@ namespace Api.Data.Access
             return cobrador;
         }
 
+        public async Task<bool> Create(Cobrador cobrador)
+        {
+            bool result;
+            try
+            {
+                context.Cobrador.Add(cobrador);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al crear el cobrador: " + ex.InnerException.Message);
+                throw new Exception("Error al crear el cobrador: " + ex.Message);
+            }
+            return result;
+        }
+
         public async Task<bool> Update(Cobrador cobrador)
         {
             bool result;
@@ -98,5 +84,23 @@ namespace Api.Data.Access
 
             return result;
         }
+
+        public async Task<bool> Delete(int id)
+        {
+            bool result;
+            try
+            {
+                context.Categoria.Remove(context.Categoria.Find(id)!);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al eliminar el cobrador: " + ex.InnerException.Message);
+                throw new Exception("Error al eliminar el cobrador: " + ex.Message);
+            }
+            return result;
+        }        
     }
 }

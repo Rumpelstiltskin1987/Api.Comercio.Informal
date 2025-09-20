@@ -7,30 +7,19 @@ namespace Api.Comercio.Informal.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class CategoriaController : ControllerBase
+    public class CategoriaController(ILogger<CategoriaController> logger, MySQLiteContext context) : ControllerBase
     {
-        private readonly ILogger<CategoriaController> _logger;
-        private readonly Business.BusinessCategoria _categoria;
-        public CategoriaController(ILogger<CategoriaController> logger, MySQLiteContext context)
-        {
-            _logger = logger;
-            _categoria = new(context);
-
-        }
+        private readonly BusinessCategoria _categoria = new(context);
+        private readonly ILogger<CategoriaController> _logger = logger;
 
         [Route("GetAll")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            IEnumerable<Entities.Categoria> categorias;
+            IEnumerable<Categoria> categorias;
             try
             {
                 categorias = await _categoria.GetAll();
-
-                foreach (Entities.Categoria categoria in categorias)
-                {
-                    categoria.Fecha_alta = DateTime.Now;
-                }
             }
             catch (Exception ex)
             {
@@ -45,7 +34,7 @@ namespace Api.Comercio.Informal.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("El id de la categoria es necesario.");
+                return BadRequest("Id incorrecto.");
             }
 
             Entities.Categoria categoria;
@@ -65,25 +54,19 @@ namespace Api.Comercio.Informal.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(string nombre, string usuario)
         {
-            if (nombre == null)
+            if (nombre == null || usuario == null)
             {
-                return BadRequest("El nombre de la categoria es necesario.");
-            }
-
-            if (nombre == null)
-            {
-                return BadRequest("El usuario es necesario.");
+                return BadRequest("Datos incompletos. Verifique.");
             }
 
             try
             {
-                Entities.Categoria categoria = new()
+                Categoria categoria = new()
                 {
                     Nombre = nombre,
                     Usuario_alta = usuario
                 };
                 var result = await _categoria.Create(categoria);
-
                 return Ok("Categoria creada correctamente");
             }
             catch (Exception ex)
@@ -98,8 +81,9 @@ namespace Api.Comercio.Informal.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("El id de la categoria es necesario.");
+                return BadRequest("Id incorrecto.");
             }
+
             try
             {
                 var result = await _categoria.Delete(id);
@@ -117,18 +101,11 @@ namespace Api.Comercio.Informal.Controllers
         [Route("Update")]
         [HttpPost]
         public async Task<IActionResult> Update(int id, string nombre, string status, string usuario)
-        {            
-            if (nombre == null)
+        {
+            if (nombre == null || status == null || usuario == null)
             {
-                return BadRequest("El nombre de la categoria es necesario.");
+                return BadRequest("Datos incompletos. Verifique.");
             }
-
-            if (id <= 0)
-            {
-                return BadRequest("El id de la categoria es necesario.");
-            }
-
-            Entities.Categoria categoria;
 
             try
             {

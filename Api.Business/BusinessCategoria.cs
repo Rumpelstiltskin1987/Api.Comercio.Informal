@@ -17,8 +17,8 @@ namespace Api.Business
         public BusinessCategoria(MySQLiteContext context)
         {
             _context = context;
-            _categoria = new (_context);
-            _categoriaLog = new (_context);
+            _categoria = new(_context);
+            _categoriaLog = new(_context);
         }
 
         public async Task<IEnumerable<Entities.Categoria>> GetAll()
@@ -37,6 +37,7 @@ namespace Api.Business
             try
             {
                 bool result = await _categoria.Create(categoria);
+
                 CategoriaLog log = new()
                 {
                     Id_movimiento = 1,
@@ -92,7 +93,6 @@ namespace Api.Business
             try
             {
                 bool result = await _categoria.Update(categoria);
-
                 int idMovimiento = await _categoriaLog.GetIdMovement(id) +1;
 
                 CategoriaLog log = new()
@@ -107,7 +107,6 @@ namespace Api.Business
                 };
 
                 await _categoriaLog.AddLog(log);
-
                 transaction.Commit();
                 return result;
             }

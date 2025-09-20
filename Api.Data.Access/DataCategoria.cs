@@ -71,27 +71,6 @@ namespace Api.Data.Access
             return result;
         }
 
-        public async Task<bool> Delete(int id)
-        {
-            bool result;
-
-            try
-            {
-                context.Categoria.Remove(context.Categoria.Find(id)!);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
-
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
-            }
-
-            return result;
-        }  
-
         public async Task<bool> Update(Categoria categoria)
         {
             bool result;
@@ -112,5 +91,26 @@ namespace Api.Data.Access
 
             return result;
         }
+
+        public async Task<bool> Delete(int id)
+        {
+            bool result;
+
+            try
+            {
+                context.Categoria.Remove(context.Categoria.Find(id)!);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+
+                throw new Exception("Error al eliminar la categoria: " + ex.Message);
+            }
+
+            return result;
+        }        
     }
 }

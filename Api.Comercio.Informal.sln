@@ -11,11 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api.Entities", "Api.Entitie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api.Business", "Api.Business\Api.Business.csproj", "{6FDBC574-64E8-4F1C-AB58-18A911E8E1E2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQLite", "SQLite", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-	ProjectSection(SolutionItems) = preProject
-		script_tablas.txt = script_tablas.txt
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api.Interfaces", "Api.Interfaces\Api.Interfaces.csproj", "{65CDE5EE-EF92-44D4-BF4B-AB1169F132F7}"
 EndProject
 Global
