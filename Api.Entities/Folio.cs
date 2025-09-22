@@ -9,7 +9,7 @@ namespace Api.Entities
     public class Folio
     {
         public int Id_folio { get; set; }
-        public int N_Folio { get; set; }
+        public int N_Folio { get; set; } = 0;
         public DateTime Fecha { get; set; }
     }
 }

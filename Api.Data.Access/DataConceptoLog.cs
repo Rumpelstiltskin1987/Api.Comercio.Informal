@@ -12,6 +12,7 @@ namespace Api.Data.Access
         public async Task<bool> AddLog(ConceptoLog conceptoLog)
         {
             bool result;
+
             try
             {
                 context.ConceptoLog.Add(conceptoLog);
@@ -22,13 +23,16 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el log del concepto: " + ex.InnerException.Message);
+
                 throw new Exception("Error al crear el log del concepto: " + ex.Message);
             }
+
             return result;
         }
         public async Task<int> GetIdMovement(int id_concepto)
         {
             int id_movimiento = 0;
+
             try
             {
                 id_movimiento = await Task.Run(() =>
@@ -41,8 +45,10 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al obtener el id de movimiento: " + ex.InnerException.Message);
+
                 throw new Exception("Error al obtener el id de movimiento: " + ex.Message);
             }
+
             return id_movimiento;
         }
     }

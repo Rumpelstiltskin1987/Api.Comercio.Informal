@@ -11,7 +11,7 @@ namespace Api.Entities
         public int Id_concepto { get; set; }
         public required string Descripcion { get; set; }
         public string Estado { get; set; } = "A"; // A: Activo, I: Inactivo
-        public required string Usuario_alta { get; set; }
+        public required string? Usuario_alta { get; set; }
         public DateTime Fecha_alta { get; set; }
         public string? Usuario_modificacion { get; set; }
         public DateTime? Fecha_modificacion { get; set; }

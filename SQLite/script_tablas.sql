@@ -178,6 +178,28 @@ CREATE TABLE Padron (
 	FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
 );
 
+CREATE TABLE PadronLog (
+	Id_movimiento INTEGER NOT NULL,
+	Id_padron INTEGER NOT NULL,
+	Matricula TEXT NOT NULL,
+	Nombre TEXT NOT NULL,
+	A_paterno TEXT NOT NULL,
+	A_materno TEXT NOT NULL,
+	Curp TEXT,
+	Direccion TEXT,
+	Telefono TEXT,
+	Email TEXT,
+	Id_gremio INTEGER NOT NULL,
+	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
+	Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
+	Usuario_alta TEXT NOT NULL,
+	Fecha_alta TEXT NOT NULL,
+	Usuario_modificacion TEXT,
+	Fecha_modificacion TEXT,
+	PRIMARY KEY (Id_movimiento, Id_padron),
+	FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
+);
+
 CREATE TABLE Recaudacion (
 	Id_recaudacion INTEGER PRIMARY KEY AUTOINCREMENT,
 	Id_padron INTEGER NOT NULL,

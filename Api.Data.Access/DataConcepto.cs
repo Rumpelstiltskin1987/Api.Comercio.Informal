@@ -12,6 +12,7 @@ namespace Api.Data.Access
             try
             {
                 conceptos = await context.Concepto.ToListAsync();
+
                 if (!conceptos.Any())
                     throw new Exception("No existen registros en la base de datos.");
             }
@@ -19,84 +20,91 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al obtener los conceptos: " + ex.InnerException.Message);
+
                 throw new Exception("Error al obtener los conceptos: " + ex.Message);
             }
+
             return conceptos;
         }
 
         public async Task<Concepto> GetById(int id)
         {
-            Concepto? concepto;
+            Concepto concepto;
+
             try
             {
-                concepto = await context.Concepto.FindAsync(id) ?? throw new Exception("Concepto no encontrado"); ;
+                concepto = await context.Concepto.FindAsync(id) ?? throw new Exception("Concepto no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener el concepto: " + ex.InnerException.Message);
-                throw new Exception("Error al obtener el concepto: " + ex.Message);
+                    throw new Exception("Error al obtener la Concepto: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener la Concepto: " + ex.Message);
             }
+
             return concepto;
         }
 
-        public async Task<bool> Create(Concepto concepto)
+        public async Task<bool> Create(Concepto Concepto)
         {
             bool result;
+
             try
             {
-                context.Concepto.Add(concepto);
+                context.Concepto.Add(Concepto);
                 await context.SaveChangesAsync();
                 result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al crear el concepto: " + ex.InnerException.Message);
-                throw new Exception("Error al crear el concepto: " + ex.Message);
+                    throw new Exception("Error al crear el Concepto: " + ex.InnerException.Message);
+                throw new Exception("Error al crear el Concepto: " + ex.Message);
             }
+
             return result;
         }
 
-        public async Task<bool> Update(Concepto concepto)
+        public async Task<bool> Update(Concepto Concepto)
         {
             bool result;
+
             try
             {
-                var existingConcepto = await context.Concepto.FindAsync(concepto.Id_concepto) ?? throw new Exception("Concepto no encontrado");
-                existingConcepto.Descripcion = concepto.Descripcion;
-                existingConcepto.Estado = concepto.Estado;
-                existingConcepto.Usuario_modificacion = concepto.Usuario_modificacion;
-                existingConcepto.Fecha_modificacion = DateTime.Now;
-                context.Concepto.Update(existingConcepto);
+                context.Concepto.Update(Concepto);
                 await context.SaveChangesAsync();
                 result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar el concepto: " + ex.InnerException.Message);
-                throw new Exception("Error al actualizar el concepto: " + ex.Message);
+                    throw new Exception("Error al actualizar el Concepto: " + ex.InnerException.Message);
+
+                throw new Exception("Error al actualizar el Concepto: " + ex.Message);
             }
+
             return result;
         }
 
         public async Task<bool> Delete(int id)
         {
             bool result;
+
             try
             {
-                var concepto = await context.Concepto.FindAsync(id) ?? throw new Exception("Concepto no encontrado");
-                context.Concepto.Remove(concepto);
+                context.Concepto.Remove(context.Concepto.Find(id)!);
                 await context.SaveChangesAsync();
                 result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar el concepto: " + ex.InnerException.Message);
-                throw new Exception("Error al eliminar el concepto: " + ex.Message);
+                    throw new Exception("Error al eliminar el Concepto: " + ex.InnerException.Message);
+
+                throw new Exception("Error al eliminar el Concepto: " + ex.Message);
             }
+
             return result;
         }
     }

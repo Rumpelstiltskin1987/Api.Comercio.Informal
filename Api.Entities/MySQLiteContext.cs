@@ -31,6 +31,7 @@ namespace Api.Entities
         public DbSet<Lider> Lider { get; set; }
         public DbSet<LiderLog> LiderLog { get; set; }   
         public DbSet<Padron> Padron { get; set; }
+        public DbSet<PadronLog> PadronLog { get; set; }
         public DbSet<Recaudacion> Recaudacion { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -159,15 +160,15 @@ namespace Api.Entities
 
             modelBuilder.Entity<GremioLog>(entity =>
             {
-                entity.HasKey(e => new { e.id_movimiento, e.id_gremio });
-                entity.Property(e => e.id_movimiento).IsRequired();
-                entity.Property(e => e.id_gremio).IsRequired();
-                entity.Property(e => e.descripcion).IsRequired();
-                entity.Property(e => e.id_lider).IsRequired();
-                entity.Property(e => e.estado).IsRequired();
+                entity.HasKey(e => new { e.Id_movimiento, e.Id_gremio });
+                entity.Property(e => e.Id_movimiento).IsRequired();
+                entity.Property(e => e.Id_gremio).IsRequired();
+                entity.Property(e => e.Descripcion).IsRequired();
+                entity.Property(e => e.Id_lider).IsRequired();
+                entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
-                entity.Property(e => e.usuario_modificacion).IsRequired();
-                entity.Property(e => e.fecha_modificacion).IsRequired();
+                entity.Property(e => e.Usuario_modificacion).IsRequired();
+                entity.Property(e => e.Fecha_modificacion).IsRequired();
             });
 
             modelBuilder.Entity<Lider>(entity =>
@@ -188,19 +189,19 @@ namespace Api.Entities
 
             modelBuilder.Entity<LiderLog>(entity =>
             {
-                entity.HasKey(e => new { e.id_movimiento, e.id_lider });
-                entity.Property(e => e.id_movimiento).IsRequired();
-                entity.Property(e => e.id_lider).IsRequired();
-                entity.Property(e => e.nombre).IsRequired();
-                entity.Property(e => e.a_paterno).IsRequired();
-                entity.Property(e => e.a_materno).IsRequired();
-                entity.Property(e => e.telefono);
-                entity.Property(e => e.email);
-                entity.Property(e => e.direccion);
-                entity.Property(e => e.estado).IsRequired();
+                entity.HasKey(e => new { e.Id_movimiento, e.Id_lider });
+                entity.Property(e => e.Id_movimiento).IsRequired();
+                entity.Property(e => e.Id_lider).IsRequired();
+                entity.Property(e => e.Nombre).IsRequired();
+                entity.Property(e => e.A_paterno).IsRequired();
+                entity.Property(e => e.A_materno).IsRequired();
+                entity.Property(e => e.Telefono);
+                entity.Property(e => e.Email);
+                entity.Property(e => e.Direccion);
+                entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
-                entity.Property(e => e.usuario_modificacion).IsRequired();
-                entity.Property(e => e.fecha_modificacion).IsRequired();
+                entity.Property(e => e.Usuario_modificacion).IsRequired();
+                entity.Property(e => e.Fecha_modificacion).IsRequired();
             });
 
             modelBuilder.Entity<Padron>(entity =>
@@ -217,6 +218,26 @@ namespace Api.Entities
                 entity.Property(e => e.Id_gremio).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
+                entity.Property(e => e.Usuario_modificacion).IsRequired();
+                entity.Property(e => e.Fecha_modificacion).IsRequired();
+            });
+
+            modelBuilder.Entity<PadronLog>(entity =>
+            {
+                entity.HasKey(e => new { e.Id_movimiento, e.Id_padron });
+                entity.Property(e => e.Id_movimiento).IsRequired();
+                entity.Property(e => e.Id_padron).IsRequired();
+                entity.Property(e => e.Matricula).IsRequired();
+                entity.Property(e => e.Nombre).IsRequired();
+                entity.Property(e => e.A_paterno).IsRequired();
+                entity.Property(e => e.A_materno).IsRequired();
+                entity.Property(e => e.Curp);
+                entity.Property(e => e.Direccion);
+                entity.Property(e => e.Telefono);
+                entity.Property(e => e.Email);
+                entity.Property(e => e.Id_gremio).IsRequired();
+                entity.Property(e => e.Estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
                 entity.Property(e => e.Fecha_modificacion).IsRequired();
             });

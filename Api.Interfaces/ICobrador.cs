@@ -13,7 +13,7 @@ namespace Api.Interfaces
         public Task<Cobrador> GetById(int id);
         public Task<bool> Create(Cobrador categoria);
         public Task<bool> Update(int id, string nombre, string aPaterno, string aMaterno,
-            string telefono, string email, string status, string usuario);
+            string telefono, string email, string estado, string usuario);
         public Task<bool> Delete(int id);
     }
 }

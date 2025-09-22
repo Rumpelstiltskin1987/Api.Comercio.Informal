@@ -25,14 +25,17 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al obtener los cobradores: " + ex.InnerException.Message);
+
                 throw new Exception("Error al obtener los cobradores: " + ex.Message);
             }
+
             return cobradores;
         }
 
         public async Task<Cobrador> GetById(int id)
         {
             Cobrador? cobrador;
+
             try
             {
                 cobrador = await context.Cobrador.FindAsync(id) ?? throw new Exception("Cobrador no encontrado"); ;
@@ -41,6 +44,7 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al obtener el cobrador: " + ex.InnerException.Message);
+
                 throw new Exception("Error al obtener el cobrador: " + ex.Message);
             }
 
@@ -50,6 +54,7 @@ namespace Api.Data.Access
         public async Task<bool> Create(Cobrador cobrador)
         {
             bool result;
+
             try
             {
                 context.Cobrador.Add(cobrador);
@@ -60,8 +65,10 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el cobrador: " + ex.InnerException.Message);
+
                 throw new Exception("Error al crear el cobrador: " + ex.Message);
             }
+
             return result;
         }
 
@@ -79,6 +86,7 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar el cobrador: " + ex.InnerException.Message);
+
                 throw new Exception("Error al actualizar el cobrador: " + ex.Message);
             }
 
@@ -88,6 +96,7 @@ namespace Api.Data.Access
         public async Task<bool> Delete(int id)
         {
             bool result;
+
             try
             {
                 context.Categoria.Remove(context.Categoria.Find(id)!);
@@ -98,8 +107,10 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al eliminar el cobrador: " + ex.InnerException.Message);
+
                 throw new Exception("Error al eliminar el cobrador: " + ex.Message);
             }
+
             return result;
         }        
     }

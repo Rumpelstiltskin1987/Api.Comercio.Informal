@@ -10,47 +10,6 @@ namespace Api.Data.Access
 {
     public class DataRecaudacion(MySQLiteContext context)
     {
-        public async Task<bool> Create(Recaudacion recaudacion)
-        {
-            bool result;
-
-            try
-            {
-                context.Recaudacion.Add(recaudacion);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
-                throw new Exception("Error al crear la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
-
-        public async Task<bool> Delete(int id)
-        {
-            bool result;
-
-            try
-            {
-                context.Recaudacion.Remove(context.Recaudacion.Find(id)!);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
-
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
-
         public async Task<IEnumerable<Recaudacion>> GetAll()
         {
             IEnumerable<Recaudacion> Recaudaciones;
@@ -89,6 +48,26 @@ namespace Api.Data.Access
             return Recaudacion;
         }
 
+        public async Task<bool> Create(Recaudacion recaudacion)
+        {
+            bool result;
+
+            try
+            {
+                context.Recaudacion.Add(recaudacion);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
+                throw new Exception("Error al crear la categoria: " + ex.Message);
+            }
+
+            return result;
+        }
+
         public async Task<bool> Update(Recaudacion recaudacion)
         {
             bool result;
@@ -109,5 +88,26 @@ namespace Api.Data.Access
 
             return result;
         }
+
+        public async Task<bool> Delete(int id)
+        {
+            bool result;
+
+            try
+            {
+                context.Recaudacion.Remove(context.Recaudacion.Find(id)!);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+
+                throw new Exception("Error al eliminar la categoria: " + ex.Message);
+            }
+
+            return result;
+        }        
     }
 }

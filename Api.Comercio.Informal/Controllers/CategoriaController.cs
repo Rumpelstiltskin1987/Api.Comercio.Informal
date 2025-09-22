@@ -75,29 +75,6 @@ namespace Api.Comercio.Informal.Controllers
             }
         }
 
-        [Route("Delete")]
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            if (id <= 0)
-            {
-                return BadRequest("Id incorrecto.");
-            }
-
-            try
-            {
-                var result = await _categoria.Delete(id);
-                return Ok("Categoria eliminada correctamente");
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("Categoria no encontrada"))
-                    return StatusCode(500, "La categoría que intenta eliminar no existe en la base de datos");
-
-                return StatusCode(500, ex.Message);
-            }
-        }
-
         [Route("Update")]
         [HttpPost]
         public async Task<IActionResult> Update(int id, string nombre, string status, string usuario)
@@ -120,5 +97,28 @@ namespace Api.Comercio.Informal.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [Route("Delete")]
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest("Id incorrecto.");
+            }
+
+            try
+            {
+                var result = await _categoria.Delete(id);
+                return Ok("Categoria eliminada correctamente");
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Categoria no encontrada"))
+                    return StatusCode(500, "La categoría que intenta eliminar no existe en la base de datos");
+
+                return StatusCode(500, ex.Message);
+            }
+        }        
     }
 }

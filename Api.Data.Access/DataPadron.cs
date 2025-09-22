@@ -10,47 +10,6 @@ namespace Api.Data.Access
 {
     public class DataPadron(MySQLiteContext context)
     {
-        public async Task<bool> Create(Padron padron)
-        {
-            bool result;
-
-            try
-            {
-                context.Padron.Add(padron);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
-                throw new Exception("Error al crear la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
-
-        public async Task<bool> Delete(int id)
-        {
-            bool result;
-
-            try
-            {
-                context.Padron.Remove(context.Padron.Find(id)!);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
-
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
-
         public async Task<IEnumerable<Padron>> GetAll()
         {
             IEnumerable<Padron> Padrones;
@@ -89,6 +48,27 @@ namespace Api.Data.Access
             return Padron;
         }
 
+        public async Task<bool> Create(Padron padron)
+        {
+            bool result;
+
+            try
+            {
+                context.Padron.Add(padron);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
+
+                throw new Exception("Error al crear la categoria: " + ex.Message);
+            }
+
+            return result;
+        }
+
         public async Task<bool> Update(Padron padron)
         {
             bool result;
@@ -109,5 +89,26 @@ namespace Api.Data.Access
 
             return result;
         }
+
+        public async Task<bool> Delete(int id)
+        {
+            bool result;
+
+            try
+            {
+                context.Padron.Remove(context.Padron.Find(id)!);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+
+                throw new Exception("Error al eliminar la categoria: " + ex.Message);
+            }
+
+            return result;
+        }        
     }
 }

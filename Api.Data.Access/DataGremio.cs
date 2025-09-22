@@ -10,46 +10,6 @@ namespace Api.Data.Access
 {
     public class DataGremio(MySQLiteContext context)
     {
-        public async Task<bool> Create(Gremio gremio)
-        {
-            bool result;
-
-            try
-            {
-                context.Gremio.Add(gremio);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
-                throw new Exception("Error al crear la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
-
-        public async Task<bool> Delete(int id)
-        {
-            bool result;
-
-            try
-            {
-                context.Gremio.Remove(context.Gremio.Find(id)!);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
-
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
 
         public async Task<IEnumerable<Gremio>> GetAll()
         {
@@ -89,6 +49,26 @@ namespace Api.Data.Access
             return gremio;
         }
 
+        public async Task<bool> Create(Gremio gremio)
+        {
+            bool result;
+
+            try
+            {
+                context.Gremio.Add(gremio);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
+                throw new Exception("Error al crear la categoria: " + ex.Message);
+            }
+
+            return result;
+        }
+
         public async Task<bool> Update(Gremio gremio)
         {
             bool result;
@@ -109,5 +89,26 @@ namespace Api.Data.Access
 
             return result;
         }
+
+        public async Task<bool> Delete(int id)
+        {
+            bool result;
+
+            try
+            {
+                context.Gremio.Remove(context.Gremio.Find(id)!);
+                await context.SaveChangesAsync();
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+
+                throw new Exception("Error al eliminar la categoria: " + ex.Message);
+            }
+
+            return result;
+        }        
     }
 }

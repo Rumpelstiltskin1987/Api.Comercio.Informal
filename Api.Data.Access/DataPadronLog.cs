@@ -7,37 +7,33 @@ using Api.Entities;
 
 namespace Api.Data.Access
 {
-    public class DataCobradorLog(MySQLiteContext context)
+    public class DataPadronLog(MySQLiteContext context)
     {
-        public async Task<bool> AddLog(CobradorLog cobradorLog)
+        public async Task<bool> AddLog(PadronLog log)
         {
             bool result;
-
             try
             {
-                context.CobradorLog.Add(cobradorLog);
+                context.PadronLog.Add(log);
                 await context.SaveChangesAsync();
                 result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al crear el log del cobrador: " + ex.InnerException.Message);
-
-                throw new Exception("Error al crear el log del cobrador: " + ex.Message);
+                    throw new Exception("Error al crear el log del lider: " + ex.InnerException.Message);
+                throw new Exception("Error al crear el log del lider: " + ex.Message);
             }
-
             return result;
         }
-        public async Task<int> GetIdMovement(int id_cobrador)
+        public async Task<int> GetIdMovement(int id_padron)
         {
             int id_movimiento = 0;
-
             try
             {
                 id_movimiento = await Task.Run(() =>
-                    context.CobradorLog
-                        .Where(x => x.Id_cobrador == id_cobrador)
+                    context.PadronLog
+                        .Where(x => x.Id_padron == id_padron)
                         .Max(x => (int?)x.Id_movimiento) ?? 0
                 );
             }
@@ -45,10 +41,8 @@ namespace Api.Data.Access
             {
                 if (ex.InnerException != null)
                     throw new Exception("Error al obtener el id de movimiento: " + ex.InnerException.Message);
-
                 throw new Exception("Error al obtener el id de movimiento: " + ex.Message);
             }
-
             return id_movimiento;
         }
     }

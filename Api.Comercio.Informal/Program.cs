@@ -23,6 +23,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
 
 builder.Services.AddScoped<Api.Business.BusinessCategoria>();
 builder.Services.AddScoped<Api.Business.BusinessCobrador>();
+builder.Services.AddScoped<Api.Business.BusinessConcepto>();
 
 var app = builder.Build();
 app.UseCors(options =>

@@ -10,9 +10,9 @@ namespace Api.Interfaces
     public interface IConcepto
     {
         public Task<IEnumerable<Concepto>> GetAll();
-        public Task<Categoria> GetById(int id);
+        public Task<Concepto> GetById(int id);
         public Task<bool> Create(Concepto concepto);
-        public Task<bool> Update(int id, string descripcion, string status);
-        public Task<bool> Delete(int id);
+        public Task<bool> Update(int id, Concepto newConcepto);
+        public Task<bool> Delete(int id, string usuario);
     }
 }

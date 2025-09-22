@@ -50,7 +50,44 @@ namespace Api.Business
                 };
 
                 await _categoriaLog.AddLog(log);
+                transaction.Commit();
 
+                return result;
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<bool> Update(int id, string nombre, string status, string usuario)
+        {
+            Categoria categoria = await _categoria.GetById(id);
+
+            categoria.Nombre = nombre;
+            categoria.Estado = status;
+            categoria.Usuario_modificacion = usuario;
+            categoria.Fecha_modificacion = DateTime.Now;
+
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                bool result = await _categoria.Update(categoria);
+                int idMovimiento = await _categoriaLog.GetIdMovement(id) + 1;
+
+                CategoriaLog log = new()
+                {
+                    Id_movimiento = idMovimiento,
+                    Id_categoria = categoria.Id_categoria,
+                    Nombre = categoria.Nombre,
+                    Estado = categoria.Estado,
+                    Tipo_movimiento = "M",
+                    Usuario_modificacion = categoria.Usuario_modificacion,
+                    Fecha_modificacion = categoria.Fecha_modificacion,
+                };
+
+                await _categoriaLog.AddLog(log);
                 transaction.Commit();
                 return result;
             }
@@ -78,43 +115,6 @@ namespace Api.Business
                 transaction.Rollback();
                 throw;
             }
-        }
-
-        public async Task<bool> Update(int id, string nombre, string status, string usuario)
-        {
-            Categoria categoria = await _categoria.GetById(id);
-
-            categoria.Nombre = nombre;
-            categoria.Estado = status;
-            categoria.Usuario_modificacion = usuario;
-            categoria.Fecha_modificacion = DateTime.Now;
-
-            using var transaction = _context.Database.BeginTransaction();
-            try
-            {
-                bool result = await _categoria.Update(categoria);
-                int idMovimiento = await _categoriaLog.GetIdMovement(id) +1;
-
-                CategoriaLog log = new()
-                {
-                    Id_movimiento = idMovimiento,
-                    Id_categoria = categoria.Id_categoria,
-                    Nombre = categoria.Nombre,
-                    Estado = categoria.Estado,
-                    Tipo_movimiento = "M",
-                    Usuario_modificacion = categoria.Usuario_modificacion,
-                    Fecha_modificacion = categoria.Fecha_modificacion,
-                };
-
-                await _categoriaLog.AddLog(log);
-                transaction.Commit();
-                return result;
-            }
-            catch (Exception)
-            {
-                transaction.Rollback();
-                throw;
-            }
-        }
+        }        
     }
 }
