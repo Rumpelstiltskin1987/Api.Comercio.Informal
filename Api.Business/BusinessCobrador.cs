@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Api.Data.Access;
 using Api.Entities;
 using Api.Interfaces;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Api.Business
 {
@@ -32,61 +31,89 @@ namespace Api.Business
             return await _cobrador.GetById(id);
         }
 
-        public async Task<bool> Create(Cobrador categoria)
+        public async Task<IEnumerable<Cobrador>> Search(string? nombre, string? aPaterno, string? aMaterno,
+            string? telefono, string? email, string? estado)
         {
+            var query = _context.Cobrador.AsQueryable();
+
+            if (!string.IsNullOrEmpty(nombre))
+            {
+                query = query.Where(c => c.Nombre.Contains(nombre));
+            }
+
+            if (!string.IsNullOrEmpty(aPaterno))
+            {
+                query = query.Where(c => c.A_paterno.Contains(aPaterno));
+            }
+
+            if (!string.IsNullOrEmpty(aMaterno))
+            {
+                query = query.Where(c => c.A_materno.Contains(aMaterno));
+            }
+
+            if (!string.IsNullOrEmpty(telefono))
+            {
+                query = query.Where(c => c.Telefono != null && c.Telefono.Contains(telefono));
+            }
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                query = query.Where(c => c.Email != null && c.Email.Contains(email));
+            }
+
+            if (!string.IsNullOrEmpty(estado))
+            {
+                query = query.Where(c => c.Estado == estado);
+            }
+
+            return await _cobrador.Search(query);
+        }
+
+        public async Task Create(string nombre, string aPaterno, string aMaterno,
+            string telefono, string? email, string usuario)
+        {
+            Cobrador cobrador = new()
+            {
+                Nombre = nombre,
+                A_paterno = aPaterno,
+                A_materno = aMaterno,
+                Telefono = telefono,
+                Email = email,
+                Usuario_alta = usuario
+            };
+
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                bool result = await _cobrador.Create(categoria);
+                await _cobrador.Create(cobrador);
 
                 CobradorLog log = new()
                 {
                     Id_movimiento = 1,
-                    Id_cobrador = categoria.Id_cobrador,
-                    Nombre = categoria.Nombre,
-                    A_paterno = categoria.A_paterno,
-                    A_materno = categoria.A_materno,
-                    Telefono = categoria.Telefono,
-                    Email = categoria.Email,
-                    Estado = categoria.Estado,
+                    Id_cobrador = cobrador.Id_cobrador,
+                    Nombre = cobrador.Nombre,
+                    A_paterno = cobrador.A_paterno,
+                    A_materno = cobrador.A_materno,
+                    Telefono = cobrador.Telefono,
+                    Email = cobrador.Email,
+                    Estado = cobrador.Estado,
                     Tipo_movimiento = "A",
-                    Usuario_modificacion = categoria.Usuario_alta,
-                    Fecha_modificacion = categoria.Fecha_alta
+                    Usuario_modificacion = cobrador.Usuario_alta,
+                    Fecha_modificacion = cobrador.Fecha_alta
                 };
 
                 await _cobradorLog.AddLog(log);
-
                 transaction.Commit();
-                return result;
             }
             catch (Exception)
             {
                 transaction.Rollback();
                 throw;
             }
-        }
+        }               
 
-        public async Task<bool> Delete(int id)
-        {
-            _ = await _cobrador.GetById(id);
-
-            using var transaction = _context.Database.BeginTransaction();
-            try
-            {
-                bool result = await _cobrador.Delete(id);
-                transaction.Commit();
-
-                return result;
-            }
-            catch (Exception)
-            {
-                transaction.Rollback();
-                throw;
-            }
-        }        
-
-        public async Task<bool> Update(int id, string nombre, string aPaterno, string aMaterno,
-            string telefono, string email, string status, string usuario)
+        public async Task Update(int id, string nombre, string aPaterno, string aMaterno,
+            string telefono, string? email, string estado, string usuario)
         {
             Cobrador cobrador = await _cobrador.GetById(id);
 
@@ -95,14 +122,14 @@ namespace Api.Business
             cobrador.A_materno = aMaterno;
             cobrador.Telefono = telefono;
             cobrador.Email = email;
-            cobrador.Estado = status;
+            cobrador.Estado = estado;
             cobrador.Usuario_modificacion = usuario;
             cobrador.Fecha_modificacion = DateTime.Now;
 
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                bool result = await _cobrador.Update(cobrador);
+                await _cobrador.Update(cobrador);
                 int idMovimiento = await _cobradorLog.GetIdMovement(id) + 1;
 
                 CobradorLog log = new()
@@ -122,13 +149,29 @@ namespace Api.Business
 
                 await _cobradorLog.AddLog(log);
                 transaction.Commit();
-                return result;
             }
             catch (Exception)
             {
                 transaction.Rollback();
                 throw;
             }
-        }
+        }        
+
+        public async Task Delete(int id)
+        {
+            _ = await _cobrador.GetById(id);
+
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                await _cobrador.Delete(id);
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+        } 
     }
 }

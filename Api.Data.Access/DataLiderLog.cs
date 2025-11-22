@@ -9,14 +9,12 @@ namespace Api.Data.Access
 {
     public class DataLiderLog(MySQLiteContext context)
     {
-        public async Task<bool> AddLog(LiderLog liderLog)
+        public async Task AddLog(LiderLog liderLog)
         {
-            bool result;
             try
             {
                 context.LiderLog.Add(liderLog);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -24,8 +22,8 @@ namespace Api.Data.Access
                     throw new Exception("Error al crear el log del lider: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el log del lider: " + ex.Message);
             }
-            return result;
         }
+
         public async Task<int> GetIdMovement(int id_lider)
         {
             int id_movimiento = 0;

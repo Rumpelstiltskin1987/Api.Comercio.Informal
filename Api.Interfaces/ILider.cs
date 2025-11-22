@@ -11,8 +11,10 @@ namespace Api.Interfaces
     {
         public Task<IEnumerable<Lider>> GetAll();
         public Task<Lider> GetById(int id);
-        public Task<bool> Create(Lider lider);
-        public Task<bool> Update(int id, Lider lider);
-        public Task<bool> Delete(int id);
+        public Task Create(string nombre, string a_paterno, string a_materno, string telefono, 
+            string email, string direccion, string usuario);
+        public Task Update(int id, string nombre, string a_paterno, string a_materno, string telefono, 
+            string email, string direccion, string estado, string usuario);
+        public Task Delete(int id);
     }
 }

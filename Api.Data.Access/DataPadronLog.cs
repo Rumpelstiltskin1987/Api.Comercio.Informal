@@ -9,22 +9,19 @@ namespace Api.Data.Access
 {
     public class DataPadronLog(MySQLiteContext context)
     {
-        public async Task<bool> AddLog(PadronLog log)
+        public async Task AddLog(PadronLog log)
         {
-            bool result;
             try
             {
                 context.PadronLog.Add(log);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al crear el log del lider: " + ex.InnerException.Message);
-                throw new Exception("Error al crear el log del lider: " + ex.Message);
+                    throw new Exception("Error al crear el log del padron: " + ex.InnerException.Message);
+                throw new Exception("Error al crear el log del padron: " + ex.Message);
             }
-            return result;
         }
         public async Task<int> GetIdMovement(int id_padron)
         {

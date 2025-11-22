@@ -1,0 +1,179 @@
+﻿/* wwwroot/cobradores.css */
+
+/* Definimos una clase maestra para tu QuickGrid */
+.official-grid {
+    width: 100%;
+    table-layout: fixed; /* Fuerza a respetar los anchos proporcionales */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+    /* CABECERAS */
+    .official-grid thead tr th {
+        background-color: #9D2449 !important; /* Guinda Oficial */
+        color: #ffffff !important;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+        padding: 1rem;
+        border-bottom: 4px solid #DDC686; /* Acento Dorado */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* --- DISTRIBUCIÓN DE ANCHOS (Total = 100%) --- */
+    /* Nombre(s) */
+    .official-grid th:nth-child(1) {
+        width: 18%;
+    }
+    /* A. Paterno */
+    .official-grid th:nth-child(2) {
+        width: 16%;
+    }
+    /* A. Materno */
+    .official-grid th:nth-child(3) {
+        width: 16%;
+    }
+    /* Teléfono */
+    .official-grid th:nth-child(4) {
+        width: 15%;
+    }
+    /* E-mail */
+    .official-grid th:nth-child(5) {
+        width: 19%;
+    }
+    /* Estatus */
+    .official-grid th:nth-child(6) {
+        width: 8%;
+    }
+
+    /* Columna Gestión (Alineada a la derecha) */
+    .official-grid th:nth-child(7) {
+        width: 8%;
+        text-align: right !important;
+    }
+
+    /* Bordes redondeados superiores */
+    .official-grid thead tr th:first-child {
+        border-top-left-radius: 4px;
+    }
+
+    .official-grid thead tr th:last-child {
+        border-top-right-radius: 4px;
+    }
+
+    /* CELDAS DEL CUERPO */
+    .official-grid tbody tr td {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid #e0e0e0;
+        color: #333;
+        font-size: 0.9rem;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .official-grid tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+/* Badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #c8e6c9;
+}
+
+.status-inactive {
+    background-color: #ffebee;
+    color: #b71c1c;
+    border: 1px solid #ffcdd2;
+}
+
+.paginator-container {
+    background-color: #fff;
+    border-top: 1px solid #eee;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+
+/* --- CORRECCIÓN DE BOTONES DE ORDENAMIENTO --- */
+
+/* 1. Reseteamos el estilo del botón para que se fusione con el encabezado */
+.official-grid thead th button {
+    background-color: transparent !important; /* Quita el fondo gris/blanco */
+    border: none !important; /* Quita el borde 3D del botón */
+    color: #ffffff !important; /* Texto blanco forzado */
+    /* Aseguramos que herede la tipografía bonita que ya definiste en el TH */
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    /* Ajustes de posición */
+    width: 100%;
+    text-align: left; /* O center, según prefieras */
+    padding: 0; /* Elimina el relleno interno del botón */
+    cursor: pointer;
+    display: flex; /* Para alinear texto e ícono */
+    align-items: center;
+    justify-content: space-between; /* Separa texto e ícono si es necesario */
+}
+
+    /* 2. Efecto Hover: Un ligero brillo dorado o blanco al pasar el mouse */
+    .official-grid thead th button:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #DDC686 !important; /* Texto cambia a dorado al interactuar (opcional) */
+        text-transform: uppercase;
+    }
+
+    /* 3. Corregir el color de la flecha de ordenamiento (SVG) */
+    .official-grid thead th button svg {
+        fill: #ffffff !important; /* Pinta la flechita de blanco */
+        opacity: 0.8;
+        width: 1rem; /* Tamaño controlado */
+        height: 1rem;
+        margin-left: 0.5rem;
+    }
+
+    /* Al pasar el mouse, la flecha también se pone dorada */
+    .official-grid thead th button:hover svg {
+        fill: #DDC686 !important;
+        opacity: 1;
+    }
+
+/* Ajustes para el Paginador Personalizado */
+.paginator-content .btn-outline-secondary {
+    border-color: #dee2e6;
+    color: #666;
+}
+
+    .paginator-content .btn-outline-secondary:hover:not(:disabled) {
+        background-color: #e9ecef;
+        color: #333;
+        border-color: #ccc;
+    }
+
+    .paginator-content .btn-outline-secondary:disabled {
+        border-color: #eee;
+        color: #ccc;
+    }
+
+/* Ajuste fino para los botones del paginador */
+.page-link:focus {
+    box-shadow: none; /* Quita el borde azul al hacer clic */
+    background-color: rgba(0,0,0,0.05);
+}

@@ -12,30 +12,33 @@ namespace Api.Data.Access
     {
         public async Task<IEnumerable<Recaudacion>> GetAll()
         {
-            IEnumerable<Recaudacion> Recaudaciones;
+            IEnumerable<Recaudacion> recaudacion;
 
             try
             {
-                Recaudaciones = await context.Recaudacion.ToListAsync();
+                recaudacion = await context.Recaudacion.ToListAsync();
+
+                if (!recaudacion.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener las categorias: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener la recaudación: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener las categorias: " + ex.Message);
+                throw new Exception("Error al obtener la recaudación: " + ex.Message);
             }
 
-            return Recaudaciones;
+            return recaudacion;
         }
 
         public async Task<Recaudacion> GetById(int id)
         {
-            Recaudacion Recaudacion;
+            Recaudacion cobro;
 
             try
             {
-                Recaudacion = await context.Recaudacion.FindAsync(id) ?? throw new Exception("Categoria no encontrada");
+                cobro = await context.Recaudacion.FindAsync(id) ?? throw new Exception("Recaudación no encontrada");
             }
             catch (Exception ex)
             {
@@ -45,69 +48,69 @@ namespace Api.Data.Access
                 throw new Exception("Error al obtener la categoria: " + ex.Message);
             }
 
-            return Recaudacion;
+            return cobro;
         }
 
-        public async Task<bool> Create(Recaudacion recaudacion)
+        public async Task<IEnumerable<Recaudacion>> Search(IQueryable<Recaudacion> query)
         {
-            bool result;
+            try
+            {
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al buscar los registros: " + ex.InnerException.Message);
 
+                throw new Exception("Error al buscar los registros: " + ex.Message);
+            }
+        }
+
+        public async Task Create(Recaudacion recaudacion)
+        {
             try
             {
                 context.Recaudacion.Add(recaudacion);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
-                throw new Exception("Error al crear la categoria: " + ex.Message);
+                    throw new Exception("Error al registrar la recaudación: " + ex.InnerException.Message);
+                throw new Exception("Error al registrar la recaudación: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Update(Recaudacion recaudacion)
+        public async Task Update(Recaudacion recaudacion)
         {
-            bool result;
-
             try
             {
                 context.Recaudacion.Update(recaudacion);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al actualizar la recaudación: " + ex.InnerException.Message);
 
-                throw new Exception("Error al actualizar la categoria: " + ex.Message);
+                throw new Exception("Error al actualizar la recaudación: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task Delete(int id)
         {
-            bool result;
-
             try
             {
                 context.Recaudacion.Remove(context.Recaudacion.Find(id)!);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al eliminar la recaudación: " + ex.InnerException.Message);
 
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
+                throw new Exception("Error al eliminar la recaudación: " + ex.Message);
             }
-
-            return result;
         }        
     }
 }

@@ -10,7 +10,6 @@ namespace Api.Entities
     {
         public int Id_movimiento { get; set; }
         public int Id_padron { get; set; }
-        public string? Matricula { get; set; }
         public string? Nombre { get; set; }
         public string? A_paterno { get; set; }
         public string? A_materno { get; set; }
@@ -18,7 +17,10 @@ namespace Api.Entities
         public string? Direccion { get; set; }
         public string? Telefono { get; set; }
         public string? Email { get; set; }
+        public string? Matricula { get; set; }
+        public string? Matricula_anterior { get; set; }
         public int Id_gremio { get; set; }
+        public string Tipo_vendedor { get; set; } = "P"; // P=Padron, E=Eventual
         public string? Estado { get; set; }
         public string? Tipo_movimiento { get; set; }
         public string? Usuario_modificacion { get; set; }

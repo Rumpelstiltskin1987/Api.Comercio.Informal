@@ -10,64 +10,26 @@ namespace Api.Data.Access
 {
     public class DataLider(MySQLiteContext context)
     {
-        public async Task<bool> Create(Lider lider)
-        {
-            bool result;
-
-            try
-            {
-                context.Lider.Add(lider);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
-                throw new Exception("Error al crear la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
-
-        public async Task<bool> Delete(int id)
-        {
-            bool result;
-
-            try
-            {
-                context.Lider.Remove(context.Lider.Find(id)!);
-                await context.SaveChangesAsync();
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
-
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
-            }
-
-            return result;
-        }
-
         public async Task<IEnumerable<Lider>> GetAll()
         {
-            IEnumerable<Lider> Lideres;
+            IEnumerable<Lider> lideres;
 
             try
             {
-                Lideres = await context.Lider.ToListAsync();
+                lideres = await context.Lider.ToListAsync();
+
+                if (!lideres.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener las categorias: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener los lideres: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener las categorias: " + ex.Message);
+                throw new Exception("Error al obtener los lideres: " + ex.Message);
             }
 
-            return Lideres;
+            return lideres;
         }
 
         public async Task<Lider> GetById(int id)
@@ -76,38 +38,79 @@ namespace Api.Data.Access
 
             try
             {
-                lider = await context.Lider.FindAsync(id) ?? throw new Exception("Categoria no encontrada");
+                lider = await context.Lider.FindAsync(id) ?? throw new Exception("Lider no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el lider: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la categoria: " + ex.Message);
+                throw new Exception("Error al obtener el lider: " + ex.Message);
             }
 
             return lider;
         }
 
-        public async Task<bool> Update(Lider lider)
+        public async Task<IEnumerable<Lider>> Search(IQueryable<Lider> query)
         {
-            bool result;
-
             try
             {
-                context.Lider.Update(lider);
-                await context.SaveChangesAsync();
-                result = true;
+                return await query.ToListAsync();
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al buscar los lideres: " + ex.InnerException.Message);
 
-                throw new Exception("Error al actualizar la categoria: " + ex.Message);
+                throw new Exception("Error al buscar los lideres: " + ex.Message);
             }
+        }
 
-            return result;
+        public async Task Create(Lider lider)
+        {
+            try
+            {
+                context.Lider.Add(lider);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al crear el lider: " + ex.InnerException.Message);
+                throw new Exception("Error al crear el lider: " + ex.Message);
+            }
+        }
+
+        public async Task Update(Lider lider)
+        {
+            try
+            {
+                context.Lider.Update(lider);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al actualizar el lider: " + ex.InnerException.Message);
+
+                throw new Exception("Error al actualizar el lider: " + ex.Message);
+            }
+        }
+
+        public async Task Delete(int id)
+        {
+            try
+            {
+                context.Lider.Remove(context.Lider.Find(id)!);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al eliminar los registros: " + ex.InnerException.Message);
+
+                throw new Exception("Error al eliminar los registros: " + ex.Message);
+            }
         }
     }
 }

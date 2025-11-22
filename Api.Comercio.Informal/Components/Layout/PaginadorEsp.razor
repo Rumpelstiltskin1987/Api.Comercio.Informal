@@ -1,0 +1,72 @@
+﻿@using Microsoft.AspNetCore.Components.QuickGrid
+@implements IDisposable
+
+<div class="paginator-content d-flex align-items-center justify-content-end gap-3">
+
+    <span class="text-muted small text-uppercase fw-bold">
+        @if (State.TotalItemCount.HasValue && State.TotalItemCount.Value > 0)
+        {
+            var start = (State.CurrentPageIndex * State.ItemsPerPage) + 1;
+            var end = Math.Min((State.CurrentPageIndex + 1) * State.ItemsPerPage, State.TotalItemCount.Value);
+
+            @($"{start} - {end} de {State.TotalItemCount} registros")
+        }
+        else
+        {
+            @("Sin registros")
+        }
+    </span>
+
+    <div class="btn-group shadow-sm" role="group">
+        <button class="btn btn-sm btn-outline-secondary"
+                disabled="@(!CanGoBack)"
+                @onclick="GoBack"
+                title="Página Anterior">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <button class="btn btn-sm btn-outline-secondary"
+                disabled="@(!CanGoForward)"
+                @onclick="GoForward"
+                title="Página Siguiente">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public PaginationState State { get; set; } = default!;
+
+    // Propiedades calculadas para habilitar/deshabilitar botones
+    private bool CanGoBack => State.CurrentPageIndex > 0;
+    private bool CanGoForward => State.CurrentPageIndex < (State.LastPageIndex ?? 0);
+
+    protected override void OnInitialized()
+    {
+        // Nos suscribimos al cambio de estado para que el paginador se actualice
+        // cuando el QuickGrid filtre o cambie datos.
+        State.TotalItemCountChanged += OnStateChange;
+    }
+
+    private void OnStateChange(object? sender, int? count)
+        => InvokeAsync(StateHasChanged);
+
+    private async Task GoBack()
+    {
+        if (CanGoBack)
+            await State.SetCurrentPageIndexAsync(State.CurrentPageIndex - 1);
+    }
+
+    private async Task GoForward()
+    {
+        if (CanGoForward)
+            await State.SetCurrentPageIndexAsync(State.CurrentPageIndex + 1);
+    }
+
+    public void Dispose()
+    {
+        // Es importante desuscribirse para evitar fugas de memoria
+        State.TotalItemCountChanged -= OnStateChange;
+    }
+}

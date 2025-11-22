@@ -1,0 +1,372 @@
+﻿/* =========================================
+   TEMA GUBERNAMENTAL MÉXICO - MINIMALISTA
+   ========================================= */
+
+:root {
+    /* Paleta Oficial Institucional */
+    --gob-primary: #9D2449; /* Guinda Oficial */
+    --gob-primary-dark: #7a1c38; /* Guinda Oscuro (Hover) */
+    --gob-accent: #DDC686; /* Dorado para detalles finos */
+    --gob-dark: #101010; /* Negro casi puro para textos */
+    --gob-gray: #6F7271; /* Gris secundario */
+    --bg-light: #F9F9F9; /* Fondo general muy limpio */
+    --surface-white: #FFFFFF; /* Color de tarjetas y superficies */
+}
+
+/* --- TIPOGRAFÍA Y BASE --- */
+html, body {
+    font-family: 'Montserrat', 'Segoe UI', Helvetica, Arial, sans-serif; /* Montserrat es muy usada en Gob.mx */
+    color: var(--gob-dark);
+    background-color: var(--bg-light);
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5 {
+    font-weight: 600; /* Pesos semi-bold para jerarquía clara */
+    color: var(--gob-dark);
+    letter-spacing: -0.5px;
+}
+
+    h1:focus {
+        outline: none;
+    }
+
+/* --- ENLACES --- */
+a, .btn-link {
+    color: var(--gob-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    a:hover {
+        color: var(--gob-primary-dark);
+        text-decoration: underline;
+    }
+
+/* --- BOTONES (Identidad Principal) --- */
+.official-btn-primary {
+    color: #fff;
+    background-color: var(--gob-primary);
+    border-color: var(--gob-primary);
+    box-shadow: 0 2px 5px rgba(157, 36, 73, 0.2); /* Sombra sutil en color guinda */
+    font-weight: 500;
+    border-radius: 4px; /* Bordes ligeramente menos redondeados (más serios) */
+    padding: 0.5rem 1.2rem;
+    text-transform: uppercase; /* Estilo muy común en botones de gobierno */
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.official-btn-primary:hover {
+    background-color: var(--gob-primary-dark);
+    border-color: var(--gob-primary-dark);
+}
+
+.official-btn-outline-secondary {
+    color: var(--gob-gray);
+    border-color: #ccc;
+    border-radius: 4px;
+    padding: 0.5rem 1.2rem;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.official-btn-outline-secondary:hover {
+    background-color: #e0e0e0;
+    color: #000;
+}
+
+/* --- LAYOUT PRINCIPAL --- */
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    background-color: var(--bg-light);
+}
+
+/* --- SIDEBAR (Barra Lateral) --- */
+/* Fondo Guinda Institucional (#9D2449) en lugar del negro/gris */
+.sidebar {
+    background-image: none;
+    background-color: #9D2449; /* <--- CAMBIO: Color Guinda Oficial */
+    color: #ffffff; /* Texto blanco */
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+}
+
+/* --- BARRA SUPERIOR (Top Row) --- */
+.top-row {
+    background-color: var(--surface-white);
+    border-bottom: 1px solid #e0e0e0; /* Borde sutil */
+    /* Agregamos una línea decorativa dorada típica de documentos oficiales */
+    border-top: 4px solid var(--gob-accent);
+    justify-content: flex-end;
+    height: 4rem; /* Un poco más alta */
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+    .top-row a, .top-row .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+        color: var(--gob-gray);
+        text-decoration: none;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+    }
+
+        .top-row a:hover {
+            color: var(--gob-primary);
+        }
+
+/* --- RESPONSIVIDAD --- */
+@media (max-width: 640.98px) {
+    .top-row:not(.auth) {
+        display: none;
+    }
+
+    .top-row.auth {
+        justify-content: space-between;
+    }
+
+    .top-row a, .top-row .btn-link {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 641px) {
+    .page {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 270px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .top-row, article {
+        padding-left: 2.5rem !important;
+        padding-right: 2.5rem !important;
+    }
+}
+
+/* --- MENÚ DE NAVEGACIÓN (NavMenu) --- */
+.navbar-toggler {
+    background-color: rgba(255, 255, 100, 0.2);
+    border: none;
+}
+
+.top-row .navbar-brand {
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+}
+
+.nav-item {
+    font-size: 0.9rem;
+    padding-bottom: 0.1rem;
+}
+
+    .nav-item .bi {
+        display: inline-block;
+        position: relative;
+        width: 2rem; /* <--- CAMBIO: Doble tamaño (antes 1.2rem) */
+        height: 2rem; /* <--- CAMBIO: Doble tamaño */
+        margin-right: 1rem;
+        top: -2px;
+        opacity: 1; /* Opacidad al 100% para que resalten en blanco */
+        font-size: 1.8rem; /* Asegura que el glifo del icono crezca */
+    }
+
+    .nav-item:first-of-type {
+        padding-top: 2rem;
+    }
+
+    .nav-item a {
+        color: #ffffff !important; /* <--- CAMBIO: Blanco puro forzado */
+        border-radius: 0;
+        height: 4.5rem; /* <--- CAMBIO: Más altura para acomodar letras grandes */
+        display: flex;
+        align-items: center;
+        line-height: 3rem;
+        padding-left: 1.5rem;
+        border-left: 6px solid transparent;
+        transition: all 0.2s ease;
+        /* <--- CAMBIO: Tamaño de letra al doble (Visualmente grande) */
+        font-size: 1.4rem;
+        font-weight: 500;
+        /* <--- CAMBIO: Sin subrayado por defecto */
+        text-decoration: none;
+    }
+
+        /* ESTADO ACTIVO */
+        .nav-item a.active {
+            background-color: rgba(0, 0, 0, 0.2); /* Oscurecer ligeramente el guinda */
+            color: #ffffff;
+            font-weight: 700;
+            border-left: 6px solid #DDC686; /* Dorado Oficial */
+        }
+
+        /* HOVER (Al pasar el mouse) */
+        .nav-item a:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Efecto de luz suave */
+            color: #DDC686 !important; /* <--- CAMBIO: Texto se vuelve Dorado al pasar el mouse */
+            /* <--- CAMBIO: Eliminamos explícitamente el subrayado */
+            text-decoration: none !important;
+        }
+
+/* --- TARJETAS Y CONTENEDORES (Ajuste para QuickGrid y Modales) --- */
+.card, .modal-content {
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 4px;
+}
+
+/* Un toque elegante: borde superior guinda en las tarjetas principales */
+.card {
+    /*border-top: 3px solid var(--gob-primary);*/
+    margin-top: 2px;
+}
+
+/* =========================================
+   ESTILOS PARA VENTANA MODAL (OVERLAY)
+   ========================================= */
+
+/* Fondo oscuro semitransparente que cubre toda la pantalla */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Oscuridad al 50% */
+    z-index: 1040; /* Muy alto para estar encima de todo */
+    display: block;
+}
+
+/* Contenedor principal de la ventana */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1050; /* Encima del backdrop */
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+    display: block; /* Obligatorio para que se vea */
+}
+
+/* Posicionamiento y centrado de la caja de diálogo */
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    pointer-events: none;
+    max-width: 600px; /* Ancho máximo de la ventana */
+}
+
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+    justify-content: center; /* Centra horizontalmente */
+}
+
+/* Diseño visual de la tarjeta del modal (Estilo Gobierno) */
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 6px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); /* Sombra elegante */
+    overflow: hidden; /* Para que el encabezado respete los bordes redondeados */
+}
+
+/* Encabezado Institucional */
+.modal-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background-color: #9D2449; /* Guinda Oficial */
+    color: white;
+    border-bottom: 4px solid #DDC686; /* Línea dorada */
+}
+
+.modal-title {
+    margin: 0;
+    line-height: 1.5;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Cuerpo del modal */
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+}
+
+/* Pie de página del modal */
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 1rem;
+    background-color: #fff;
+    border-top: 1px solid #dee2e6;
+    gap: 0.5rem; /* Espacio entre botones */
+}
+
+/* Botón de cierre (X) en el encabezado */
+.btn-close {
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    width: 1em;
+    height: 1em;
+    padding: .25em;
+    border: 0;
+    opacity: .8;
+    cursor: pointer;
+}
+
+    .btn-close:hover {
+        opacity: 1;
+    }
+
+.lblwidth {
+    display: inline-block; /* Necesario para respetar el ancho */
+    width: 150px; /* Define aquí el ancho fijo que desees */
+    white-space: nowrap; /* Opcional: Evita que el texto se parta en dos líneas */
+    overflow: hidden; /* Opcional: Oculta el texto que exceda el ancho */
+    text-overflow: ellipsis; /* Opcional: Pone "..." si el texto es muy largo */
+}

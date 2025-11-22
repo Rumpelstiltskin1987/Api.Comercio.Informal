@@ -1,0 +1,25 @@
+﻿@page "/folios"
+@inject BusinessFolio _folioService
+@rendermode InteractiveServer
+<h3>Administración de Folios</h3>
+<table class="table">
+    <thead><tr><th>Prefijo</th><th>Siguiente</th><th>Año</th><th>Gremio</th></tr></thead>
+    <tbody>
+        @if (items != null)
+        {
+            @foreach (var f in items)
+            {
+                <tr>
+                    <td>@f.Prefijo</td>
+                    <td>@f.Siguiente_folio</td>
+                    <td>@f.Anio_vigente</td>
+                    <td>@(f.Id_gremio == null ? "General" : f.Id_gremio)</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+@code {
+    List<Folio>? items;
+    protected override async Task OnInitializedAsync() => items = (await _folioService.GetAll()).ToList();
+}

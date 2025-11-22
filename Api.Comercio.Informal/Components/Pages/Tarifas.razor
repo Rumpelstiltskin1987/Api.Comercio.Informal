@@ -1,0 +1,59 @@
+﻿@page "/tarifas"
+@using Api.Entities
+@using Api.Business
+@inject BusinessRecaudacion _recaudacionService // O BusinessTarifa si lo separaste
+@rendermode InteractiveServer
+
+<h3>Configuración de Tarifas</h3>
+
+@if (listaTarifas == null)
+{
+    <p><em>Cargando tarifas...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th>Aplica a Gremio</th>
+                <th>Monto</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in listaTarifas)
+            {
+                <tr>
+                    <td>@item.Id_concepto</td>
+                    <td>
+                        @if (item.Id_gremio == null)
+                        {
+                            <span class="badge bg-info">General / Independientes</span>
+                        }
+                        else
+                        {
+
+                            <span>Gremio ID: @item.Id_gremio</span>
+                        }
+                    </td>
+                    <td>$ @item.Monto.ToString("N2")</td>
+                    <td>@item.Estado</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    // Asumiendo que creaste un BusinessTarifa o usas BusinessRecaudacion
+    // Si no tienes el servicio inyectado, deberás agregarlo en Program.cs
+    List<Tarifa>? listaTarifas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulación, conecta con tu servicio real
+        listaTarifas = new List<Tarifa>();
+        // listaTarifas = await _tarifaService.ObtenerTodas();
+    }
+}

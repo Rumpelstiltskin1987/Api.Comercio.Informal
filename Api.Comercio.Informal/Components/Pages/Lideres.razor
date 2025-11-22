@@ -1,0 +1,12 @@
+﻿@page "/lideres"
+@using Api.Entities
+@using Api.Business
+@inject BusinessLider _liderService
+@rendermode InteractiveServer
+
+<h3>Líderes Sindicales</h3>
+
+@code {
+    List<Lider>? items;
+    protected override async Task OnInitializedAsync() => items = (await _liderService.GetAll()).ToList();
+}

@@ -11,8 +11,8 @@ namespace Api.Interfaces
     {
         public Task<IEnumerable<Gremio>> GetAll();
         public Task<Gremio> GetById(int id);
-        public Task<bool> CreateGremio(Gremio gremio);
-        public Task<bool> UpdateGremio(int id, Gremio gremio);
-        public Task<bool> DeleteGremio(int id);
+        public Task Create(string descripcion, int id_lider, string usuario);
+        public Task Update(int id, string descripcion, int id_lider, string status, string usuario);
+        public Task Delete(int id);
     }
 }

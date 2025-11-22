@@ -1,0 +1,156 @@
+﻿using Api.Data.Access;
+using Api.Entities;
+using Api.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.XPath;
+
+namespace Api.Business
+{
+    public class BusinessPadron : IPadron
+    {
+        private readonly MySQLiteContext _context;
+        private readonly DataPadron _dataPadron;
+        private readonly DataPadronLog _dataPadronLog;
+
+        public BusinessPadron(MySQLiteContext context)
+        {
+            _context = context;
+            _dataPadron = new DataPadron(_context);
+            _dataPadronLog = new DataPadronLog(_context);
+        }
+
+        public async Task<IEnumerable<Padron>> GetAll()
+        {
+            return await _dataPadron.GetAll();
+        }
+
+        public async Task<Padron> GetById(int id)
+        {
+            return await _dataPadron.GetById(id);
+        }
+
+        public async Task Create(string nombre, string a_paterno, string a_materno, string curp,
+            string direccion, string telefono, string? email, string matricula, int id_gremio, string usuario)
+        {
+            Padron padron = new()
+            {
+                Matricula = matricula,
+                Nombre = nombre,
+                A_paterno = a_paterno,
+                A_materno = a_materno,
+                Curp = curp,
+                Direccion = direccion,
+                Telefono = telefono,
+                Email = email,
+                Id_gremio = id_gremio,
+                Usuario_alta = usuario,
+                Fecha_alta = DateTime.Now
+            };
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _dataPadron.Create(padron);
+
+                PadronLog padronLog = new()
+                {
+                    Id_movimiento = 1,
+                    Id_padron = padron.Id_padron,
+                    Matricula = padron.Matricula,
+                    Nombre = padron.Nombre,
+                    A_paterno = padron.A_paterno,
+                    A_materno = padron.A_materno,
+                    Curp = padron.Curp,
+                    Direccion = padron.Direccion,
+                    Telefono = padron.Telefono,
+                    Email = padron.Email,
+                    Id_gremio = padron.Id_gremio,
+                    Estado = padron.Estado
+                };
+
+                await _dataPadronLog.AddLog(padronLog);
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task Update(int id, string nombre, string a_paterno, string a_materno, string curp, 
+            string direccion, string telefono, string email, string matricula, string matricula_anterior, 
+            int id_gremio, string status, string usuario)
+        {
+            Padron padron = await _dataPadron.GetById(id);
+
+            padron.Matricula = matricula;
+            padron.Nombre = nombre;
+            padron.A_paterno = a_paterno;
+            padron.A_materno = a_materno;
+            padron.Curp = curp;
+            padron.Direccion = direccion;
+            padron.Telefono = telefono;
+            padron.Email = email;
+            padron.Id_gremio = id_gremio;
+            padron.Estado = status;
+            padron.Usuario_modificacion = usuario;
+            padron.Fecha_modificacion = DateTime.Now;
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _dataPadron.Update(padron);
+                int idMovimiento = await _dataPadronLog.GetIdMovement(id) + 1;
+
+                PadronLog padronLog = new()
+                {
+                    Id_movimiento = idMovimiento,
+                    Id_padron = padron.Id_padron,
+                    Matricula = padron.Matricula,
+                    Nombre = padron.Nombre,
+                    A_paterno = padron.A_paterno,
+                    A_materno = padron.A_materno,
+                    Curp = padron.Curp,
+                    Direccion = padron.Direccion,
+                    Telefono = padron.Telefono,
+                    Email = padron.Email,
+                    Id_gremio = padron.Id_gremio,
+                    Estado = padron.Estado,
+                    Tipo_movimiento = "M",
+                    Usuario_modificacion = padron.Usuario_modificacion,
+                    Fecha_modificacion = padron.Fecha_modificacion
+                };
+
+                await _dataPadronLog.AddLog(padronLog);
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task Delete(int id)
+        {
+            _ = await _dataPadron.GetById(id);
+            
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _dataPadron.Delete(id);
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }   
+    }
+}

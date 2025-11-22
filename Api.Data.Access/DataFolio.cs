@@ -17,6 +17,9 @@ namespace Api.Data.Access
             try
             {
                 folios = await context.Folio.ToListAsync();
+
+                if (!folios.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
@@ -35,27 +38,40 @@ namespace Api.Data.Access
 
             try
             {
-                folio = await context.Folio.FindAsync(id) ?? throw new Exception("Categoria no encontrada");
+                folio = await context.Folio.FindAsync(id) ?? throw new Exception("Folio no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el folio: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la categoria: " + ex.Message);
+                throw new Exception("Error al obtener el folio: " + ex.Message);
             }
 
             return folio;
         }
-        public async Task<bool> Create(Folio folio)
-        {
-            bool result;
 
+        public async Task<IEnumerable<Folio>> Search(IQueryable<Folio> query)
+        {
+            try
+            {
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al buscar los registros: " + ex.InnerException.Message);
+
+                throw new Exception("Error al buscar los registros: " + ex.Message);
+            }
+        }
+
+        public async Task Create(Folio folio)
+        {
             try
             {
                 context.Folio.Add(folio);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -63,40 +79,30 @@ namespace Api.Data.Access
                     throw new Exception("Error al crear el folio: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el folio: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Update(Folio folio)
+        public async Task Update(Folio folio)
         {
-            bool result;
-
             try
             {
                 context.Folio.Update(folio);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al actualizar el folio: " + ex.InnerException.Message);
 
-                throw new Exception("Error al actualizar la categoria: " + ex.Message);
+                throw new Exception("Error al actualizar el folio: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task Delete(int id)
         {
-            bool result;
-
             try
             {
                 context.Folio.Remove(context.Folio.Find(id)!);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -105,8 +111,6 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al eliminar el folio: " + ex.Message);
             }
-
-            return result;
         }        
     }
 }

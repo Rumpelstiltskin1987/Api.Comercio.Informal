@@ -32,13 +32,19 @@ namespace Api.Business
             return await _concepto.GetById(id);
         }
 
-        public async Task<bool> Create(Concepto concepto)
+        public async Task Create(string descripcion, string usuario)
         {
-            using var transaction = _context.Database.BeginTransaction();
+            Concepto concepto = new()
+            {
+                Descripcion = descripcion,
+                Usuario_alta = usuario,
+                Fecha_alta = DateTime.Now
+            };
 
+            using var transaction = _context.Database.BeginTransaction();
             try
             {
-                bool result = await _concepto.Create(concepto);
+                await _concepto.Create(concepto);
 
                 ConceptoLog log = new()
                 {
@@ -52,8 +58,6 @@ namespace Api.Business
                 };
                 await _conceptoLog.AddLog(log);
                 transaction.Commit();
-
-                return result;
             }
             catch (Exception)
             {
@@ -62,20 +66,19 @@ namespace Api.Business
             }
         }              
 
-        public async Task<bool> Update(int id, Concepto newConcepto)
+        public async Task Update(int id, string descripcion, string estado, string usuario)
         {
             Concepto concepto = await _concepto.GetById(id);
 
-            concepto.Descripcion = newConcepto.Descripcion;
-            concepto.Estado = newConcepto.Estado;
-            concepto.Usuario_modificacion = newConcepto.Usuario_modificacion;
+            concepto.Descripcion = descripcion;
+            concepto.Estado = estado;
+            concepto.Usuario_modificacion = usuario;
             concepto.Fecha_modificacion = DateTime.Now;
 
             using var transaction = _context.Database.BeginTransaction();
-
             try 
             { 
-                bool result = await _concepto.Update(concepto);
+                await _concepto.Update(concepto);
                 int id_movimiento = await _conceptoLog.GetIdMovement(id) + 1;
 
                 ConceptoLog log = new()
@@ -91,8 +94,6 @@ namespace Api.Business
 
                 await _conceptoLog.AddLog(log);
                 transaction.Commit();
-
-                return result;
             }
             catch (Exception)
             {
@@ -101,32 +102,15 @@ namespace Api.Business
             }
         }
 
-        public async Task<bool> Delete(int id, string usuario)
+        public async Task Delete(int id)
         {
-            Concepto concepto = await _concepto.GetById(id);
+            _ = await _concepto.GetById(id);
 
             using var transaction = _context.Database.BeginTransaction();
-
             try
             {
-                bool result = await _concepto.Delete(id);
-                int id_movimiento = await _conceptoLog.GetIdMovement(id) + 1;
-
-                ConceptoLog log = new()
-                {
-                    Id_movimiento = id_movimiento,
-                    Id_concepto = concepto.Id_concepto,
-                    Descripcion = concepto.Descripcion,
-                    Estado = concepto.Estado,
-                    Tipo_movimiento = "B",
-                    Usuario_modificacion = usuario,
-                    Fecha_modificacion = DateTime.Now
-                };
-
-                await _conceptoLog.AddLog(log);
+                await _concepto.Delete(id);
                 transaction.Commit();
-
-                return result;
             }
             catch (Exception)
             {

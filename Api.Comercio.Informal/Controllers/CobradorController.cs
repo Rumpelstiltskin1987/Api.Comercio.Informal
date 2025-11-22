@@ -1,13 +1,11 @@
-﻿using Api.Business;
-using Api.Entities;
-using Api.Interfaces;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
+using Api.Business;
+using Api.Entities;
 
 namespace Api.Comercio.Informal.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CobradorController(ILogger<CobradorController> logger, MySQLiteContext context) : ControllerBase
     {
@@ -52,32 +50,22 @@ namespace Api.Comercio.Informal.Controllers
             return Ok(cobrador);
         }
 
-        [Route("Create")]
-        [HttpPost]
-        public async Task<IActionResult> Create(string nombre, string aPaterno, string aMaterno,
-            string telefono, string email, string status, string usuario)
+        [Route("Search")]
+        [HttpGet]
+        public async Task<IActionResult> Search(string? nombre, string? aPaterno, string? aMaterno,
+            string? telefono, string? email, string? estado)
         {
-            if (nombre == null || aPaterno == null || aMaterno == null || status == null || usuario == null)
-            {
-                return BadRequest("Datos incompletos. Verifique.");
-            }
-
             try
             {
-                Cobrador cobrador = new()
-                {
-                    Nombre = nombre,
-                    A_paterno = aPaterno,
-                    A_materno = aMaterno,
-                    Telefono = telefono,
-                    Email = email,
-                    Estado = status,
-                    Usuario_alta = usuario,
-                    Fecha_alta = DateTime.Now
-                };
+                var cobradores = await _cobrador.Search(nombre, aPaterno, aMaterno,
+                    telefono, email, estado);
 
-                var result = await _cobrador.Create(cobrador);
-                return Ok("Cobrador registrado correctamente");
+                if (!cobradores.Any())
+                {
+                    return NotFound("No se encontraron resultados con los criterios proporcionados.");
+                }
+
+                return Ok(cobradores);
             }
             catch (Exception ex)
             {
@@ -85,25 +73,19 @@ namespace Api.Comercio.Informal.Controllers
             }
         }
 
-        [Route("Delete")]
+        [Route("Create")]
         [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Create(string nombre, string aPaterno, string aMaterno,
+            string? telefono, string? email, string usuario)
         {
-            if (id <= 0)
-            {
-                return BadRequest("Id incorrecto.");
-            }
-
             try
             {
-                var result = await _cobrador.Delete(id);
-                return Ok("Cobrador eliminado correctamente");
+                await _cobrador.Create(nombre,aPaterno, aMaterno,
+                    telefono, email, usuario);
+                return Ok("Cobrador registrado correctamente");
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("Cobrador no encontrado"))
-                    return StatusCode(500, "El Cobrador que intenta eliminar no existe en la base de datos.");
-
                 return StatusCode(500, ex.Message);
             }
         }
@@ -120,7 +102,7 @@ namespace Api.Comercio.Informal.Controllers
 
             try
             {
-                var result = await _cobrador.Update(id, nombre, aPaterno, aMaterno, telefono,
+                await _cobrador.Update(id, nombre, aPaterno, aMaterno, telefono,
                     email, status, usuario);
                 return Ok("Cobrador actualizado correctamente");
             }
@@ -128,6 +110,29 @@ namespace Api.Comercio.Informal.Controllers
             {
                 if (ex.Message.Contains("Cobrador no encontrado"))
                     return StatusCode(500, "El cobrador que intenta actualizar no existe en la base de datos");
+
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [Route("Delete")]
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest("Id incorrecto.");
+            }
+
+            try
+            {
+                await _cobrador.Delete(id);
+                return Ok("Cobrador eliminado correctamente");
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Cobrador no encontrado"))
+                    return StatusCode(500, "El Cobrador que intenta eliminar no existe en la base de datos.");
 
                 return StatusCode(500, ex.Message);
             }

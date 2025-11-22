@@ -3,17 +3,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Api.Entities;
+// Necesitarás agregar el using donde ubicarás tus componentes (explicado abajo)
+using Api.Comercio.Informal.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// --- 1. SERVICIOS ---
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register the DbContext with the dependency injection container
+// [NUEVO] Agregamos los servicios de Blazor (Razor Components)
+// AddInteractiveServerComponents habilita la interactividad vía SignalR (Blazor Server)
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// Tu DbContext (SQLite)
 builder.Services.AddDbContext<MySQLiteContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("MySQLiteContext")));
 
@@ -21,11 +27,18 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
     .AddEntityFrameworkStores<MySQLiteContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<Api.Business.BusinessCategoria>();
+// Tus Servicios de Negocio (Se reutilizan perfectamente en Blazor)
 builder.Services.AddScoped<Api.Business.BusinessCobrador>();
 builder.Services.AddScoped<Api.Business.BusinessConcepto>();
+builder.Services.AddScoped<Api.Business.BusinessFolio>();
+builder.Services.AddScoped<Api.Business.BusinessGremio>();
+builder.Services.AddScoped<Api.Business.BusinessLider>();
+builder.Services.AddScoped<Api.Business.BusinessPadron>();
+builder.Services.AddScoped<Api.Business.BusinessRecaudacion>();
+builder.Services.AddScoped<Api.Business.BusinessTarifa>();
 
 var app = builder.Build();
+
 app.UseCors(options =>
 {
     options.AllowAnyOrigin()
@@ -33,7 +46,8 @@ app.UseCors(options =>
            .AllowAnyHeader();
 });
 
-// Configure the HTTP request pipeline.
+// --- 2. MIDDLEWARE ---
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -42,8 +56,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// [NUEVO] Habilitamos archivos estáticos (CSS, JS, imágenes). 
+// Es vital para que tu WebApp tenga estilos (Bootstrap, etc.).
+app.UseStaticFiles();
+
 app.UseAuthorization();
 
+// [NUEVO] Habilitamos Antiforgery (Seguridad contra CSRF), requerido por Blazor .NET 8
+app.UseAntiforgery();
+
+// --- 3. ENDPOINTS ---
+
+// Mapeamos tus controladores existentes (para la App Android)
 app.MapControllers();
+
+// [NUEVO] Mapeamos el componente raíz de Blazor.
+// Nota: <App> dará error hasta que crees el archivo App.razor (ver pasos siguientes)
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();

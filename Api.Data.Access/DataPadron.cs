@@ -12,103 +12,106 @@ namespace Api.Data.Access
     {
         public async Task<IEnumerable<Padron>> GetAll()
         {
-            IEnumerable<Padron> Padrones;
+            IEnumerable<Padron> padron;
 
             try
             {
-                Padrones = await context.Padron.ToListAsync();
+                padron = await context.Padron.ToListAsync();
+
+                if (!padron.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener las categorias: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener las categorias: " + ex.Message);
+                throw new Exception("Error al obtener el padron: " + ex.Message);
             }
 
-            return Padrones;
+            return padron;
         }
 
         public async Task<Padron> GetById(int id)
         {
-            Padron Padron;
+            Padron afiliado;
 
             try
             {
-                Padron = await context.Padron.FindAsync(id) ?? throw new Exception("Categoria no encontrada");
+                afiliado = await context.Padron.FindAsync(id) ?? throw new Exception("Afiliado no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el afiliado: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la categoria: " + ex.Message);
+                throw new Exception("Error al obtener el afiliado: " + ex.Message);
             }
 
-            return Padron;
+            return afiliado;
         }
 
-        public async Task<bool> Create(Padron padron)
+        public async Task<IEnumerable<Padron>> Search(IQueryable<Padron> query)
         {
-            bool result;
+            try
+            {
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al buscar los registros: " + ex.InnerException.Message);
 
+                throw new Exception("Error al buscar los registros: " + ex.Message);
+            }
+        }
+
+        public async Task Create(Padron padron)
+        {
             try
             {
                 context.Padron.Add(padron);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al crear el afiliado: " + ex.InnerException.Message);
 
-                throw new Exception("Error al crear la categoria: " + ex.Message);
+                throw new Exception("Error al crear el afiliado: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Update(Padron padron)
+        public async Task Update(Padron padron)
         {
-            bool result;
-
             try
             {
                 context.Padron.Update(padron);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al actualizar el afiliado: " + ex.InnerException.Message);
 
-                throw new Exception("Error al actualizar la categoria: " + ex.Message);
+                throw new Exception("Error al actualizar el afiliado: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task Delete(int id)
         {
-            bool result;
-
             try
             {
                 context.Padron.Remove(context.Padron.Find(id)!);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al eliminar el afiliado: " + ex.InnerException.Message);
 
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
+                throw new Exception("Error al eliminar la afiliado: " + ex.Message);
             }
-
-            return result;
         }        
     }
 }

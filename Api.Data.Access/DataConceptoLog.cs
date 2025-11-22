@@ -9,15 +9,12 @@ namespace Api.Data.Access
 {
     public class DataConceptoLog(MySQLiteContext context)
     {
-        public async Task<bool> AddLog(ConceptoLog conceptoLog)
+        public async Task AddLog(ConceptoLog conceptoLog)
         {
-            bool result;
-
             try
             {
                 context.ConceptoLog.Add(conceptoLog);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -26,9 +23,8 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al crear el log del concepto: " + ex.Message);
             }
-
-            return result;
         }
+
         public async Task<int> GetIdMovement(int id_concepto)
         {
             int id_movimiento = 0;

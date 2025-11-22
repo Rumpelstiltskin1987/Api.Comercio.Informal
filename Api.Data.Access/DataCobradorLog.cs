@@ -9,15 +9,12 @@ namespace Api.Data.Access
 {
     public class DataCobradorLog(MySQLiteContext context)
     {
-        public async Task<bool> AddLog(CobradorLog cobradorLog)
+        public async Task AddLog(CobradorLog cobradorLog)
         {
-            bool result;
-
             try
             {
                 context.CobradorLog.Add(cobradorLog);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -26,9 +23,8 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al crear el log del cobrador: " + ex.Message);
             }
-
-            return result;
         }
+
         public async Task<int> GetIdMovement(int id_cobrador)
         {
             int id_movimiento = 0;

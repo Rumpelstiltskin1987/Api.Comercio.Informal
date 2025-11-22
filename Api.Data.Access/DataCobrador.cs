@@ -38,7 +38,7 @@ namespace Api.Data.Access
 
             try
             {
-                cobrador = await context.Cobrador.FindAsync(id) ?? throw new Exception("Cobrador no encontrado"); ;
+                cobrador = await context.Cobrador.FindAsync(id) ?? throw new Exception("Cobrador no encontrado");
             }
             catch (Exception ex)
             {
@@ -51,15 +51,27 @@ namespace Api.Data.Access
             return cobrador;
         }
 
-        public async Task<bool> Create(Cobrador cobrador)
+        public async Task<IEnumerable<Cobrador>> Search(IQueryable<Cobrador> query)
         {
-            bool result;
+            try
+            {
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al buscar los registros: " + ex.InnerException.Message);
 
+                throw new Exception("Error al buscar los registros: " + ex.Message);
+            }
+        }
+
+        public async Task Create(Cobrador cobrador)
+        {
             try
             {
                 context.Cobrador.Add(cobrador);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -68,19 +80,14 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al crear el cobrador: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Update(Cobrador cobrador)
+        public async Task Update(Cobrador cobrador)
         {
-            bool result;
-
             try
             {
                 context.Cobrador.Update(cobrador);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -89,19 +96,14 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al actualizar el cobrador: " + ex.Message);
             }
+        }        
 
-            return result;
-        }
-
-        public async Task<bool> Delete(int id)
+        public async Task Delete(int id)
         {
-            bool result;
-
             try
             {
-                context.Categoria.Remove(context.Categoria.Find(id)!);
+                context.Cobrador.Remove(context.Cobrador.Find(id)!);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -110,8 +112,6 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al eliminar el cobrador: " + ex.Message);
             }
-
-            return result;
         }        
     }
 }

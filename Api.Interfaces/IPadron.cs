@@ -10,9 +10,12 @@ namespace Api.Interfaces
     public interface IPadron
     {
         public Task<IEnumerable<Padron>> GetAll();
-        public Task<Lider> GetById(int id);
-        public Task<bool> Create(Padron padron);
-        public Task<bool> Update(int id, Padron padron);
-        public Task<bool> Delete(int id);
+        public Task<Padron> GetById(int id);
+        public Task Create( string nombre, string a_paterno, string a_materno, string curp,
+            string direccion, string telefono, string? email, string matricula, int id_gremio, string usuario);
+        public Task Update(int id,  string nombre, string a_paterno, string a_materno, string curp,
+            string direccion, string telefono, string email, string matricula,  string matricula_anterior, 
+            int id_gremio, string status, string usuario);
+        public Task Delete(int id);
     }
 }

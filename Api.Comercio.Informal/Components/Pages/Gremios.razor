@@ -1,0 +1,8 @@
+﻿@page "/gremios"
+@inject BusinessGremio _gremioService
+@rendermode InteractiveServer
+<h3>Gremios</h3>
+@code {
+    List<Gremio>? items;
+    protected override async Task OnInitializedAsync() => items = (await _gremioService.GetAll()).ToList();
+}

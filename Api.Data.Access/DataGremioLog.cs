@@ -9,14 +9,12 @@ namespace Api.Data.Access
 {
     public class DataGremioLog(MySQLiteContext context)
     {
-        public async Task<bool> AddLog(GremioLog gremioLog)
+        public async Task AddLog(GremioLog gremioLog)
         {
-            bool result;
             try
             {
                 context.GremioLog.Add(gremioLog);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -24,8 +22,8 @@ namespace Api.Data.Access
                     throw new Exception("Error al crear el log del gremio: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el log del gremio: " + ex.Message);
             }
-            return result;
         }
+
         public async Task<int> GetIdMovement(int id_gremio)
         {
             int id_movimiento = 0;

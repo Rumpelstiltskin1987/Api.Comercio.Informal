@@ -38,23 +38,35 @@ namespace Api.Data.Access
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la Concepto: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el Concepto: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la Concepto: " + ex.Message);
+                throw new Exception("Error al obtener el Concepto: " + ex.Message);
             }
 
             return concepto;
         }
 
-        public async Task<bool> Create(Concepto Concepto)
+        public async Task<IEnumerable<Concepto>> Search(IQueryable<Concepto> query)
         {
-            bool result;
+            try
+            {
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al buscar los registros: " + ex.InnerException.Message);
 
+                throw new Exception("Error al buscar los registros: " + ex.Message);
+            }
+        }
+
+        public async Task Create(Concepto Concepto)
+        {
             try
             {
                 context.Concepto.Add(Concepto);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -62,19 +74,14 @@ namespace Api.Data.Access
                     throw new Exception("Error al crear el Concepto: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el Concepto: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Update(Concepto Concepto)
+        public async Task Update(Concepto Concepto)
         {
-            bool result;
-
             try
             {
                 context.Concepto.Update(Concepto);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -83,19 +90,14 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al actualizar el Concepto: " + ex.Message);
             }
-
-            return result;
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task Delete(int id)
         {
-            bool result;
-
             try
             {
                 context.Concepto.Remove(context.Concepto.Find(id)!);
                 await context.SaveChangesAsync();
-                result = true;
             }
             catch (Exception ex)
             {
@@ -104,8 +106,6 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al eliminar el Concepto: " + ex.Message);
             }
-
-            return result;
         }
     }
 }

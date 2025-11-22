@@ -11,8 +11,8 @@ namespace Api.Interfaces
     {
         public Task<IEnumerable<Concepto>> GetAll();
         public Task<Concepto> GetById(int id);
-        public Task<bool> Create(Concepto concepto);
-        public Task<bool> Update(int id, Concepto newConcepto);
-        public Task<bool> Delete(int id, string usuario);
+        public Task Create(string descripcion, string usuario);
+        public Task Update(int id, string descripcion, string estado, string usuario);
+        public Task Delete(int id);
     }
 }

@@ -7,12 +7,14 @@ using Api.Entities;
 
 namespace Api.Interfaces
 {
-    internal interface IRecaudacion
+    public interface IRecaudacion
     {
         public Task<IEnumerable<Recaudacion>> GetAll();
-        public Task<Lider> GetById(int id);
-        public Task<bool> Create(Recaudacion recaudacion);
-        public Task<bool> Update(int id, Recaudacion recaudacion);
-        public Task<bool> Delete(int id);
+        public Task<Recaudacion> GetById(int id);
+        public Task Create(int id_padron, int id_concepto, decimal monto,
+            int id_cobrador, string folio_Recibo, string periodo_Inicio, string periodo_Fin,
+            int id_tarifa, double? latitud, double? longitud);
+        public Task Update(int id, Recaudacion recaudacion);
+        public Task Delete(int id);
     }
 }

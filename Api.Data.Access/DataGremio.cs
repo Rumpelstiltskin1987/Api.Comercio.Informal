@@ -18,13 +18,16 @@ namespace Api.Data.Access
             try
             {
                 gremios = await context.Gremio.ToListAsync();
+
+                if (!gremios.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener las categorias: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener los gremios: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener las categorias: " + ex.Message);
+                throw new Exception("Error al obtener los gremios: " + ex.Message);
             }
 
             return gremios;
@@ -36,17 +39,32 @@ namespace Api.Data.Access
 
             try
             {
-                gremio = await context.Gremio.FindAsync(id) ?? throw new Exception("Categoria no encontrada");
+                gremio = await context.Gremio.FindAsync(id) ?? throw new Exception("Gremio no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el gremio: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la categoria: " + ex.Message);
+                throw new Exception("Error al obtener el gremio: " + ex.Message);
             }
 
             return gremio;
+        }
+
+        public async Task<IEnumerable<Gremio>> Search(IQueryable<Gremio> query)
+        {
+            try
+            {
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al buscar los registros: " + ex.InnerException.Message);
+
+                throw new Exception("Error al buscar los los registros: " + ex.Message);
+            }
         }
 
         public async Task<bool> Create(Gremio gremio)
@@ -62,8 +80,8 @@ namespace Api.Data.Access
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al crear la categoria: " + ex.InnerException.Message);
-                throw new Exception("Error al crear la categoria: " + ex.Message);
+                    throw new Exception("Error al crear el gremio: " + ex.InnerException.Message);
+                throw new Exception("Error al crear el gremio: " + ex.Message);
             }
 
             return result;
@@ -82,9 +100,9 @@ namespace Api.Data.Access
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al actualizar el gremio: " + ex.InnerException.Message);
 
-                throw new Exception("Error al actualizar la categoria: " + ex.Message);
+                throw new Exception("Error al actualizar el gremio: " + ex.Message);
             }
 
             return result;
@@ -103,9 +121,9 @@ namespace Api.Data.Access
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al eliminar la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al eliminar el gremio: " + ex.InnerException.Message);
 
-                throw new Exception("Error al eliminar la categoria: " + ex.Message);
+                throw new Exception("Error al eliminar el gremio: " + ex.Message);
             }
 
             return result;

@@ -1,13 +1,11 @@
 ﻿using Api.Business;
 using Api.Entities;
-using Api.Entities;
-using Api.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Comercio.Informal.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class ConceptoController(ILogger<ConceptoController> logger, MySQLiteContext context) : ControllerBase
     {
@@ -62,13 +60,8 @@ namespace Api.Comercio.Informal.Controllers
             }
 
             try
-            {
-                Concepto Concepto = new()
-                {
-                    Descripcion = descripcion,
-                    Usuario_alta = usuario
-                };
-                var result = await _concepto.Create(Concepto);
+            {                
+                await _concepto.Create(descripcion, usuario);
                 return Ok("Concepto creado correctamente");
             }
             catch (Exception ex)
@@ -79,23 +72,16 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Update")]
         [HttpPost]
-        public async Task<IActionResult> Update(int id, string descripcion, string status, string usuario)
+        public async Task<IActionResult> Update(int id, string descripcion, string estado, string usuario)
         {
-            if (descripcion == null || status == null || usuario == null)
+            if (descripcion == null || estado == null || usuario == null)
             {
                 return BadRequest("Datos incompletos. Verifique.");
             }
 
             try
-            {
-                Concepto newConcepto = new()
-                {
-                    Descripcion = descripcion,
-                    Estado = status,
-                    Usuario_alta = usuario,
-                    Usuario_modificacion = usuario
-                };
-                var result = await _concepto.Update(id, newConcepto);
+            {               
+                await _concepto.Update(id, descripcion, estado, usuario);
                 return Ok("Concepto actualizado correctamente");
             }
             catch (Exception ex)
@@ -118,7 +104,7 @@ namespace Api.Comercio.Informal.Controllers
 
             try
             {
-                var result = await _concepto.Delete(id, usuario);
+                await _concepto.Delete(id);
                 return Ok("Concepto eliminado correctamente");
             }
             catch (Exception ex)
