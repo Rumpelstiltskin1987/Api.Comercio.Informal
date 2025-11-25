@@ -51,6 +51,24 @@ namespace Api.Business
             try
             {
                 await _lider.Create(lider);
+
+                LiderLog log = new()
+                {
+                    Id_movimiento = 1,
+                    Id_lider = lider.Id_lider,
+                    Nombre = lider.Nombre,
+                    A_paterno = lider.A_paterno,
+                    A_materno = lider.A_materno,
+                    Telefono = lider.Telefono,
+                    Email = lider.Email,
+                    Direccion = lider.Direccion,
+                    Estado = lider.Estado,
+                    Tipo_movimiento = "A",
+                    Usuario_modificacion = usuario,
+                    Fecha_modificacion = DateTime.Now
+                };
+
+                await _liderLog.AddLog(log);
                 transaction.Commit();
             }
             catch (Exception)
@@ -79,10 +97,11 @@ namespace Api.Business
             try
             {
                 await _lider.Update(lider);
-                var idmovimiento = await _liderLog.GetIdMovement(id);
+                var idmovimiento = await _liderLog.GetIdMovement(id) + 1;
 
-                var liderLog = new LiderLog
+                LiderLog log = new()
                 {
+                    Id_movimiento = idmovimiento,
                     Id_lider = lider.Id_lider,
                     Nombre = lider.Nombre,
                     A_paterno = lider.A_paterno,
@@ -96,7 +115,7 @@ namespace Api.Business
                     Fecha_modificacion = DateTime.Now
                 };
 
-                await _liderLog.AddLog(liderLog);
+                await _liderLog.AddLog(log);
                 transaction.Commit();
             }
             catch (Exception)

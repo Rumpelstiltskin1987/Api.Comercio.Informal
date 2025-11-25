@@ -46,6 +46,20 @@ namespace Api.Business
             try
             {
                 await _gremio.Create(gremio);
+
+                GremioLog log = new()
+                {
+                    Id_movimiento = 1,
+                    Id_gremio = gremio.Id_gremio,
+                    Descripcion = gremio.Descripcion,
+                    Id_lider = gremio.Id_lider,
+                    Estado = gremio.Estado,
+                    Tipo_movimiento = "A",
+                    Usuario_modificacion = gremio.Usuario_modificacion,
+                    Fecha_modificacion = gremio.Fecha_modificacion
+                };
+
+                await _gremioLog.AddLog(log);
                 transaction.Commit();
             }
             catch (Exception)
@@ -71,7 +85,7 @@ namespace Api.Business
                 await _gremio.Update(gremio);
                 var idMovimiento = await _gremioLog.GetIdMovement(id) + 1;
 
-                GremioLog log = new GremioLog
+                GremioLog log = new()
                 {
                     Id_movimiento = idMovimiento,
                     Id_gremio = gremio.Id_gremio,

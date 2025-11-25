@@ -140,8 +140,8 @@ namespace Api.Entities
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
-                entity.Property(e => e.Usuario_modificacion).IsRequired();
-                entity.Property(e => e.Fecha_modificacion).IsRequired();
+                entity.Property(e => e.Usuario_modificacion);
+                entity.Property(e => e.Fecha_modificacion);
             });
 
             modelBuilder.Entity<LiderLog>(entity =>

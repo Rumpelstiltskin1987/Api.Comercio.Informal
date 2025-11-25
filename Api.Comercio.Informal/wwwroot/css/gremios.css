@@ -24,25 +24,13 @@
     }
 
     /* --- DISTRIBUCIÓN DE ANCHOS (Total = 100%) --- */
-    /* Nombre(s) */
+    /* Descripción */
     .official-grid th:nth-child(1) {
         width: 20%;
     }
-    /* A. Paterno */
+    /* Líder */
     .official-grid th:nth-child(2) {
         width: 18%;
-    }
-    /* A. Materno */
-    .official-grid th:nth-child(3) {
-        width: 18%;
-    }
-    /* Teléfono */
-    .official-grid th:nth-child(4) {
-        width: 12%;
-    }
-    /* E-mail */
-    .official-grid th:nth-child(5) {
-        width: 22%;
     }
 
     /* Columna Gestión (Alineada a la derecha) */

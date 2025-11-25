@@ -126,9 +126,9 @@ CREATE TABLE Lider (
 	Fecha_modificacion TEXT
 );
 
-DROP TABLE IF EXISTS LiderlLog;
+DROP TABLE IF EXISTS LiderLog;
 
-CREATE TABLE LiderlLog (
+CREATE TABLE LiderLog (
 	Id_movimiento INTEGER NOT NULL,
 	Id_lider INTEGER NOT NULL,
 	Nombre TEXT NOT NULL,

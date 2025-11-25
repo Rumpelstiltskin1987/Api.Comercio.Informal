@@ -140,14 +140,17 @@ main {
     }
 }
 
+/* --- RESPONSIVIDAD --- */
 @media (min-width: 641px) {
     .page {
         flex-direction: row;
+        height: 100vh; /* CAMBIO: Forza a que la página mida exactamente el alto de la ventana */
+        overflow: hidden; /* CAMBIO: Evita que aparezca barra de scroll en el body general */
     }
 
     .sidebar {
         width: 270px;
-        height: 100vh;
+        height: 100%; /* CAMBIO: Se adapta al alto de .page en lugar de vh directo */
         position: sticky;
         top: 0;
     }
@@ -161,6 +164,15 @@ main {
     .top-row, article {
         padding-left: 2.5rem !important;
         padding-right: 2.5rem !important;
+    }
+
+    /* CAMBIO: Configuración para que el contenido principal tenga su propio scroll */
+    main {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Ocupa todo el alto disponible */
+        overflow-y: auto; /* Habilita el scroll vertical SOLO dentro del contenido */
+        overflow-x: hidden;
     }
 }
 
@@ -195,7 +207,7 @@ main {
     }
 
     .nav-item:first-of-type {
-        padding-top: 2rem;
+        padding-top: 0.5rem;
     }
 
     .nav-item a {
@@ -230,6 +242,7 @@ main {
             /* <--- CAMBIO: Eliminamos explícitamente el subrayado */
             text-decoration: none !important;
         }
+
 
 /* --- TARJETAS Y CONTENEDORES (Ajuste para QuickGrid y Modales) --- */
 .card, .modal-content {
@@ -370,3 +383,42 @@ main {
     overflow: hidden; /* Opcional: Oculta el texto que exceda el ancho */
     text-overflow: ellipsis; /* Opcional: Pone "..." si el texto es muy largo */
 }
+
+/* =========================================
+   SCROLL INTERNO DEL MENÚ LATERAL
+   ========================================= */
+
+/* 1. Convertimos la barra lateral en un contenedor flexible vertical.
+      Esto es necesario para que el menú sepa cuánto espacio tiene disponible. */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Forza la altura total de la ventana */
+    max-height: 100vh; /* Asegura que no crezca más allá de la pantalla */
+}
+
+/* 2. Configuramos el área de los enlaces para que tenga scroll */
+.nav-scrollable {
+    flex: 1; /* Ocupa todo el espacio vertical sobrante */
+    overflow-y: auto; /* Activa el scroll vertical automático */
+    overflow-x: hidden; /* Evita scroll horizontal accidental */
+    height: auto; /* Anula alturas fijas anteriores */
+}
+
+    /* 3. (Opcional) Estiliza la barra de scroll para que se vea elegante sobre el fondo guinda */
+    .nav-scrollable::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .nav-scrollable::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+    }
+
+    .nav-scrollable::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.4);
+        border-radius: 10px;
+    }
+
+        .nav-scrollable::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.7);
+        }
