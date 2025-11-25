@@ -111,8 +111,8 @@ namespace Api.Entities
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
-                entity.Property(e => e.Usuario_modificacion).IsRequired();
-                entity.Property(e => e.Fecha_modificacion).IsRequired();
+                entity.Property(e => e.Usuario_modificacion);
+                entity.Property(e => e.Fecha_modificacion);
             });
 
             modelBuilder.Entity<GremioLog>(entity =>
@@ -244,8 +244,8 @@ namespace Api.Entities
                 entity.Property(e => e.Monto).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
-                entity.Property(e => e.Usuario_modificacion);
-                entity.Property(e => e.Fecha_modificacion);
+                entity.Property(e => e.Usuario_modificacion).IsRequired();
+                entity.Property(e => e.Fecha_modificacion).IsRequired();
             });
 
             modelBuilder.Entity<MatriculaContador>(entity =>

@@ -2,11 +2,13 @@
 @using Api.Comercio.Informal.Components.Layout
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject BusinessGremio _gremioService
+@inject BusinessLider _liderService
+@inject BusinessFolio _folioService
 @rendermode InteractiveServer
 
-<link href="css/gremios.css" rel="stylesheet" />
+<link href="css/general.css" rel="stylesheet" />
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Directorio de Cobradores</h3>
+<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Directorio de Gremios</h3>
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
@@ -39,7 +41,7 @@
         {
             <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
                 <PropertyColumn Property="@(c => c.Descripcion)" Sortable="true" Title="Descripción" />
-                <PropertyColumn Property="@(c => c.Id_lider)" Sortable="true" Title="Lider" />
+                <PropertyColumn Property="@(c => c.Lider != null ? $"{c.Lider.Nombre} {c.Lider.A_paterno} {c.Lider.A_materno}" : string.Empty)" Sortable="true" Title="Lider" />
                 <TemplateColumn Title="Gestión" Align="Align.Right">
                     <div class="d-flex gap-2 justify-content-end">
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
@@ -68,12 +70,21 @@
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="Guardar">
     <div class="row g-3">
         <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre(s)</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre del Gremio</label>
             <input class="form-control" @bind="gremio.Descripcion" />
         </div>
-        <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Paterno</label>
-            <input class="form-control" @bind="gremio.Id_lider" />
+        <div class="col-12">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+            <select class="form-select" @bind="gremio.Id_lider">
+                <option value="0">-- Seleccione un líder --</option>
+                @if (lideres != null)
+                {
+                    @foreach (var lider in lideres)
+                    {
+                        <option value="@lider.Id_lider">@($"{lider.Nombre} {lider.A_paterno} {lider.A_materno}")</option>
+                    }
+                }
+            </select>
         </div>
     </div>
 </SimpleModal>
@@ -81,8 +92,9 @@
 @code {
     // --- Datos ---
     private IQueryable<Gremio>? listado;
-    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    private IEnumerable<Lider>? lideres = new List<Lider>();
     private bool mostrarActivos = true;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };    
 
     // --- Modal ---
     private bool mostrarModal = false;
@@ -100,6 +112,7 @@
         try
         {
             await CargarDatos();
+            await CargarLideres();
         }
         catch (Exception ex)
         {
@@ -116,6 +129,12 @@
             : lista.Where(c => c.Estado == "I");
 
         listado = filtrados.AsQueryable();
+    }
+
+    private async Task CargarLideres()
+    {
+        var todosLideres = await _liderService.GetAll();
+        lideres = todosLideres.Where(l => l.Estado == "A").ToList();
     }
 
     private async Task AlternarVista()
@@ -138,9 +157,10 @@
         gremio = new Gremio
         {
             Descripcion = "",
-            Id_gremio = 0
+            Id_gremio = 0,
+            Id_lider = 0
         };
-        tituloModal = "REGISTRO DE NUEVO COBRADOR";
+        tituloModal = "REGISTRO DE NUEVO CONCEPTO DE COBRO";
         mostrarModal = true;
     }
 
@@ -166,7 +186,7 @@
             Descripcion = item.Descripcion,
             Id_lider = item.Id_lider
         };
-        tituloModal = "ACTUALIZACIÓN DE DATOS";
+        tituloModal = "DETALLES DEL GREMIO";
         mostrarModal = true;
     }
 
@@ -174,7 +194,7 @@
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(gremio.Descripcion))
+        if (string.IsNullOrWhiteSpace(gremio.Descripcion) || gremio.Id_lider == 0)
         {
             return;
         }
@@ -183,7 +203,17 @@
         {
             await _gremioService.Create(
                 gremio.Descripcion, gremio.Id_lider, "Administrador"
-            );
+            );  
+
+            var resultados = await _gremioService.Search(gremio.Descripcion, gremio.Id_lider, "A");
+            var nuevoGremio = resultados.FirstOrDefault();
+
+            var descripcionFolio = $"Folio correspondiente al gremio {gremio.Descripcion}";
+            var prefijo = gremio.Descripcion.Length >= 3
+                ? gremio.Descripcion.Substring(0, 3).ToUpper()
+                : gremio.Descripcion.ToUpper();
+
+            await _folioService.Create(nuevoGremio.Id_gremio, descripcionFolio, prefijo);
         }
         else
         {

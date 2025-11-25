@@ -60,9 +60,7 @@ namespace Api.Business
                 Id_concepto = id_concepto,
                 Id_gremio = id_gremio,
                 Monto = monto ?? 0,
-                Estado = "A",
-                Usuario_alta = usuario,
-                Fecha_alta = DateTime.UtcNow
+                Usuario_alta = usuario
             };
 
             using var transaction = _context.Database.BeginTransaction();
@@ -71,11 +69,14 @@ namespace Api.Business
                 await _tarifa.Create(tarifa);
 
                 TarifaLog log = new()
-                {
+                {   
+                    Id_movimiento = 1,
+                    Id_tarifa = tarifa.Id_tarifa,
                     Id_concepto = tarifa.Id_concepto,
                     Id_gremio = tarifa.Id_gremio,
                     Monto = tarifa.Monto,
                     Estado = tarifa.Estado,
+                    Tipo_movimiento = "A",
                     Usuario_modificacion = tarifa.Usuario_alta,
                     Fecha_modificacion = tarifa.Fecha_alta
                 };
@@ -106,13 +107,17 @@ namespace Api.Business
             try
             {
                 await _tarifa.Update(tarifa);
+                int idMovimiento = await _tarifaLog.GetIdMovement(id) + 1;
 
                 TarifaLog log = new()
                 {
+                    Id_movimiento = idMovimiento,
+                    Id_tarifa = tarifa.Id_tarifa,
                     Id_concepto = tarifa.Id_concepto,
                     Id_gremio = tarifa.Id_gremio,
                     Monto = tarifa.Monto,
                     Estado = tarifa.Estado,
+                    Tipo_movimiento = "M",
                     Usuario_modificacion = tarifa.Usuario_alta,
                     Fecha_modificacion = tarifa.Fecha_alta
                 };

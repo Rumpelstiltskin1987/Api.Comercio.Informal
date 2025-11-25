@@ -21,32 +21,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-    }
-
-    /* --- DISTRIBUCIÓN DE ANCHOS (Total = 100%) --- */
-    /* Descripción */
-    .official-grid th:nth-child(1) {
-        width: 20%;
-    }
-    /* Líder */
-    .official-grid th:nth-child(2) {
-        width: 18%;
-    }
-
-    /* Columna Gestión (Alineada a la derecha) */
-    .official-grid th:nth-child(6) {
-        width: 10%;
-        text-align: left !important;
-    }
-
-    /* Bordes redondeados superiores */
-    .official-grid thead tr th:first-child {
-        border-top-left-radius: 4px;
-    }
-
-    .official-grid thead tr th:last-child {
-        border-top-right-radius: 4px;
-    }
+    }  
 
     /* CELDAS DEL CUERPO */
     .official-grid tbody tr td {

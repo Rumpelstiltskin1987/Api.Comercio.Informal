@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ namespace Api.Entities
     {
         public int Id_gremio { get; set; }
         public string Descripcion { get; set; }
+        [ForeignKey("Lider")]
         public int Id_lider { get; set; }
         public virtual Lider? Lider { get; set; }
         public string Estado { get; set; } = "A"; // A: Activo, I: Inactivo

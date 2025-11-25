@@ -27,9 +27,32 @@ namespace Api.Business
             return await _gremio.GetAll();
         }
 
+        
         public async Task<Gremio> GetById(int id)
         {
             return await _gremio.GetById(id);
+        }
+
+        public async Task<IEnumerable<Gremio>> Search(string? descripcion, int? id_lider, string? estado)
+        {
+            var query = _context.Gremio.AsQueryable();
+
+            if (!string.IsNullOrEmpty(descripcion))
+            {
+                query = query.Where(g => g.Descripcion.Contains(descripcion));
+            }
+
+            if (id_lider.HasValue)
+            {
+                query = query.Where(g => g.Id_lider == id_lider);
+            }
+
+            if (!string.IsNullOrEmpty(estado))
+            {
+                query = query.Where(g => g.Estado == estado);
+            }
+
+            return await _gremio.Search(query);
         }
 
         public async Task Create(string descripcion, int id_lider, string usuario)

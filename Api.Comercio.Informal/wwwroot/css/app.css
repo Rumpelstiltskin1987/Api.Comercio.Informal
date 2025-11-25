@@ -110,6 +110,7 @@ main {
     display: flex;
     align-items: center;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    flex-shrink: 0;
 }
 
     .top-row a, .top-row .btn-link {
@@ -150,7 +151,7 @@ main {
 
     .sidebar {
         width: 270px;
-        height: 100%; /* CAMBIO: Se adapta al alto de .page en lugar de vh directo */
+        height: 100vh; /* CAMBIO: Se adapta al alto de .page en lugar de vh directo */
         position: sticky;
         top: 0;
     }
@@ -393,8 +394,8 @@ main {
 .sidebar {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Forza la altura total de la ventana */
-    max-height: 100vh; /* Asegura que no crezca más allá de la pantalla */
+    /*height: 100vh;*/ /* Forza la altura total de la ventana */
+    /*max-height: 100vh;*/ /* Asegura que no crezca más allá de la pantalla */
 }
 
 /* 2. Configuramos el área de los enlaces para que tenga scroll */
@@ -402,7 +403,7 @@ main {
     flex: 1; /* Ocupa todo el espacio vertical sobrante */
     overflow-y: auto; /* Activa el scroll vertical automático */
     overflow-x: hidden; /* Evita scroll horizontal accidental */
-    height: auto; /* Anula alturas fijas anteriores */
+    /*height: auto;*/ /* Anula alturas fijas anteriores */
 }
 
     /* 3. (Opcional) Estiliza la barra de scroll para que se vea elegante sobre el fondo guinda */

@@ -106,16 +106,21 @@
     private IQueryable<Cobrador>? listado;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     private bool mostrarActivos = true;
-    
-    // GridSort para la columna personalizada de estado
-    GridSort<Cobrador> sortPorEstado = GridSort<Cobrador>.ByAscending(c => c.Estado);
 
     // --- Modal ---
     private bool mostrarModal = false;
     private string tituloModal = "";
-    
+
     // Inicialización segura
-    private Cobrador cobradorEdicion = new Cobrador { Nombre = "", A_paterno = "", A_materno = "", Telefono = "", Email = "", Usuario_alta="" };
+    private Cobrador cobradorEdicion = new Cobrador
+    {
+        Nombre = "",
+        A_paterno = "",
+        A_materno = "",
+        Telefono = "",
+        Email = "",
+        Usuario_alta = ""
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,10 +138,10 @@
     private async Task CargarDatos()
     {
         var lista = await _cobradorService.GetAll();
-        var filtrados = mostrarActivos 
-            ? lista.Where(c => c.Estado == "A") 
+        var filtrados = mostrarActivos
+            ? lista.Where(c => c.Estado == "A")
             : lista.Where(c => c.Estado == "I");
-        
+
         listado = filtrados.AsQueryable();
     }
 
@@ -158,9 +163,13 @@
     // --- Lógica Modal ---
     private void AbrirModalCrear()
     {
-        cobradorEdicion = new Cobrador 
-        { 
-            Nombre = "", A_paterno = "", A_materno = "", Telefono = "", Email = ""
+        cobradorEdicion = new Cobrador
+        {
+            Nombre = "",
+            A_paterno = "",
+            A_materno = "",
+            Telefono = "",
+            Email = ""
         };
         tituloModal = "REGISTRO DE NUEVO COBRADOR";
         mostrarModal = true;
@@ -206,7 +215,7 @@
     {
         if (string.IsNullOrWhiteSpace(cobradorEdicion.Nombre) || string.IsNullOrWhiteSpace(cobradorEdicion.A_paterno))
         {
-            return; 
+            return;
         }
 
         if (cobradorEdicion.Id_cobrador == 0)

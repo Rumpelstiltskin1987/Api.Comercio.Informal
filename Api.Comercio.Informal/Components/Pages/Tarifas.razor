@@ -1,59 +1,261 @@
 ﻿@page "/tarifas"
+@using Api.Comercio.Informal.Components.Layout
+@using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Entities
 @using Api.Business
-@inject BusinessRecaudacion _recaudacionService // O BusinessTarifa si lo separaste
+@inject BusinessTarifa _terifaService
+@inject BusinessConcepto _conceptoService
+@inject BusinessGremio _gremioService
 @rendermode InteractiveServer
 
-<h3>Configuración de Tarifas</h3>
+<link href="css/general.css" rel="stylesheet" />
+<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Tarifas de Cobro</h3>
+<hr />
 
-@if (listaTarifas == null)
-{
-    <p><em>Cargando tarifas...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Concepto</th>
-                <th>Aplica a Gremio</th>
-                <th>Monto</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in listaTarifas)
-            {
-                <tr>
-                    <td>@item.Id_concepto</td>
-                    <td>
-                        @if (item.Id_gremio == null)
-                        {
-                            <span class="badge bg-info">General / Independientes</span>
-                        }
-                        else
-                        {
+<div class="d-flex justify-content-between mb-4 align-items-center">
+    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+    </button>
 
-                            <span>Gremio ID: @item.Id_gremio</span>
+    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+        @if (mostrarActivos)
+        {
+            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+        }
+        else
+        {
+            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+        }
+    </button>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        @if (listado == null)
+        {
+            <div class="p-5 text-center">
+                <div class="spinner-border text-secondary" role="status"></div>
+                <p class="mt-3 text-muted text-uppercase small">No existen registros en la base de datos...</p>
+            </div>
+        }
+        else
+        {
+            <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
+                <PropertyColumn Property="@(c => c.Concepto.Descripcion)" Sortable="true" Title="Descripción" />
+                <PropertyColumn Property="@(c => c.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
+                <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" Format="C" />
+                <TemplateColumn Title="Gestión" Align="Align.Right">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                            <i class="bi bi-pencil-square fs-6"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
+                        </button>
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick="() => Baja(context)">
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
                         }
-                    </td>
-                    <td>$ @item.Monto.ToString("N2")</td>
-                    <td>@item.Estado</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+                    </div>
+                </TemplateColumn>
+            </QuickGrid>
+
+            <div class="paginator-container p-2 border-top bg-light">
+                <PaginadorEsp State="@paginationState" />
+            </div>
+        }
+    </div>
+</div>
+
+<SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="Guardar">
+    <div class="row g-3">
+        <div class="col-12">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+            <select class="form-select" @bind="tarifa.Id_concepto">
+                <option value="0">-- Seleccione un Concepto --</option>
+                @if (conceptos != null)
+                {
+                    @foreach (var concepto in conceptos)
+                    {
+                        <option value="@concepto.Id_concepto">@(concepto.Descripcion)</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-12">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+            <select class="form-select" @bind="tarifa.Id_gremio">
+                <option value="0">-- Seleccione un gremio --</option>
+                @if (gremios != null)
+                {
+                    @foreach (var gremio in gremios)
+                    {
+                        <option value="@gremio.Id_gremio">@(gremio.Descripcion)</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Materno</label>
+            <input class="form-control" @bind="tarifa.Monto" />
+        </div>
+    </div>
+</SimpleModal>
 
 @code {
-    // Asumiendo que creaste un BusinessTarifa o usas BusinessRecaudacion
-    // Si no tienes el servicio inyectado, deberás agregarlo en Program.cs
-    List<Tarifa>? listaTarifas;
+    // --- Datos ---
+    private IQueryable<Tarifa>? listado;
+    private IEnumerable<Concepto>? conceptos;
+    private IEnumerable<Gremio>? gremios;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    private bool mostrarActivos = true;
+
+    // --- Modal ---
+    private bool mostrarModal = false;
+    private string tituloModal = "";
+
+    // Inicialización segura
+    private Tarifa tarifa = new()
+    {
+        Monto = 0
+    };
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulación, conecta con tu servicio real
-        listaTarifas = new List<Tarifa>();
-        // listaTarifas = await _tarifaService.ObtenerTodas();
+        try
+        {
+            await CargarDatos();
+            await CargarConceptos();
+            await CargarGremios();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar datos del padrón: {ex.Message}");
+            listado = null;
+            if (ex.Message.Contains("No existen registros en la base de datos."))
+            {
+                await CargarConceptos();
+                await CargarGremios();
+            };
+        }
+    }
+
+    private async Task CargarDatos()
+    {
+        var lista = await _terifaService.GetAll();
+        var filtrados = mostrarActivos
+            ? lista.Where(c => c.Estado == "A")
+            : lista.Where(c => c.Estado == "I");
+
+        listado = filtrados.AsQueryable();
+    }
+
+    private async Task CargarConceptos()
+    {
+        var lista = await _conceptoService.GetAll();
+        conceptos = lista.Where(l => l.Estado == "A").ToList();
+    }
+
+    private async Task CargarGremios()
+    {
+        var lista = await _gremioService.GetAll();
+        gremios = lista.Where(l => l.Estado == "A").ToList();
+    }
+
+    private async Task AlternarVista()
+    {
+        mostrarActivos = !mostrarActivos;
+        listado = null; // Reset visual para efecto de carga
+        try
+        {
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar datos del padrón: {ex.Message}");
+            listado = null;
+        }
+    }
+
+    // --- Lógica Modal ---
+    private void AbrirModalCrear()
+    {
+        tarifa = new()
+        {
+            Monto = 0
+        };
+        tituloModal = "REGISTRO DE NUEVO COBRADOR";
+        mostrarModal = true;
+    }
+
+    private void AbrirModalEditar(Tarifa item)
+    {
+        // Clonación manual para edición segura
+        tarifa = new()
+        {
+            Id_tarifa = item.Id_tarifa,
+            Id_concepto = item.Id_concepto,
+            Id_gremio = item.Id_gremio,
+            Monto = item.Monto,
+            Estado = item.Estado,
+            Usuario_alta = item.Usuario_alta
+        };
+        tituloModal = "ACTUALIZACIÓN DE DATOS";
+        mostrarModal = true;
+    }
+
+    private void AbrirModalDetalle(Tarifa item)
+    {
+        // Clonación manual para edición segura
+        tarifa = new()
+        {
+            Id_tarifa = item.Id_tarifa,
+            Id_concepto = item.Id_concepto,
+            Id_gremio = item.Id_gremio,
+            Monto = item.Monto,
+            Estado = item.Estado,
+            Usuario_alta = item.Usuario_alta
+        };
+        tituloModal = "ACTUALIZACIÓN DE DATOS";
+        mostrarModal = true;
+    }
+
+    private void CerrarModal() => mostrarModal = false;
+
+    private async Task Guardar()
+    {
+        if (tarifa.Monto <= 0)
+        {
+            return;
+        }
+
+        if (tarifa.Id_tarifa == 0)
+        {
+            await _terifaService.Create(
+                tarifa.Id_concepto, tarifa.Id_gremio, tarifa.Monto,
+                "Administrador"
+            );
+        }
+        else
+        {
+            await _terifaService.Update(
+                tarifa.Id_tarifa, tarifa.Id_concepto, tarifa.Id_gremio, tarifa.Monto,
+                tarifa.Estado, "Administrador"
+            );
+        }
+
+        mostrarModal = false;
+        await CargarDatos();
+    }
+
+    private async Task Baja(Tarifa item)
+    {
+        await _terifaService.Update(
+            item.Id_tarifa, item.Id_concepto, item.Id_gremio, item.Monto,
+            "I", "Admin"
+        );
+        await CargarDatos();
     }
 }
