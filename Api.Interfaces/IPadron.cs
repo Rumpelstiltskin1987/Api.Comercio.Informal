@@ -12,7 +12,7 @@ namespace Api.Interfaces
         public Task<IEnumerable<Padron>> GetAll();
         public Task<Padron> GetById(int id);
         public Task Create( string nombre, string a_paterno, string a_materno, string curp,
-            string direccion, string telefono, string? email, string matricula, int id_gremio, string usuario);
+            string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario);
         public Task Update(int id,  string nombre, string a_paterno, string a_materno, string curp,
             string direccion, string telefono, string email, string matricula,  string matricula_anterior, 
             int id_gremio, string status, string usuario);

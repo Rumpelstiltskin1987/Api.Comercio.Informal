@@ -54,13 +54,13 @@ namespace Api.Comercio.Informal.Controllers
         [Route("Create")]
         [HttpPost]
         public async Task<IActionResult> Create(string nombre, string a_paterno, string a_materno, string curp,
-            string direccion, string telefono, string? email, string matricula, int id_gremio, string usuario)
+            string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario)
         {
             try
             {                
                 await _padron.Create(nombre, a_paterno, a_materno, curp,
-            direccion, telefono, email, matricula, id_gremio, usuario);
-                return Ok("Padrón creado correctamente");
+            direccion, telefono, email, id_gremio, tipo, usuario);
+                return Ok("Padron creado correctamente");
             }
             catch (Exception ex)
             {

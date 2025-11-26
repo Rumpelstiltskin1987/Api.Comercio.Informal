@@ -1,12 +1,12 @@
-﻿using Api.Data.Access;
-using Api.Entities;
-using Api.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.XPath;
+using Api.Data.Access;
+using Api.Entities;
+using Api.Interfaces;
 
 namespace Api.Business
 {
@@ -15,12 +15,14 @@ namespace Api.Business
         private readonly MySQLiteContext _context;
         private readonly DataPadron _dataPadron;
         private readonly DataPadronLog _dataPadronLog;
+        private readonly DataMatriculaContador _dataMatriculaContador;
 
         public BusinessPadron(MySQLiteContext context)
         {
             _context = context;
-            _dataPadron = new DataPadron(_context);
-            _dataPadronLog = new DataPadronLog(_context);
+            _dataPadron = new(_context);
+            _dataPadronLog = new(_context);
+            _dataMatriculaContador = new(_context);
         }
 
         public async Task<IEnumerable<Padron>> GetAll()
@@ -34,33 +36,56 @@ namespace Api.Business
         }
 
         public async Task Create(string nombre, string a_paterno, string a_materno, string curp,
-            string direccion, string telefono, string? email, string matricula, int id_gremio, string usuario)
+            string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario)
         {
-            Padron padron = new()
-            {
-                Matricula = matricula,
-                Nombre = nombre,
-                A_paterno = a_paterno,
-                A_materno = a_materno,
-                Curp = curp,
-                Direccion = direccion,
-                Telefono = telefono,
-                Email = email,
-                Id_gremio = id_gremio,
-                Usuario_alta = usuario,
-                Fecha_alta = DateTime.Now
-            };
+            MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
+            string matricula;            
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                if (matriculaContador == null)
+                {
+                    matriculaContador = new()
+                    {
+                        Tipo_vendedor = tipo,
+                        Anio = DateTime.Now.Year,
+                        Siguiente_numero = 1
+                    };
+                    matricula = tipo + (DateTime.Now.Year % 100) + matriculaContador.Siguiente_numero.ToString("D5");
+                    await _dataMatriculaContador.Create(matriculaContador);
+
+
+                }
+                else
+                {
+                    matriculaContador.Siguiente_numero += 1;
+                    matricula = tipo + DateTime.Now.Year % 100 + matriculaContador.Siguiente_numero.ToString("D5");
+                    await _dataMatriculaContador.Update(matriculaContador);
+                }
+
+                Padron padron = new()
+                {                    
+                    Nombre = nombre,
+                    A_paterno = a_paterno,
+                    A_materno = a_materno,
+                    Curp = curp,
+                    Direccion = direccion,
+                    Telefono = telefono,
+                    Email = email,
+                    Matricula = matricula,
+                    Id_gremio = id_gremio,
+                    Tipo_vendedor = tipo,
+                    Estado = "A",
+                    Usuario_alta = usuario,
+                    Fecha_alta = DateTime.Now
+                };
                 await _dataPadron.Create(padron);
 
                 PadronLog padronLog = new()
                 {
                     Id_movimiento = 1,
-                    Id_padron = padron.Id_padron,
-                    Matricula = padron.Matricula,
+                    Id_padron = padron.Id_padron,                    
                     Nombre = padron.Nombre,
                     A_paterno = padron.A_paterno,
                     A_materno = padron.A_materno,
@@ -68,8 +93,14 @@ namespace Api.Business
                     Direccion = padron.Direccion,
                     Telefono = padron.Telefono,
                     Email = padron.Email,
-                    Id_gremio = padron.Id_gremio,
-                    Estado = padron.Estado
+                    Matricula = padron.Matricula,
+                    Matricula_anterior = padron.Matricula_anterior,
+                    Id_gremio = padron.Id_gremio,                    
+                    Tipo_vendedor = padron.Tipo_vendedor,
+                    Estado = padron.Estado,
+                    Tipo_movimiento = "A",
+                    Usuario_modificacion = padron.Usuario_alta,
+                    Fecha_modificacion = padron.Fecha_alta,
                 };
 
                 await _dataPadronLog.AddLog(padronLog);

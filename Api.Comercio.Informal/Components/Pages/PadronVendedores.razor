@@ -3,6 +3,7 @@
 @using Api.Business
 @using Api.Comercio.Informal.Components.Layout
 @inject BusinessPadron _padronService
+@inject BusinessGremio _gremioService
 @rendermode InteractiveServer
 
 <link href="css/cobradores.css" rel="stylesheet" />
@@ -40,25 +41,21 @@
         {
             <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
                 <PropertyColumn Property="@(c => c.Nombre)" Sortable="true" Title="Nombre(s)" />
-                <PropertyColumn Property="@(c => c.A_paterno)" Sortable="true" Title="Primer Apellido" />
-                <PropertyColumn Property="@(c => c.A_materno)" Sortable="true" Title="Segundo Apellido" />
+                <PropertyColumn Property="@(c => c.A_paterno)" Sortable="true" Title="Apellido Paterno" />
+                <PropertyColumn Property="@(c => c.A_materno)" Sortable="true" Title="Apellido Materno" />
                 <PropertyColumn Property="@(c => c.Telefono)" Sortable="true" Title="Teléfono" />
-                <PropertyColumn Property="@(c => c.Email)" Sortable="true" Title="Correo Electrónico" />
-
-                <TemplateColumn Title="Estatus" Sortable="true" SortBy="@sortPorEstado">
-                    <span class="status-badge @(context.Estado == "A" ? "status-active" : "status-inactive")">
-                        @(context.Estado == "A" ? "VIGENTE" : "BAJA")
-                    </span>
-                </TemplateColumn>
-
-                <TemplateColumn Title="Gestión">
+                <PropertyColumn Property="@(c => c.Matricula)" Sortable="true" Title="Matrícula" />
+                <TemplateColumn Title="Gestión" Align="Align.Right">
                     <div class="d-flex gap-2 justify-content-end">
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
                             <i class="bi bi-pencil-square fs-6"></i>
                         </button>
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
+                        </button>
                         @if (mostrarActivos)
                         {
-                            <button class="btn btn-sm btn-link p-0 text-decoration-none text-danger" title="Dar de Baja" @onclick="() => Baja(context)">
+                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick="() => Baja(context)">
                                 <i class="bi bi-trash fs-6"></i>
                             </button>
                         }
@@ -66,8 +63,8 @@
                 </TemplateColumn>
             </QuickGrid>
 
-            <div class="paginator-container d-flex justify-content-end">
-                <Paginator State="@paginationState" />
+            <div class="paginator-container p-2 border-top bg-light">
+                <PaginadorEsp State="@paginationState" />
             </div>
         }
     </div>
@@ -76,16 +73,24 @@
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarPadron">
     <div class="row g-3">
         <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold">Nombre(s)</label>
-            <input class="form-control" @bind="registro.Nombre" placeholder="Ingrese nombre completo" />
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre(s)</label>
+            <input class="form-control" @bind="registro.Nombre" />
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold">Apellido Paterno</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Paterno</label>
             <input class="form-control" @bind="registro.A_paterno" />
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold">Apellido Materno</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Materno</label>
             <input class="form-control" @bind="registro.A_materno" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">CURP</label>
+            <input class="form-control" @bind="registro.Curp" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Dirección</label>
+            <input class="form-control" @bind="registro.Direccion" />
         </div>
         <div class="col-md-6">
             <label class="form-label small text-muted text-uppercase fw-bold">Teléfono</label>
@@ -95,11 +100,37 @@
             </div>
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold">Correo Electrónico</label>
+            <label class="form-label small text-muted text-uppercase fw-bold ">Correo Electrónico</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
                 <input class="form-control" @bind="registro.Email" placeholder="oficial@dominio.gob" />
             </div>
+        </div>
+        <div class="col-12">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Gremio Asignado</label>
+            <select class="form-select" @bind="registro.Id_gremio">
+                <option value="0">-- Seleccione un gremio --</option>
+                @if (gremios != null)
+                {
+                    @foreach (var gremio in gremios)
+                    {
+                        <option value="@gremio.Id_gremio">@(gremio.Descripcion)</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-12">
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Tipo Vendedor</label>
+            <select class="form-select" @bind="registro.Tipo_vendedor">
+                <option value="0">-- Seleccione un tipo --</option>
+                @if (tipos != null)
+                {
+                    @foreach (var tipo in tipos)
+                    {
+                        <option value="@tipo.Id">@(tipo.Descripcion)</option>
+                    }
+                }
+            </select>
         </div>
     </div>
 </SimpleModal>
@@ -107,18 +138,17 @@
 @code {
     // --- Datos ---
     private IQueryable<Padron>? listado;
-    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    private IEnumerable<Gremio>? gremios;
+    private IEnumerable<dynamic>? tipos = new List<dynamic> { new { Id = "P", Descripcion = "Padron" }, new { Id = "E", Descripcion = "Eventual" } };
     private bool mostrarActivos = true;
-
-    // GridSort para la columna personalizada de estado
-    GridSort<Cobrador> sortPorEstado = GridSort<Cobrador>.ByAscending(c => c.Estado);
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };   
 
     // --- Modal ---
     private bool mostrarModal = false;
     private string tituloModal = "";
 
     // Inicialización segura
-    private Padron registro = new Padron
+    private Padron registro = new()
     {
         Nombre = "",
         A_paterno = "",
@@ -127,20 +157,24 @@
         Direccion = "",
         Telefono = "",
         Email = "",
-        Matricula = "",
-        Matricula_anterior = ""
+        Tipo_vendedor = "0",
     };
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            await CargarDatos();            
+            await CargarDatos();
+            await CargarGremios();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error al cargar datos del padrón: {ex.Message}");
             listado = null;
+            if (ex.Message.Contains("No existen registros en la base de datos."))
+            {
+                await CargarGremios();
+            }
         }
     }
 
@@ -153,6 +187,12 @@
             : lista.Where(c => c.Estado == "I");
 
         listado = filtrados.AsQueryable();
+    }
+
+    private async Task CargarGremios()
+    {
+        var lista = await _gremioService.GetAll();
+        gremios = lista.Where(l => l.Estado == "A").ToList();
     }
 
     private async Task AlternarVista()
@@ -174,10 +214,9 @@
             Direccion = "",
             Telefono = "",
             Email = "",
-            Matricula = "",
-            Matricula_anterior = ""
+            Tipo_vendedor = "0",
         };
-        tituloModal = "REGISTRO DE NUEVO COBRADOR";
+        tituloModal = "REGISTRO DE NUEVO VENDEDOR";
         mostrarModal = true;
     }
 
@@ -185,6 +224,28 @@
     {
         // Clonación manual para edición segura
         registro = new Padron
+        {
+            Nombre = item.Nombre,
+            A_paterno = item.A_paterno,
+            A_materno = item.A_materno,
+            Curp = item.Curp,
+            Direccion = item.Direccion,
+            Telefono = item.Telefono,
+            Email = item.Email,
+            Matricula = item.Matricula,
+            Matricula_anterior = item.Matricula_anterior,
+            Id_gremio = item.Id_gremio,
+            Tipo_vendedor = item.Tipo_vendedor,
+            Estado = item.Estado
+        };
+        tituloModal = "ACTUALIZACIÓN DE DATOS";
+        mostrarModal = true;
+    }
+
+    private void AbrirModalDetalle(Padron item)
+    {
+        // Clonación manual para edición segura
+        registro = new()
         {
             Nombre = item.Nombre,
             A_paterno = item.A_paterno,
@@ -217,7 +278,7 @@
             await _padronService.Create(
                 registro.Nombre, registro.A_paterno, registro.A_materno,
                 registro.Curp, registro.Direccion, registro.Telefono,
-                registro.Email, registro.Matricula, registro.Id_gremio, "Administrador"
+                registro.Email, registro.Id_gremio, registro.Tipo_vendedor, "Administrador"
             );
         }
         else
@@ -243,5 +304,11 @@
                 "I", "Administrador"
         );
         await CargarDatos();
+    }
+
+    private class TipoVendedor
+    {
+        public string Id { get; set; } = "";
+        public string Descripcion { get; set; } = "";
     }
 }

@@ -72,7 +72,7 @@
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="Guardar">
     <div class="row g-3">
         <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Concepto Asignado</label>
             <select class="form-select" @bind="tarifa.Id_concepto">
                 <option value="0">-- Seleccione un Concepto --</option>
                 @if (conceptos != null)
@@ -85,7 +85,7 @@
             </select>
         </div>
         <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Gremio Asignado</label>
             <select class="form-select" @bind="tarifa.Id_gremio">
                 <option value="0">-- Seleccione un gremio --</option>
                 @if (gremios != null)

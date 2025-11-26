@@ -38,14 +38,35 @@ namespace Api.Data.Access
 
             try
             {
-                matriculaContador = await context.MatriculaContador.FindAsync(id) ?? throw new Exception("Cobrador no encontrado");
+                matriculaContador = await context.MatriculaContador.FindAsync(id) ?? throw new Exception("Contador no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la matrícula: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el contador: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la matrícula: " + ex.Message);
+                throw new Exception("Error al obtener el contador: " + ex.Message);
+            }
+
+            return matriculaContador;
+        }
+
+        public async Task<MatriculaContador> GetByType(string type)
+        {
+            MatriculaContador? matriculaContador;
+
+            try
+            {
+                matriculaContador = await context.MatriculaContador
+                    .Where(x => x.Tipo_vendedor == type)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el contador: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el contador: " + ex.Message);
             }
 
             return matriculaContador;

@@ -16,7 +16,7 @@ namespace Api.Data.Access
 
             try
             {
-                folios = await context.Folio.ToListAsync();
+                folios = await context.Folio.Include(x => x.Gremio).ToListAsync();
 
                 if (!folios.Any())
                     throw new Exception("No existen registros en la base de datos.");
