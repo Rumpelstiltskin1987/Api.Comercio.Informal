@@ -423,3 +423,42 @@ main {
         .nav-scrollable::-webkit-scrollbar-thumb:hover {
             background-color: rgba(255, 255, 255, 0.7);
         }
+
+/* =========================================
+   CORRECCIÓN PARA SWEETALERT2
+   ========================================= */
+
+/* 1. Asegura que la alerta esté siempre ENCIMA de tu modal (que tiene z-index 1050) */
+.swal2-container {
+    z-index: 10000 !important; /* Valor muy alto para ganarle a todo */
+}
+
+/* 2. (Opcional) Si la fuente no se ve igual a tu sitio, forzamos Montserrat */
+.swal2-popup {
+    font-family: 'Montserrat', 'Segoe UI', sans-serif !important;
+}
+
+/* =========================================
+   INDICADOR DE CAMPO OBLIGATORIO
+   ========================================= */
+
+/* Crea un asterisco rojo automáticamente */
+.lbl-required::after {
+    content: " *"; /* El símbolo */
+    color: #dc3545; /* Rojo estándar de error/alerta */
+    font-weight: bold;
+    margin-left: 4px; /* Separación del texto */
+}
+
+/* Botón de Confirmación (OK) en Guinda Oficial */
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+    background-color: #9D2449 !important; /* Guinda */
+    border-color: #9D2449 !important;
+    box-shadow: 0 0 0 0 rgba(157, 36, 73, 0.5) !important; /* Quita anillo de foco azul */
+}
+
+    /* Efecto Hover (Al pasar el mouse) */
+    div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:hover {
+        background-color: #7a1c38 !important; /* Guinda Oscuro */
+        background-image: none !important;
+    }

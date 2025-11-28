@@ -4,6 +4,7 @@
 @using Api.Comercio.Informal.Components.Layout
 @inject BusinessPadron _padronService
 @inject BusinessGremio _gremioService
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <link href="css/cobradores.css" rel="stylesheet" />
@@ -73,41 +74,41 @@
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarPadron">
     <div class="row g-3">
         <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre(s)</label>
-            <input class="form-control" @bind="registro.Nombre" />
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre(s)</label>
+            <input class="form-control lbl-required" @bind="registro.Nombre" />
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Paterno</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Apellido Paterno</label>
             <input class="form-control" @bind="registro.A_paterno" />
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Materno</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Apellido Materno</label>
             <input class="form-control" @bind="registro.A_materno" />
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">CURP</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">CURP</label>
             <input class="form-control" @bind="registro.Curp" />
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Dirección</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Dirección</label>
             <input class="form-control" @bind="registro.Direccion" />
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold">Teléfono</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lbl-required">Teléfono</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
                 <input class="form-control" @bind="registro.Telefono" placeholder="10 dígitos" />
             </div>
         </div>
         <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold ">Correo Electrónico</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lbl-required">Correo Electrónico</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
                 <input class="form-control" @bind="registro.Email" placeholder="oficial@dominio.gob" />
             </div>
         </div>
         <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Gremio Asignado</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Gremio Asignado</label>
             <select class="form-select" @bind="registro.Id_gremio">
                 <option value="0">-- Seleccione un gremio --</option>
                 @if (gremios != null)
@@ -120,7 +121,7 @@
             </select>
         </div>
         <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Tipo Vendedor</label>
+            <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Tipo Vendedor</label>
             <select class="form-select" @bind="registro.Tipo_vendedor">
                 <option value="0">-- Seleccione un tipo --</option>
                 @if (tipos != null)
@@ -268,31 +269,62 @@
 
     private async Task GuardarPadron()
     {
-        if (string.IsNullOrWhiteSpace(registro.Nombre) || string.IsNullOrWhiteSpace(registro.A_paterno))
+        if (string.IsNullOrWhiteSpace(registro.Nombre) || 
+        string.IsNullOrWhiteSpace(registro.A_paterno) ||
+        string.IsNullOrWhiteSpace(registro.A_materno) ||
+        string.IsNullOrWhiteSpace(registro.Curp) ||
+        string.IsNullOrWhiteSpace(registro.Direccion) ||
+        string.IsNullOrWhiteSpace(registro.Telefono) ||
+        string.IsNullOrWhiteSpace(registro.Tipo_vendedor))
         {
+            // Opcional: Mostrar alerta de error si faltan datos
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
 
-        if (registro.Id_padron == 0)
+        if (registro.Id_gremio == 0)
         {
-            await _padronService.Create(
-                registro.Nombre, registro.A_paterno, registro.A_materno,
-                registro.Curp, registro.Direccion, registro.Telefono,
-                registro.Email, registro.Id_gremio, registro.Tipo_vendedor, "Administrador"
-            );
-        }
-        else
-        {
-            await _padronService.Update(
-                registro.Id_padron, registro.Nombre, registro.A_paterno, 
-                registro.A_materno,registro.Curp, registro.Direccion, registro.Telefono,
-                registro.Email, registro.Matricula,  registro.Matricula_anterior, registro.Id_gremio, 
-                registro.Estado, "Administrador"
-            );
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un gremio", "warning");
+            return;
         }
 
-        mostrarModal = false;
-        await CargarDatos();
+        try
+        {
+            if (registro.Id_padron == 0)
+            {
+                await _padronService.Create(
+                    registro.Nombre, registro.A_paterno, registro.A_materno,
+                    registro.Curp, registro.Direccion, registro.Telefono,
+                    registro.Email, registro.Id_gremio, registro.Tipo_vendedor, "Administrador"
+                );
+            }
+            else
+            {
+                await _padronService.Update(
+                    registro.Id_padron, registro.Nombre, registro.A_paterno,
+                    registro.A_materno, registro.Curp, registro.Direccion, registro.Telefono,
+                    registro.Email, registro.Matricula, registro.Matricula_anterior, registro.Id_gremio,
+                    registro.Estado, "Administrador"
+                );
+            }
+
+            mostrarModal = false; // Cierra el modal primero
+            await CargarDatos();  // Recarga la tabla
+
+            // --- MUESTRA EL MENSAJE DE ÉXITO AQUÍ ---
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "¡Éxito!",
+                text = "La información se guardó correctamente.",
+                icon = "success",
+                confirmButtonColor = "#9D2449" /* Tu color Guinda Oficial */
+            });
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores visual
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+        }
     }
 
     private async Task Baja(Padron item)
