@@ -114,7 +114,7 @@ namespace Api.Business
         }
 
         public async Task Update(int id, string nombre, string a_paterno, string a_materno, string curp, 
-            string direccion, string telefono, string email, string matricula, string matricula_anterior, 
+            string direccion, string telefono, string? email, string matricula, string? matricula_anterior, 
             int id_gremio, string status, string usuario)
         {
             Padron padron = await _dataPadron.GetById(id);

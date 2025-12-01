@@ -12,8 +12,15 @@
                     @ChildContent
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @onclick="OnConfirm">Guardar</button>
-                    <button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancelar</button>                    
+                    @* SOLO mostrar el botón si HideSaveButton es FALSE *@
+                    @if (!HideSaveButton)
+                    {
+                        <button type="button" class="btn btn-primary" @onclick="OnConfirm">Guardar</button>
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancelar</button>
+                    }else
+                    {
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancel">Salir</button>
+                    }
                 </div>
             </div>
         </div>
@@ -26,4 +33,5 @@
     [Parameter] public RenderFragment ChildContent { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public bool HideSaveButton { get; set; } = false; 
 }
