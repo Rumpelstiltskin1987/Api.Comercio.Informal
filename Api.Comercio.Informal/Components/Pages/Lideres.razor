@@ -226,6 +226,15 @@
         }
 
         mostrarModal = false;
+
+        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title = "¡Éxito!",
+            text = "La información se guardó correctamente.",
+            icon = "success",
+            confirmButtonColor = "#9D2449"
+        });
+
         await CargarDatos();
     }
 

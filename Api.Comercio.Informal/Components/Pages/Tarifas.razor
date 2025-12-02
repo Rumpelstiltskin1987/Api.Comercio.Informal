@@ -3,9 +3,10 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Entities
 @using Api.Business
-@inject BusinessTarifa _terifaService
+@inject BusinessTarifa _tarifaService
 @inject BusinessConcepto _conceptoService
 @inject BusinessGremio _gremioService
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
@@ -31,77 +32,81 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        @if (listado == null)
-        {
-            <div class="p-5 text-center">
-                <div class="spinner-border text-secondary" role="status"></div>
-                <p class="mt-3 text-muted text-uppercase small">No existen registros en la base de datos...</p>
-            </div>
-        }
-        else
-        {
-            <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
-                <PropertyColumn Property="@(c => c.Concepto.Descripcion)" Sortable="true" Title="Descripción" />
-                <PropertyColumn Property="@(c => c.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
-                <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" Format="C" />
-                <TemplateColumn Title="Gestión" Align="Align.Right">
-                    <div class="d-flex gap-2 justify-content-end">
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
+            <PropertyColumn Property="@(c => c.Concepto.Descripcion)" Sortable="true" Title="Descripción" />
+            <PropertyColumn Property="@(c => c.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
+            <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" Format="C" />
+
+            <TemplateColumn Title="Gestión" Align="Align.Right">
+                <div class="d-flex gap-2 justify-content-end">
+                    @if (mostrarActivos)
+                    {
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
                             <i class="bi bi-pencil-square fs-6"></i>
                         </button>
-                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                            <i class="bi bi-eye fs-6"></i>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                            <i class="bi bi-box-arrow-up fs-6"></i>
                         </button>
-                        @if (mostrarActivos)
-                        {
-                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick="() => Baja(context)">
-                                <i class="bi bi-trash fs-6"></i>
-                            </button>
-                        }
-                    </div>
-                </TemplateColumn>
-            </QuickGrid>
+                    }
 
-            <div class="paginator-container p-2 border-top bg-light">
-                <PaginadorEsp State="@paginationState" />
-            </div>
-        }
+                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                        <i class="bi bi-eye fs-6"></i>
+                    </button>
+
+                    @if (mostrarActivos)
+                    {
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                            <i class="bi bi-trash fs-6"></i>
+                        </button>
+                    }
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <div class="paginator-container p-2 border-top bg-light">
+            <PaginadorEsp State="@paginationState" />
+        </div>
     </div>
 </div>
 
-<SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="Guardar">
-    <div class="row g-3">
-        <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Concepto Asignado</label>
-            <select class="form-select" @bind="tarifa.Id_concepto">
-                <option value="0">-- Seleccione un Concepto --</option>
-                @if (conceptos != null)
-                {
-                    @foreach (var concepto in conceptos)
+<SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarTarifa" HideSaveButton="@soloLectura">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0">
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Concepto Asignado</label>
+                <select class="form-select" @bind="tarifa.Id_concepto">
+                    <option value="0">-- Seleccione un Concepto --</option>
+                    @if (conceptos != null)
                     {
-                        <option value="@concepto.Id_concepto">@(concepto.Descripcion)</option>
+                        @foreach (var concepto in conceptos)
+                        {
+                            <option value="@concepto.Id_concepto">@(concepto.Descripcion)</option>
+                        }
                     }
-                }
-            </select>
-        </div>
-        <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Gremio Asignado</label>
-            <select class="form-select" @bind="tarifa.Id_gremio">
-                <option value="0">-- Seleccione un gremio --</option>
-                @if (gremios != null)
-                {
-                    @foreach (var gremio in gremios)
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Gremio Asignado</label>
+                <select class="form-select" @bind="tarifa.Id_gremio">
+                    <option value="0">-- Seleccione un gremio --</option>
+                    @if (gremios != null)
                     {
-                        <option value="@gremio.Id_gremio">@(gremio.Descripcion)</option>
+                        @foreach (var gremio in gremios)
+                        {
+                            <option value="@gremio.Id_gremio">@(gremio.Descripcion)</option>
+                        }
                     }
-                }
-            </select>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Monto</label>
+                <input class="form-control" @bind="tarifa.Monto" />
+            </div>
         </div>
-        <div class="col-md-6">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Materno</label>
-            <input class="form-control" @bind="tarifa.Monto" />
-        </div>
-    </div>
+    </fieldset>
 </SimpleModal>
 
 @code {
@@ -111,16 +116,15 @@
     private IEnumerable<Gremio>? gremios;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     private bool mostrarActivos = true;
+    private bool soloLectura = false; // Bandera para controlar el modo del modal
+    private const string usuario = "Administrador";
 
     // --- Modal ---
     private bool mostrarModal = false;
     private string tituloModal = "";
 
     // Inicialización segura
-    private Tarifa tarifa = new()
-    {
-        Monto = 0
-    };
+    private Tarifa tarifa = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,19 +136,14 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar datos del padrón: {ex.Message}");
-            listado = null;
-            if (ex.Message.Contains("No existen registros en la base de datos."))
-            {
-                await CargarConceptos();
-                await CargarGremios();
-            };
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
         }
     }
 
     private async Task CargarDatos()
     {
-        var lista = await _terifaService.GetAll();
+        var lista = await _tarifaService.GetAll();
         var filtrados = mostrarActivos
             ? lista.Where(c => c.Estado == "A")
             : lista.Where(c => c.Estado == "I");
@@ -167,32 +166,29 @@
     private async Task AlternarVista()
     {
         mostrarActivos = !mostrarActivos;
-        listado = null; // Reset visual para efecto de carga
         try
         {
             await CargarDatos();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar datos del padrón: {ex.Message}");
-            listado = null;
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
         }
     }
 
     // --- Lógica Modal ---
     private void AbrirModalCrear()
     {
-        tarifa = new()
-        {
-            Monto = 0
-        };
-        tituloModal = "REGISTRO DE NUEVO COBRADOR";
+        soloLectura = false;
+        tarifa = new();
+        tituloModal = "REGISTRO DE NUEVA TARIFA";
         mostrarModal = true;
     }
 
     private void AbrirModalEditar(Tarifa item)
     {
-        // Clonación manual para edición segura
+        soloLectura = false;
         tarifa = new()
         {
             Id_tarifa = item.Id_tarifa,
@@ -208,7 +204,7 @@
 
     private void AbrirModalDetalle(Tarifa item)
     {
-        // Clonación manual para edición segura
+        soloLectura = true;
         tarifa = new()
         {
             Id_tarifa = item.Id_tarifa,
@@ -218,44 +214,74 @@
             Estado = item.Estado,
             Usuario_alta = item.Usuario_alta
         };
-        tituloModal = "ACTUALIZACIÓN DE DATOS";
+        tituloModal = "DETALLES DE LA TARIFA";
         mostrarModal = true;
     }
 
     private void CerrarModal() => mostrarModal = false;
 
-    private async Task Guardar()
+    private async Task GuardarTarifa()
     {
         if (tarifa.Monto <= 0)
         {
             return;
         }
 
-        if (tarifa.Id_tarifa == 0)
+        try
         {
-            await _terifaService.Create(
-                tarifa.Id_concepto, tarifa.Id_gremio, tarifa.Monto,
-                "Administrador"
-            );
+            if (tarifa.Id_tarifa == 0)
+            {
+                await _tarifaService.Create(
+                    tarifa.Id_concepto, tarifa.Id_gremio, tarifa.Monto,
+                    usuario
+                );
+            }
+            else
+            {
+                await _tarifaService.Update(
+                    tarifa.Id_tarifa, tarifa.Id_concepto, tarifa.Id_gremio, tarifa.Monto,
+                    tarifa.Estado, usuario
+                );
+            }
+
         }
-        else
+        catch (Exception ex)
         {
-            await _terifaService.Update(
-                tarifa.Id_tarifa, tarifa.Id_concepto, tarifa.Id_gremio, tarifa.Monto,
-                tarifa.Estado, "Administrador"
-            );
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            return;
         }
 
         mostrarModal = false;
+
+        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title = "¡Éxito!",
+            text = "La información se guardó correctamente.",
+            icon = "success",
+            confirmButtonColor = "#9D2449"
+        });
+
         await CargarDatos();
     }
 
-    private async Task Baja(Tarifa item)
+    // Método unificado para cambiar estado (Baja / Reincorporar)
+    private async Task CambiarEstado(Tarifa item, string estado)
     {
-        await _terifaService.Update(
-            item.Id_tarifa, item.Id_concepto, item.Id_gremio, item.Monto,
-            "I", "Admin"
-        );
-        await CargarDatos();
+        try
+        {
+            await _tarifaService.Update(
+                item.Id_tarifa, item.Id_concepto, item.Id_gremio, item.Monto,
+                estado, usuario
+            );
+
+            await CargarDatos();
+
+            var accion = estado == "A" ? "reactivó" : "dio de baja";
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+        }
     }
 }

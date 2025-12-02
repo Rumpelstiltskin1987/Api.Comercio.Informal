@@ -224,23 +224,24 @@
                     cobradorEdicion.Id_cobrador, cobradorEdicion.Nombre, cobradorEdicion.A_paterno, cobradorEdicion.A_materno,
                     cobradorEdicion.Telefono, cobradorEdicion.Email, cobradorEdicion.Estado, usuario
                 );
-            }
-
-            mostrarModal = false;
-            await CargarDatos();
-
-            await JSRuntime.InvokeVoidAsync("Swal.fire", new
-            {
-                title = "¡Éxito!",
-                text = "La información se guardó correctamente.",
-                icon = "success",
-                confirmButtonColor = "#9D2449"
-            });
+            }            
         }
         catch (Exception ex)
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
         }
+
+        mostrarModal = false;        
+
+        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title = "¡Éxito!",
+            text = "La información se guardó correctamente.",
+            icon = "success",
+            confirmButtonColor = "#9D2449"
+        });
+
+        await CargarDatos();
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)

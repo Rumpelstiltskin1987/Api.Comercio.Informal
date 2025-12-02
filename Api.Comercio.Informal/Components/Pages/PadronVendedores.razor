@@ -308,17 +308,17 @@
                 );
             }
 
-            mostrarModal = false; // Cierra el modal primero
-            await CargarDatos();  // Recarga la tabla
+            mostrarModal = false;
 
-            // --- MUESTRA EL MENSAJE DE ÉXITO AQUÍ ---
             await JSRuntime.InvokeVoidAsync("Swal.fire", new
             {
                 title = "¡Éxito!",
                 text = "La información se guardó correctamente.",
                 icon = "success",
-                confirmButtonColor = "#9D2449" /* Tu color Guinda Oficial */
+                confirmButtonColor = "#9D2449" 
             });
+
+            await CargarDatos();
         }
         catch (Exception ex)
         {
