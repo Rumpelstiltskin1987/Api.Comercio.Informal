@@ -20,6 +20,9 @@ namespace Api.Comercio.Informal.Controllers
             try
             {
                 Conceptos = await _concepto.GetAll();
+
+                if (!Conceptos.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {

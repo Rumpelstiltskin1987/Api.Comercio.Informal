@@ -17,9 +17,6 @@ namespace Api.Data.Access
             try
             {
                 cobradores = await context.Cobrador.ToListAsync();
-
-                if (!cobradores.Any())
-                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {

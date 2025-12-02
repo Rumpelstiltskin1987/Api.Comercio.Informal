@@ -4,6 +4,7 @@
 @inject BusinessGremio _gremioService
 @inject BusinessLider _liderService
 @inject BusinessFolio _folioService
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
@@ -30,63 +31,67 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        @if (listado == null)
-        {
-            <div class="p-5 text-center">
-                <div class="spinner-border text-secondary" role="status"></div>
-                <p class="mt-3 text-muted text-uppercase small">No existen registros en la base de datos...</p>
-            </div>
-        }
-        else
-        {
-            <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
-                <PropertyColumn Property="@(c => c.Descripcion)" Sortable="true" Title="Descripción" />
-                <PropertyColumn Property="@(c => c.Lider != null ? $"{c.Lider.Nombre} {c.Lider.A_paterno} {c.Lider.A_materno}" : string.Empty)" Sortable="true" Title="Lider" />
-                <TemplateColumn Title="Gestión" Align="Align.Right">
-                    <div class="d-flex gap-2 justify-content-end">
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
+            <PropertyColumn Property="@(c => c.Descripcion)" Sortable="true" Title="Descripción" />
+            <PropertyColumn Property="@(c => c.Lider != null ? $"{c.Lider.Nombre} {c.Lider.A_paterno} {c.Lider.A_materno}" : string.Empty)" Sortable="true" Title="Lider" />
+
+            <TemplateColumn Title="Gestión" Align="Align.Right">
+                <div class="d-flex gap-2 justify-content-end">
+                    @if (mostrarActivos)
+                    {
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
                             <i class="bi bi-pencil-square fs-6"></i>
                         </button>
-                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                            <i class="bi bi-eye fs-6"></i>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                            <i class="bi bi-box-arrow-up fs-6"></i>
                         </button>
-                        @if (mostrarActivos)
-                        {
-                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick="() => Baja(context)">
-                                <i class="bi bi-trash fs-6"></i>
-                            </button>
-                        }
-                    </div>
-                </TemplateColumn>
-            </QuickGrid>
+                    }
 
-            <div class="paginator-container p-2 border-top bg-light">
-                <PaginadorEsp State="@paginationState" />
-            </div>
-        }
+                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                        <i class="bi bi-eye fs-6"></i>
+                    </button>
+
+                    @if (mostrarActivos)
+                    {
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                            <i class="bi bi-trash fs-6"></i>
+                        </button>
+                    }
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <div class="paginator-container p-2 border-top bg-light">
+            <PaginadorEsp State="@paginationState" />
+        </div>
     </div>
 </div>
 
-<SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="Guardar">
-    <div class="row g-3">
-        <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre del Gremio</label>
-            <input class="form-control" @bind="gremio.Descripcion" />
-        </div>
-        <div class="col-12">
-            <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
-            <select class="form-select" @bind="gremio.Id_lider">
-                <option value="0">-- Seleccione un líder --</option>
-                @if (lideres != null)
-                {
-                    @foreach (var lider in lideres)
+<SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarGremio" HideSaveButton="@soloLectura">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0">
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre del Gremio</label>
+                <input class="form-control" @bind="gremio.Descripcion" />
+            </div>
+            <div class="col-12">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+                <select class="form-select" @bind="gremio.Id_lider">
+                    <option value="0">-- Seleccione un líder --</option>
+                    @if (lideres != null)
                     {
-                        <option value="@lider.Id_lider">@($"{lider.Nombre} {lider.A_paterno} {lider.A_materno}")</option>
+                        @foreach (var lider in lideres)
+                        {
+                            <option value="@lider.Id_lider">@($"{lider.Nombre} {lider.A_paterno} {lider.A_materno}")</option>
+                        }
                     }
-                }
-            </select>
+                </select>
+            </div>
         </div>
-    </div>
+    </fieldset>    
 </SimpleModal>
 
 @code {
@@ -94,18 +99,16 @@
     private IQueryable<Gremio>? listado;
     private IEnumerable<Lider>? lideres = new List<Lider>();
     private bool mostrarActivos = true;
-    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };    
+    private bool soloLectura = false; // Bandera para controlar el modo del modal
+    private const string usuario = "Administrador";
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
 
     // --- Modal ---
     private bool mostrarModal = false;
     private string tituloModal = "";
 
     // Inicialización segura
-    private Gremio gremio = new Gremio
-    {
-        Descripcion = "",
-        Id_lider = 0
-    };
+    private Gremio gremio = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,8 +119,8 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar datos del padrón: {ex.Message}");
-            listado = null;
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
         }
     }
 
@@ -140,32 +143,29 @@
     private async Task AlternarVista()
     {
         mostrarActivos = !mostrarActivos;
-        listado = null; // Reset visual para efecto de carga
         try
         {
             await CargarDatos();
         }
         catch (Exception ex)
         {
-            listado = null;
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
         }
     }
 
     // --- Lógica Modal ---
     private void AbrirModalCrear()
     {
-        gremio = new Gremio
-        {
-            Descripcion = "",
-            Id_gremio = 0,
-            Id_lider = 0
-        };
-        tituloModal = "REGISTRO DE NUEVO CONCEPTO DE COBRO";
+        soloLectura = false;
+        gremio = new();
+        tituloModal = "REGISTRO DE NUEVO GREMIO";
         mostrarModal = true;
     }
 
     private void AbrirModalEditar(Gremio item)
     {
+        soloLectura = false;
         // Clonación manual para edición segura
         gremio = new Gremio
         {
@@ -179,58 +179,60 @@
 
     private void AbrirModalDetalle(Gremio item)
     {
-        // Clonación manual para edición segura
-        gremio = new Gremio
-        {
-            Id_gremio = item.Id_gremio,
-            Descripcion = item.Descripcion,
-            Id_lider = item.Id_lider
-        };
+        soloLectura = true;
+        gremio = item;
         tituloModal = "DETALLES DEL GREMIO";
         mostrarModal = true;
     }
 
     private void CerrarModal() => mostrarModal = false;
 
-    private async Task Guardar()
+    private async Task GuardarGremio()
     {
         if (string.IsNullOrWhiteSpace(gremio.Descripcion) || gremio.Id_lider == 0)
         {
             return;
         }
-
-        if (gremio.Id_gremio == 0)
+        try
         {
-            await _gremioService.Create(
-                gremio.Descripcion, gremio.Id_lider, "Administrador"
-            );  
-
-            var resultados = await _gremioService.Search(gremio.Descripcion, gremio.Id_lider, "A");
-            var nuevoGremio = resultados.FirstOrDefault();
-
-            var descripcionFolio = $"Folio correspondiente al gremio {gremio.Descripcion}";
-            var prefijo = gremio.Descripcion.Length >= 3
-                ? gremio.Descripcion.Substring(0, 3).ToUpper()
-                : gremio.Descripcion.ToUpper();
-
-            await _folioService.Create(nuevoGremio.Id_gremio, descripcionFolio, prefijo);
+            if (gremio.Id_gremio == 0)
+            {
+                await _gremioService.Create(
+                    gremio.Descripcion, gremio.Id_lider, usuario
+                );
+            }
+            else
+            {
+                await _gremioService.Update(
+                    gremio.Id_gremio, gremio.Descripcion, gremio.Id_lider, gremio.Estado, usuario
+                );
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _gremioService.Update(
-                gremio.Id_gremio, gremio.Descripcion, gremio.Id_lider, gremio.Estado, "Administrador"
-            );
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            return;
         }
 
         mostrarModal = false;
         await CargarDatos();
     }
 
-    private async Task Baja(Gremio gremio)
+    // Método unificado para cambiar estado (Baja / Reincorporar)
+    private async Task CambiarEstado(Gremio gremio, string estado)
     {
-        await _gremioService.Update(
-            gremio.Id_gremio, gremio.Descripcion, gremio.Id_lider, "I", "Administrador"
-        );
-        await CargarDatos();
+        try
+        {
+            await _gremioService.Update(
+                gremio.Id_gremio, gremio.Descripcion, gremio.Id_lider, estado, usuario
+            );
+            await CargarDatos();
+            var accion = estado == "A" ? "reactivó" : "dio de baja";
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+        }
     }
 }

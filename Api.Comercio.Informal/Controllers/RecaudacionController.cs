@@ -1,5 +1,6 @@
 ﻿using Api.Business;
 using Api.Entities;
+using Api.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -17,17 +18,22 @@ namespace Api.Comercio.Informal.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            IEnumerable<Recaudacion> recaudaciones;
+            IEnumerable<Recaudacion> recaudacion;
 
             try
             {
-                recaudaciones = await _recaudacion.GetAll();
-                return Ok(recaudaciones);
+                recaudacion = await _recaudacion.GetAll();
+
+                if (!recaudacion.Any())
+                    throw new Exception("No existen registros en la base de datos.");
+                
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
+
+            return Ok(recaudacion);
         }
 
         [Route("GetById")]
@@ -38,16 +44,16 @@ namespace Api.Comercio.Informal.Controllers
             {
                 return BadRequest("Id incorrecto.");
             }
-            Recaudacion recaudacion;
+            Recaudacion cobro;
             try
             {
-                recaudacion = await _recaudacion.GetById(id);
+                cobro = await _recaudacion.GetById(id);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
-            return Ok(recaudacion);
+            return Ok(cobro);
         }
 
         [Route("Create")]

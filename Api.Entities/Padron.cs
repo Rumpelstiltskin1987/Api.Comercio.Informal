@@ -19,7 +19,7 @@ namespace Api.Entities
         public string Matricula { get; set; }
         public string? Matricula_anterior { get; set; }
         public int Id_gremio { get; set; } = 0;
-        public string Tipo_vendedor { get; set; } = "P"; // P=Padron, E=Eventual
+        public string Tipo_vendedor { get; set; } = "0"; // P=Padron, E=Eventual
         public string Estado { get; set; }  = "A"; // A: Activo, I: Inactivo  
         public string? Usuario_alta { get; set; }
         public DateTime Fecha_alta { get; set; }

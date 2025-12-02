@@ -14,12 +14,14 @@ namespace Api.Business
         private readonly MySQLiteContext _context;
         private readonly DataGremio _gremio;
         private readonly DataGremioLog _gremioLog;
+        private readonly DataFolio _folio;
 
         public BusinessGremio(MySQLiteContext context)
         {
             _context = context;
             _gremio = new DataGremio(_context);
             _gremioLog = new DataGremioLog(_context);
+            _folio = new DataFolio(_context);
         }
 
         public async Task<IEnumerable<Gremio>> GetAll()
@@ -83,6 +85,18 @@ namespace Api.Business
                 };
 
                 await _gremioLog.AddLog(log);
+
+                Folio folio = new()
+                {
+                    Id_gremio = gremio.Id_gremio,
+                    Descripcion = $"Folio correspondiente al gremio {gremio.Descripcion}",
+                    Prefijo = gremio.Descripcion.Length >= 3
+                    ? gremio.Descripcion[..3].ToUpper()
+                    : gremio.Descripcion.ToUpper()
+                };
+
+                await _folio.Create(folio);
+
                 transaction.Commit();
             }
             catch (Exception)
@@ -121,6 +135,22 @@ namespace Api.Business
                 };
 
                 await _gremioLog.AddLog(log);
+
+                var query = _context.Folio.AsQueryable();
+                query = query.Where(f => f.Id_gremio == gremio.Id_gremio);
+
+                var folios = await _folio.Search(query);
+                Folio? folio = folios.FirstOrDefault();
+
+                if (folio != null)
+                {
+                    folio.Descripcion = $"Folio correspondiente al gremio {gremio.Descripcion}";
+                    folio.Prefijo = gremio.Descripcion.Length >= 3
+                        ? gremio.Descripcion[..3].ToUpper()
+                        : gremio.Descripcion.ToUpper();
+                    await _folio.Update(folio);
+                }
+
                 transaction.Commit();
             }
             catch (Exception)

@@ -18,8 +18,7 @@ namespace Api.Data.Access
             {
                 lideres = await context.Lider.ToListAsync();
 
-                if (!lideres.Any())
-                    throw new Exception("No existen registros en la base de datos.");
+                
             }
             catch (Exception ex)
             {

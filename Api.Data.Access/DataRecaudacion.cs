@@ -16,10 +16,7 @@ namespace Api.Data.Access
 
             try
             {
-                recaudacion = await context.Recaudacion.ToListAsync();
-
-                if (!recaudacion.Any())
-                    throw new Exception("No existen registros en la base de datos.");
+                recaudacion = await context.Recaudacion.ToListAsync();                
             }
             catch (Exception ex)
             {

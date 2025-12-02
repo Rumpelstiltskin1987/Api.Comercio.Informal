@@ -22,6 +22,9 @@ namespace Api.Comercio.Informal.Controllers
             try
             {
                 lideres = await _lider.GetAll();
+
+                if (!lideres.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {

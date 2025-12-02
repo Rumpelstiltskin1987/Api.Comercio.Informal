@@ -21,6 +21,9 @@ namespace Api.Comercio.Informal.Controllers
             try
             {
                 gremios = await _gremio.GetAll();
+
+                if (!gremios.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {

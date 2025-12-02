@@ -17,9 +17,6 @@ namespace Api.Data.Access
             try
             {
                 padron = await context.Padron.ToListAsync();
-
-                if (!padron.Any())
-                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
@@ -34,11 +31,11 @@ namespace Api.Data.Access
 
         public async Task<Padron> GetById(int id)
         {
-            Padron afiliado;
+            Padron vendedor;
 
             try
             {
-                afiliado = await context.Padron.FindAsync(id) ?? throw new Exception("Afiliado no encontrado");
+                vendedor = await context.Padron.FindAsync(id) ?? throw new Exception("Afiliado no encontrado");
             }
             catch (Exception ex)
             {
@@ -48,7 +45,7 @@ namespace Api.Data.Access
                 throw new Exception("Error al obtener el afiliado: " + ex.Message);
             }
 
-            return afiliado;
+            return vendedor;
         }
 
         public async Task<IEnumerable<Padron>> Search(IQueryable<Padron> query)

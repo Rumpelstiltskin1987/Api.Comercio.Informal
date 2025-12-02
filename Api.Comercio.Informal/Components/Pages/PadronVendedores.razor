@@ -1,7 +1,8 @@
 ﻿@page "/padron"
+@using Api.Comercio.Informal.Components.Layout
+@using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Entities
 @using Api.Business
-@using Api.Comercio.Informal.Components.Layout
 @inject BusinessPadron _padronService
 @inject BusinessGremio _gremioService
 @inject IJSRuntime JSRuntime
@@ -158,7 +159,7 @@
     private IEnumerable<Gremio>? gremios;
     private class TipoOpcion { public string Id { get; set; } public string Descripcion { get; set; } }
     private bool mostrarActivos = true;
-    private bool soloLectura = false;
+    private bool soloLectura = false; // Bandera para controlar el modo del modal
     private List<TipoOpcion> tipos = new()
     {
         new TipoOpcion { Id = "P", Descripcion = "Padron" },
@@ -172,17 +173,7 @@
     private string tituloModal = "";
 
     // Inicialización segura
-    private Padron registro = new()
-    {
-        Nombre = "",
-        A_paterno = "",
-        A_materno = "",
-        Curp = "",
-        Direccion = "",
-        Telefono = "",
-        Email = "",
-        Tipo_vendedor = "0",
-    };
+    private Padron registro = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,16 +184,8 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar datos del padrón: {ex.Message}");
-            if (ex.Message.Contains("No existen registros en la base de datos."))
-            {
-                await CargarGremios();
-            }
-            else
-            {
-                await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
-                return;
-            }
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
         }
     }
 
@@ -226,18 +209,23 @@
     private async Task AlternarVista()
     {
         mostrarActivos = !mostrarActivos;
-        listado = null; // Reset visual para efecto de carga
-        await CargarDatos();
+        try
+        {
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
+        }
+
     }
 
     // --- Lógica Modal ---
     private void AbrirModalCrear()
     {
         soloLectura = false;
-        registro = new()
-        {
-            Tipo_vendedor = "0",
-        };
+        registro = new();
         tituloModal = "REGISTRO DE NUEVO VENDEDOR";
         mostrarModal = true;
     }
@@ -339,7 +327,7 @@
         }
     }
 
-    // Método utilizado para dar de baja o activar un registro
+    // Método unificado para cambiar estado (Baja / Reincorporar)
     private async Task CambiarEstado(Padron item, string nuevoEstado)
     {
         try

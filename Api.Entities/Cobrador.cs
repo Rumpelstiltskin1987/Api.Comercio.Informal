@@ -9,9 +9,9 @@ namespace Api.Entities
     public class Cobrador
     {
         public int Id_cobrador { get; set; }
-        public required string Nombre { get; set; }
-        public required string A_paterno { get; set; }
-        public required string A_materno { get; set; }
+        public string Nombre { get; set; }
+        public string A_paterno { get; set; }
+        public string A_materno { get; set; }
         public string? Telefono { get; set; }
         public string? Email { get; set; }
         public string? Estado { get; set; } = "A"; // A: Activo, I: Inactivo

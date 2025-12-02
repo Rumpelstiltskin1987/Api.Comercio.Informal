@@ -16,17 +16,20 @@ namespace Api.Comercio.Informal.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            IEnumerable<Padron> padrones;
+            IEnumerable<Padron> padron;
 
             try
             {
-                padrones = await _padron.GetAll();
+               padron = await _padron.GetAll();
+
+                if (!padron.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
-            return Ok(padrones);
+            return Ok(padron);
         }
 
         [Route("GetById")]
@@ -38,17 +41,17 @@ namespace Api.Comercio.Informal.Controllers
                 return BadRequest("Id incorrecto.");
             }
 
-            Padron padron;
+            Padron vendedor;
 
             try
             {
-                padron = await _padron.GetById(id);
+                vendedor = await _padron.GetById(id);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
-            return Ok(padron);
+            return Ok(vendedor);
         }
 
         [Route("Create")]

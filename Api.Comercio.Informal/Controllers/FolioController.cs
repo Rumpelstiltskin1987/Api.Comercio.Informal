@@ -21,6 +21,9 @@ namespace Api.Comercio.Informal.Controllers
             try
             {
                 folios = await _folio.GetAll();
+
+                if (!folios.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {

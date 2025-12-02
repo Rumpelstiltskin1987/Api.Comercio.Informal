@@ -19,7 +19,16 @@ html, body {
     color: var(--gob-dark);
     background-color: var(--bg-light);
     line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
 }
+
+/*.page {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}*/
 
 h1, h2, h3, h4, h5 {
     font-weight: 600; /* Pesos semi-bold para jerarquía clara */

@@ -11,10 +11,7 @@ namespace Api.Data.Access
 
             try
             {
-                conceptos = await context.Concepto.ToListAsync();
-
-                if (!conceptos.Any())
-                    throw new Exception("No existen registros en la base de datos.");
+                conceptos = await context.Concepto.ToListAsync();                
             }
             catch (Exception ex)
             {

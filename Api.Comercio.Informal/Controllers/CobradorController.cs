@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Api.Business;
+﻿using Api.Business;
+using Api.Comercio.Informal.Components.Pages;
 using Api.Entities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Comercio.Informal.Controllers
 {
@@ -20,6 +21,9 @@ namespace Api.Comercio.Informal.Controllers
             try
             {
                 cobradores = await _cobrador.GetAll();
+
+                if (!cobradores.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {

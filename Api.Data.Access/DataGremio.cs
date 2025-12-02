@@ -17,10 +17,7 @@ namespace Api.Data.Access
 
             try
             {
-                gremios = await context.Gremio.Include(x => x.Lider).ToListAsync();
-
-                if (!gremios.Any())
-                    throw new Exception("No existen registros en la base de datos.");
+                gremios = await context.Gremio.Include(x => x.Lider).ToListAsync();                
             }
             catch (Exception ex)
             {
