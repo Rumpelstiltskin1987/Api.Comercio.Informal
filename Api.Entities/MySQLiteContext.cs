@@ -213,10 +213,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_cobrador).IsRequired();
                 entity.Property(e => e.Fecha_cobro).IsRequired();
                 entity.Property(e => e.Folio_Recibo).IsRequired();
-                entity.Property(e => e.Id_tarifa);
                 entity.Property(e => e.Estado).IsRequired();
-                entity.Property(e => e.Periodo_Inicio).IsRequired();
-                entity.Property(e => e.Periodo_Fin).IsRequired();
                 entity.Property(e => e.Latitud);
                 entity.Property(e => e.Longitud);
             });

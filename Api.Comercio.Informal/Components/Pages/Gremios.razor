@@ -31,12 +31,12 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid grid-gremios">
             <PropertyColumn Property="@(c => c.Descripcion)" Sortable="true" Title="Descripción" />
             <PropertyColumn Property="@(c => c.Lider != null ? $"{c.Lider.Nombre} {c.Lider.A_paterno} {c.Lider.A_materno}" : string.Empty)" Sortable="true" Title="Lider" />
 
-            <TemplateColumn Title="Gestión" Align="Align.Right">
-                <div class="d-flex gap-2 justify-content-end">
+            <TemplateColumn Title="Gestión">
+                <div class="d-flex gap-2">
                     @if (mostrarActivos)
                     {
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
@@ -50,9 +50,9 @@
                         </button>
                     }
 
-                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                    @* <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
                         <i class="bi bi-eye fs-6"></i>
-                    </button>
+                    </button> *@
 
                     @if (mostrarActivos)
                     {
@@ -71,7 +71,7 @@
 </div>
 
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarGremio" HideSaveButton="@soloLectura">
-    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre del Gremio</label>

@@ -32,13 +32,13 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid grid-tarifas">
             <PropertyColumn Property="@(c => c.Concepto.Descripcion)" Sortable="true" Title="Descripción" />
             <PropertyColumn Property="@(c => c.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
             <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" Format="C" />
 
-            <TemplateColumn Title="Gestión" Align="Align.Right">
-                <div class="d-flex gap-2 justify-content-end">
+            <TemplateColumn Title="Gestión">
+                <div class="d-flex gap-2">
                     @if (mostrarActivos)
                     {
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
@@ -52,9 +52,9 @@
                         </button>
                     }
 
-                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                    @* <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
                         <i class="bi bi-eye fs-6"></i>
-                    </button>
+                    </button> *@
 
                     @if (mostrarActivos)
                     {

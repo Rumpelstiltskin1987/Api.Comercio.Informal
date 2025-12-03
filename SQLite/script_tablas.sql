@@ -232,16 +232,12 @@ CREATE TABLE Recaudacion (
 	Id_cobrador INTEGER NOT NULL,
 	Fecha_cobro TEXT NOT NULL,
     Folio_Recibo TEXT NOT NULL UNIQUE,
-    Id_tarifa INTEGER,
     Estado TEXT NOT NULL DEFAULT 'A' CHECK(Estado IN ('A', 'C')), -- A=Activo, C=Cancelado
-    Periodo_Inicio TEXT NOT NULL,
-    Periodo_Fin TEXT NOT NULL,
     Latitud REAL,
     Longitud REAL,	
 	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron),
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
-	FOREIGN KEY (Id_cobrador) REFERENCES Cobrador(Id_cobrador),
-    FOREIGN KEY (Id_tarifa) REFERENCES Tarifa(Id_tarifa)
+	FOREIGN KEY (Id_cobrador) REFERENCES Cobrador(Id_cobrador)
 );
 
 

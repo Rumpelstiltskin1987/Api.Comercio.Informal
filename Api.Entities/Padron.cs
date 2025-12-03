@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,9 @@ namespace Api.Entities
         public string? Email { get; set; }
         public string Matricula { get; set; }
         public string? Matricula_anterior { get; set; }
+        [ForeignKey("Gremio")]
         public int Id_gremio { get; set; } = 0;
+        public virtual Gremio? Gremio { get; set; }
         public string Tipo_vendedor { get; set; } = "0"; // P=Padron, E=Eventual
         public string Estado { get; set; }  = "A"; // A: Activo, I: Inactivo  
         public string? Usuario_alta { get; set; }

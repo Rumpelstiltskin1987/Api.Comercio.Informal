@@ -42,9 +42,6 @@ namespace Api.Business
                 Id_cobrador = id_cobrador,
                 Fecha_cobro = DateTime.Now,
                 Folio_Recibo = folio_Recibo,
-                Periodo_Inicio = periodo_Inicio,
-                Periodo_Fin = periodo_Fin,
-                Id_tarifa = id_tarifa,
                 Latitud = latitud,
                 Longitud = longitud
             };

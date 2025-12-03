@@ -1,6 +1,4 @@
-﻿/* wwwroot/cobradores.css */
-
-/* Definimos una clase maestra para tu QuickGrid */
+﻿/* Clase maestra para QuickGrid */
 .official-grid {
     width: 100%;
     table-layout: fixed; /* Fuerza a respetar los anchos proporcionales */
@@ -25,30 +23,40 @@
 
     /* --- DISTRIBUCIÓN DE ANCHOS (Total = 100%) --- */
     /* Nombre(s) */
-    .official-grid th:nth-child(1) {
+    /*.official-grid th:nth-child(1) {
         width: 20%;
-    }
+    }*/
     /* A. Paterno */
-    .official-grid th:nth-child(2) {
+    /*.official-grid th:nth-child(2) {
         width: 18%;
-    }
+    }*/
     /* A. Materno */
-    .official-grid th:nth-child(3) {
+    /*.official-grid th:nth-child(3) {
         width: 18%;
-    }
+    }*/
     /* Teléfono */
-    .official-grid th:nth-child(4) {
+    /*.official-grid th:nth-child(4) {
         width: 12%;
-    }
+    }*/
     /* E-mail */
-    .official-grid th:nth-child(5) {
+    /*.official-grid th:nth-child(5) {
         width: 22%;
-    }
-
+    }*/
     /* Columna Gestión (Alineada a la derecha) */
-    .official-grid th:nth-child(6) {
+    /*.official-grid th:nth-child(6) {
         width: 10%;
         text-align: left !important;
+    }*/
+
+/* Forzar centrado de la columna Gestión (La última) */
+.grid-personas th:last-child,
+.grid-personas td:last-child {
+    text-align: center !important;
+}
+
+    /* Asegurar que el contenedor flexible de los botones se centre */
+    .grid-personas td:last-child .d-flex {
+        justify-content: center !important;
     }
 
     /* Bordes redondeados superiores */
@@ -62,7 +70,7 @@
 
     /* CELDAS DEL CUERPO */
     .official-grid tbody tr td {
-        padding: 0.9rem 1rem;
+        padding: 0.5rem 1rem;
         border-bottom: 1px solid #e0e0e0;
         color: #333;
         font-size: 0.9rem;
@@ -113,39 +121,36 @@
     background-color: transparent !important; /* Quita el fondo gris/blanco */
     border: none !important; /* Quita el borde 3D del botón */
     color: #ffffff !important; /* Texto blanco forzado */
-    /* Aseguramos que herede la tipografía bonita que ya definiste en el TH */
     font-family: inherit;
     font-size: inherit;
     font-weight: inherit;
     text-transform: inherit;
     letter-spacing: inherit;
-    /* Ajustes de posición */
     width: 100%;
-    text-align: left; /* O center, según prefieras */
-    padding: 0; /* Elimina el relleno interno del botón */
+    text-align: left;
+    padding: 0;
     cursor: pointer;
-    display: flex; /* Para alinear texto e ícono */
+    display: flex;
     align-items: center;
-    justify-content: space-between; /* Separa texto e ícono si es necesario */
+    justify-content: space-between;
 }
 
-    /* 2. Efecto Hover: Un ligero brillo dorado o blanco al pasar el mouse */
+    /* 2. Efecto Hover */
     .official-grid thead th button:hover {
         background-color: rgba(255, 255, 255, 0.1) !important;
-        color: #DDC686 !important; /* Texto cambia a dorado al interactuar (opcional) */
+        color: #DDC686 !important;
         text-transform: uppercase;
     }
 
     /* 3. Corregir el color de la flecha de ordenamiento (SVG) */
     .official-grid thead th button svg {
-        fill: #ffffff !important; /* Pinta la flechita de blanco */
+        fill: #ffffff !important;
         opacity: 0.8;
-        width: 1rem; /* Tamaño controlado */
+        width: 1rem;
         height: 1rem;
         margin-left: 0.5rem;
     }
 
-    /* Al pasar el mouse, la flecha también se pone dorada */
     .official-grid thead th button:hover svg {
         fill: #DDC686 !important;
         opacity: 1;
@@ -170,6 +175,6 @@
 
 /* Ajuste fino para los botones del paginador */
 .page-link:focus {
-    box-shadow: none; /* Quita el borde azul al hacer clic */
+    box-shadow: none;
     background-color: rgba(0,0,0,0.05);
 }

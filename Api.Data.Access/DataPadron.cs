@@ -16,7 +16,9 @@ namespace Api.Data.Access
 
             try
             {
-                padron = await context.Padron.ToListAsync();
+                padron = await context.Padron
+                    .Include(x => x.Gremio) 
+                    .ToListAsync();
             }
             catch (Exception ex)
             {

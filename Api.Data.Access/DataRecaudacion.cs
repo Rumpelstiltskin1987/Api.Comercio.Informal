@@ -16,7 +16,12 @@ namespace Api.Data.Access
 
             try
             {
-                recaudacion = await context.Recaudacion.ToListAsync();                
+                recaudacion = await context.Recaudacion
+                    .Include(x => x.Padron)
+                    .Include(x => x.Concepto)
+                    .Include(x => x.Cobrador)
+                    .Include(x => x.Padron.Gremio)
+                    .ToListAsync();                
             }
             catch (Exception ex)
             {

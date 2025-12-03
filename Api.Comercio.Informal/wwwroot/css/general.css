@@ -1,6 +1,4 @@
-﻿/* wwwroot/cobradores.css */
-
-/* Definimos una clase maestra para tu QuickGrid */
+﻿/* Clase maestra para QuickGrid */
 .official-grid {
     width: 100%;
     table-layout: fixed; /* Fuerza a respetar los anchos proporcionales */
@@ -21,7 +19,16 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-    }  
+    }
+
+    /* Bordes redondeados superiores */
+    .official-grid thead tr th:first-child {
+        border-top-left-radius: 4px;
+    }
+
+    .official-grid thead tr th:last-child {
+        border-top-right-radius: 4px;
+    }
 
     /* CELDAS DEL CUERPO */
     .official-grid tbody tr td {
@@ -76,13 +83,11 @@
     background-color: transparent !important; /* Quita el fondo gris/blanco */
     border: none !important; /* Quita el borde 3D del botón */
     color: #ffffff !important; /* Texto blanco forzado */
-    /* Aseguramos que herede la tipografía bonita que ya definiste en el TH */
     font-family: inherit;
     font-size: inherit;
     font-weight: inherit;
     text-transform: inherit;
     letter-spacing: inherit;
-    /* Ajustes de posición */
     width: 100%;
     text-align: left; /* O center, según prefieras */
     padding: 0; /* Elimina el relleno interno del botón */
@@ -108,7 +113,6 @@
         margin-left: 0.5rem;
     }
 
-    /* Al pasar el mouse, la flecha también se pone dorada */
     .official-grid thead th button:hover svg {
         fill: #DDC686 !important;
         opacity: 1;
@@ -136,3 +140,92 @@
     box-shadow: none; /* Quita el borde azul al hacer clic */
     background-color: rgba(0,0,0,0.05);
 }
+
+/* ... resto de tu código ... */
+
+/* =========================================
+   ESTILOS ESPECÍFICOS: DIRECTORIO GREMIOS
+   ========================================= */
+
+/* 1. Definición de anchos de columnas (Total = 100%) */
+.grid-gremios th:nth-child(1) {
+    width: 40%;
+}
+/* Descripción */
+.grid-gremios th:nth-child(2) {
+    width: 40%;
+}
+/* Líder */
+.grid-gremios th:nth-child(3) {
+    width: 20%;
+}
+/* Gestión */
+
+/* 2. Forzar centrado de la columna Gestión (La última) */
+.grid-gremios th:last-child,
+.grid-gremios td:last-child {
+    text-align: center !important;
+}
+
+    /* 3. Asegurar que el contenedor flexible de los botones se centre */
+    .grid-gremios td:last-child .d-flex {
+        justify-content: center !important;
+    }
+
+/* =========================================
+   ESTILOS ESPECÍFICOS: DIRECTORIO CONCEPTOS
+   ========================================= */
+
+/* 1. Definición de anchos de columnas (Total = 100%) */
+.grid-conceptos th:nth-child(1) {
+    width: 80%;
+}
+/* Descripción */
+.grid-conceptos th:nth-child(2) {
+    width: 20%;
+}
+/* Gestión */
+
+/* 2. Forzar centrado de la columna Gestión (La última) */
+.grid-conceptos th:last-child,
+.grid-conceptos td:last-child {
+    text-align: center !important;
+}
+
+    /* 3. Asegurar que el contenedor flexible de los botones se centre */
+    .grid-conceptos td:last-child .d-flex {
+        justify-content: center !important;
+    }
+
+/* =========================================
+   ESTILOS ESPECÍFICOS: DIRECTORIO TARIFAS
+   ========================================= */
+
+/* 1. Definición de anchos de columnas (Total = 100%) */
+.grid-tarifas th:nth-child(1) {
+    width: 30%;
+}
+/* Descripción */
+.grid-tarifas th:nth-child(2) {
+    width: 30%;
+}
+/* Líder */
+.grid-tarifas th:nth-child(3) {
+    width: 20%;
+}
+/* Líder */
+.grid-tarifas th:nth-child(4) {
+    width: 20%;
+}
+/* Gestión */
+
+/* 2. Forzar centrado de la columna Gestión (La última) */
+.grid-tarifas th:last-child,
+.grid-tarifas td:last-child {
+    text-align: center !important;
+}
+
+    /* 3. Asegurar que el contenedor flexible de los botones se centre */
+    .grid-tarifas td:last-child .d-flex {
+        justify-content: center !important;
+    }

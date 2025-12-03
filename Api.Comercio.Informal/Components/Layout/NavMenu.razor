@@ -1,4 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@rendermode InteractiveServer
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Admin Comercio</a>
     </div>
@@ -6,13 +8,50 @@
 
 <div class="nav-scrollable">
     <nav class="flex-column">
-        <div class="nav-item px-3"><NavLink class="nav-link" href="" Match="NavLinkMatch.All"><span class="bi bi-house-door-fill"></span> Inicio</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="padron"><span class="bi bi-people-fill"></span> Padrón</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="cobradores"><span class="bi bi-person-badge-fill"></span> Cobradores</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="lideres"><span class="bi bi-person-lines-fill"></span> Líderes</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="gremios"><span class="bi bi-building"></span> Gremios</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="conceptos"><span class="bi bi-receipt"></span> Conceptos</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="tarifas"><span class="bi bi-currency-dollar"></span> Tarifas</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="folios"><span class="bi bi-123"></span> Folios</NavLink></div>
+        @if (currentMenu == "main")
+        {
+            <div class="nav-item px-3"><NavLink class="nav-link" href="" Match="NavLinkMatch.All"><span class="bi bi-house-door-fill"></span> Inicio</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="padron"><span class="bi bi-people-fill"></span> Padrón</NavLink></div>
+            <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "catalogos"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-collection-fill"></span> Catálogos</a></div>
+
+            @* --- CAMBIO 1: Menú Reportes activado --- *@
+            <div class="nav-item px-3">
+                <a class="nav-link" @onclick='() => currentMenu = "reportes"' @onclick:preventDefault style="cursor:pointer;">
+                    <span class="bi bi-file-earmark-bar-graph-fill"></span> Reportes
+                </a>
+            </div>
+
+            <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "auditoria"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-shield-check"></span> Auditoría</a></div>
+        }
+        else if (currentMenu == "catalogos")
+        {
+            <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "main"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-arrow-left-circle-fill"></span> Volver</a></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="cobradores"><span class="bi bi-person-badge-fill"></span> Cobradores</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="lideres"><span class="bi bi-person-lines-fill"></span> Líderes</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="gremios"><span class="bi bi-building"></span> Gremios</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="conceptos"><span class="bi bi-receipt"></span> Conceptos</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="tarifas"><span class="bi bi-currency-dollar"></span> Tarifas</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="folios"><span class="bi bi-123"></span> Folios</NavLink></div>
+        }
+        else if (currentMenu == "reportes")
+        {
+            <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "main"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-arrow-left-circle-fill"></span> Volver</a></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="recaudacion"><span class="bi bi-cash-coin"></span> Recaudación</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="cortedecaja"><span class="bi bi-calculator"></span> Corte de Caja</NavLink></div>
+        }
+        else if (currentMenu == "auditoria")
+        {
+            <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "main"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-arrow-left-circle-fill"></span> Volver</a></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="auditoria/padron"><span class="bi bi-people-fill"></span> Padron</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="auditoria/cobradores"><span class="bi bi-person-badge-fill"></span> Cobradores</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="auditoria/lideres"><span class="bi bi-person-lines-fill"></span> Líderes</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="auditoria/gremios"><span class="bi bi-building"></span> Gremios</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="auditoria/conceptos"><span class="bi bi-receipt"></span> Conceptos</NavLink></div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="auditoria/tarifas"><span class="bi bi-currency-dollar"></span> Tarifas</NavLink></div>
+        }
     </nav>
 </div>
+
+@code {
+    private string currentMenu = "main";
+}

@@ -1,6 +1,4 @@
-﻿/* wwwroot/cobradores.css */
-
-/* Definimos una clase maestra para tu QuickGrid */
+﻿/* Clase maestra para QuickGrid */
 .official-grid {
     width: 100%;
     table-layout: fixed; /* Fuerza a respetar los anchos proporcionales */
@@ -48,6 +46,17 @@
     .official-grid th:nth-child(6) {
         width: 10%;
         text-align: left !important;
+    }
+
+/* Forzar centrado de la columna Gestión (La última) */
+.grid-personas th:last-child,
+.grid-personas td:last-child {
+    text-align: center !important;
+}
+
+    /* Asegurar que el contenedor flexible de los botones se centre */
+    .grid-personas td:last-child .d-flex {
+        justify-content: center !important;
     }
 
     /* Bordes redondeados superiores */

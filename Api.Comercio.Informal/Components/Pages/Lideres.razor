@@ -7,7 +7,7 @@
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
-<link href="css/lideres.css" rel="stylesheet" />
+<link href="css/personas.css" rel="stylesheet" />
 
 <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Directorio de Líderes</h3>
 <hr />
@@ -31,15 +31,15 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid grid-personas">
             <PropertyColumn Property="@(c => c.Nombre)" Sortable="true" Title="Nombre(s)" />
             <PropertyColumn Property="@(c => c.A_paterno)" Sortable="true" Title="Apellido Paterno" />
             <PropertyColumn Property="@(c => c.A_materno)" Sortable="true" Title="Apellido Materno" />
             <PropertyColumn Property="@(c => c.Telefono)" Sortable="true" Title="Teléfono" />
             <PropertyColumn Property="@(c => c.Email)" Sortable="true" Title="Correo Electrónico" />
 
-            <TemplateColumn Title="Gestión" Align="Align.Right">
-                <div class="d-flex gap-2 justify-content-end">
+            <TemplateColumn Title="Gestión">
+                <div class="d-flex gap-2">
                     @if (mostrarActivos)
                     {
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
@@ -74,7 +74,7 @@
 </div>
 
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarLider" HideSaveButton="@soloLectura">
-    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre(s)</label>
