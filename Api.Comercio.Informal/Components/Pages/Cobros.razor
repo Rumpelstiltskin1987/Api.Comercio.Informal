@@ -9,10 +9,10 @@
 
 <link href="css/recaudacion.css" rel="stylesheet" />
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Consultas de Recaudación de Impuestos</h3>
-<hr />
+@* <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Consultas de Recaudación de Impuestos</h3> *@
+@* <hr /> *@
 
-<div class="d-flex justify-content-between mb-4 align-items-center flex-wrap gap-3">
+<div class="d-flex justify-content-between mb-4 align-items-center flex-wrap gap-3" style="padding: 2px">
     <div class="d-flex align-items-center gap-3">
         <label class="h5 mb-0 text-nowrap">Recaudación del día:</label>
         @* Filtro de Fecha para controlar qué recaudación se ve *@
@@ -22,30 +22,13 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        @if (listado == null)
-        {
-            <div class="p-5 text-center text-muted">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2">Cargando información...</p>
-            </div>
-        }
-        else if (!listado.Any())
-        {
-            <div class="p-5 text-center text-muted">
-                <i class="bi bi-inbox fs-1"></i>
-                <p class="mt-2">No hay recaudación registrada para la fecha seleccionada.</p>
-            </div>
-        }
-        else
-        {
-            <QuickGrid Items="@listado" Class="table mb-0 official-grid grid-recaudacion">                
-                <PropertyColumn Property="@(c => c.Padron.Nombre)" Sortable="true" Title="Contrubuyente" />
-                <PropertyColumn Property="@(c => c.Padron.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
-                <PropertyColumn Property="@(c => c.Concepto.Descripcion)" Sortable="true" Title="Concepto" />
-                <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" Format="C" />
-                <PropertyColumn Property="@(c => c.Folio_Recibo)" Sortable="true" Title="Folio" />
-            </QuickGrid>
-        }
+        <QuickGrid Items="@listado" Class="table mb-0 official-grid grid-recaudacion">
+            <PropertyColumn Property="@(c => c.Padron.Nombre)" Sortable="true" Title="Contrubuyente" />
+            <PropertyColumn Property="@(c => c.Padron.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
+            <PropertyColumn Property="@(c => c.Concepto.Descripcion)" Sortable="true" Title="Concepto" />
+            <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" Format="C" />
+            <PropertyColumn Property="@(c => c.Folio_Recibo)" Sortable="true" Title="Folio" />
+        </QuickGrid>
     </div>
 </div>
 

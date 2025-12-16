@@ -19,8 +19,7 @@ namespace Api.Data.Access
                 tarifas = await context.Tarifa.Include(x => x.Concepto).
                     Include(x => x.Gremio).ToListAsync();
 
-                if (!tarifas.Any())
-                    throw new Exception("No existen registros en la base de datos.");
+
             }
             catch (Exception ex)
             {

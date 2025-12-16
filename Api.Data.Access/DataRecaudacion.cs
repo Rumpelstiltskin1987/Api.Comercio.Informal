@@ -53,6 +53,27 @@ namespace Api.Data.Access
             return cobro;
         }
 
+        public async Task<Recaudacion> GetByFolio(string folio)
+        {
+            Recaudacion cobro;
+
+            try
+            {
+                cobro = await context.Recaudacion
+                    .Where(r => r.Folio_Recibo == folio)
+                    .FirstOrDefaultAsync() ?? throw new Exception("Folio no encontrado");
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener la categoria: " + ex.Message);
+            }
+
+            return cobro;
+        }
+
         public async Task<IEnumerable<Recaudacion>> Search(IQueryable<Recaudacion> query)
         {
             try

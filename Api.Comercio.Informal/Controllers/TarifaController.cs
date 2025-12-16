@@ -20,6 +20,9 @@ namespace Api.Comercio.Informal.Controllers
             try
             {
                 tarifas = await _tarifa.GetAll();
+
+                if (!tarifas.Any())
+                    throw new Exception("No existen registros en la base de datos.");
             }
             catch (Exception ex)
             {
