@@ -59,7 +59,7 @@ namespace Api.Comercio.Informal.Controllers
         [Route("Create")]
         [HttpPost]
         public async Task<IActionResult> Create(int idPadron, int idGremio, int idConcepto, decimal monto,
-    int idCobrador, double? latitud, double? longitud)
+            int idCobrador, double? latitud, double? longitud)
         {            
             try
             {

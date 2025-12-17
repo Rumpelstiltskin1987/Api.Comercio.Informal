@@ -20,6 +20,7 @@ namespace Api.Business
         {
             _context = context;
             _recaudacion = new(_context);
+            _dataFolio = new(_context); 
         }
 
         public async Task<IEnumerable<Recaudacion>> GetAll()

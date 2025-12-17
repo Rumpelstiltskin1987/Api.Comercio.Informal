@@ -1,0 +1,4 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+POST https://localhost:7011/api/recaudacion/Create?idPadron=2&idGremio=1&idConcepto=3&monto=90.0&idCobrador=1&latitud=18.443&longitud=-96.365
+Content-Type: application/json
+Content-Length: 0
