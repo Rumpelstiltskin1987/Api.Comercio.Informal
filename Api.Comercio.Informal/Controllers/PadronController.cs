@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Api.Business;
+﻿using Api.Business;
 using Api.Entities;
+using Api.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Comercio.Informal.Controllers
 {
@@ -52,6 +53,29 @@ namespace Api.Comercio.Informal.Controllers
                 return StatusCode(500, ex.Message);
             }
             return Ok(vendedor);
+        }
+
+        [Route("Search")]
+        [HttpGet]
+        public async Task<IActionResult> Search(string? nombre, string? aPaterno, string? aMaterno,
+            string? curp, string? matricula, int idGremio, string? tipo, string? estado)
+        {
+            try
+            {
+                var afiliados = await _padron.Search(nombre, aPaterno,  aMaterno,
+            curp, matricula, idGremio, tipo, estado);
+
+                if (!afiliados.Any())
+                {
+                    return NotFound("No se encontraron resultados con los criterios proporcionados.");
+                }
+
+                return Ok(afiliados);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [Route("Create")]

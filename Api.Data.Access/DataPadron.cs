@@ -37,7 +37,9 @@ namespace Api.Data.Access
 
             try
             {
-                vendedor = await context.Padron.FindAsync(id) ?? throw new Exception("Afiliado no encontrado");
+                vendedor = await context.Padron
+                    .Include(x => x.Gremio)
+                    .FirstOrDefaultAsync(x => x.Id_padron == id) ?? throw new Exception("Afiliado no encontrado");
             }
             catch (Exception ex)
             {
@@ -54,7 +56,7 @@ namespace Api.Data.Access
         {
             try
             {
-                return await query.ToListAsync();
+                return await query.Include(x => x.Gremio).ToListAsync();
             }
             catch (Exception ex)
             {

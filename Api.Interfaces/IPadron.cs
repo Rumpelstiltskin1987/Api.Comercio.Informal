@@ -11,6 +11,9 @@ namespace Api.Interfaces
     {
         public Task<IEnumerable<Padron>> GetAll();
         public Task<Padron> GetById(int id);
+
+        public Task<IEnumerable<Padron>> Search(string? nombre, string? aPaterno, string? aMaterno,
+            string? curp, string? matricula, int idGremio, string? tipo, string? estado);
         public Task Create( string nombre, string a_paterno, string a_materno, string curp,
             string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario);
         public Task Update(int id,  string nombre, string a_paterno, string a_materno, string curp,

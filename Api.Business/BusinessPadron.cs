@@ -35,6 +35,54 @@ namespace Api.Business
             return await _dataPadron.GetById(id);
         }
 
+        public async Task<IEnumerable<Padron>> Search(string? nombre, string? aPaterno, string? aMaterno,
+            string? curp, string? matricula, int idGremio, string? tipo, string? estado)
+        {
+            var query = _context.Padron.AsQueryable();
+
+            if (!string.IsNullOrEmpty(nombre))
+            {
+                query = query.Where(c => c.Nombre.Contains(nombre));
+            }
+
+            if (!string.IsNullOrEmpty(aPaterno))
+            {
+                query = query.Where(c => c.A_paterno.Contains(aPaterno));
+            }
+
+            if (!string.IsNullOrEmpty(aMaterno))
+            {
+                query = query.Where(c => c.A_materno.Contains(aMaterno));
+            }
+
+            if (!string.IsNullOrEmpty(curp))
+            {
+                query = query.Where(c => c.Curp.Contains(curp));
+            }
+
+            if (!string.IsNullOrEmpty(matricula))
+            {
+                query = query.Where(c => c.Matricula.Contains(matricula));
+            }
+
+            if (idGremio > 0)
+            {
+                query = query.Where(c => c.Id_gremio == idGremio);
+            }
+
+            if (!string.IsNullOrEmpty(tipo))
+            {
+                query = query.Where(c => c.Tipo_vendedor == tipo);
+            }
+
+            if (!string.IsNullOrEmpty(estado))
+            {
+                query = query.Where(c => c.Estado == estado);
+            }            
+
+            return await _dataPadron.Search(query);
+        }
+
         public async Task Create(string nombre, string a_paterno, string a_materno, string curp,
             string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario)
         {
