@@ -1,0 +1,167 @@
+﻿@* Este archivo no puede llamarse Folio porque causaría conflicto con la clase Api.Entities.Folio *@
+@page "/folio"
+@using Api.Entities
+@using Api.Business
+@inject BusinessRecaudacion _recaudacionService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Búsqueda de Folio</PageTitle>
+
+<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">
+    <i class="bi bi-file-earmark-search me-2"></i> Búsqueda de Folio
+</h3>
+<hr />
+
+<div class="card shadow-sm border-0 mb-4 no-print">
+    <div class="card-body bg-light">
+        <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: flex-end; gap: 1rem; width: auto; ">
+            <div class="width-auto" style="padding-bottom:12px">
+                <label class="form-label fw-bold small text-uppercase mb-1">Número de Folio / Recibo</label>
+                <input type="text" class="form-control" @bind="folioBusqueda" @onkeyup="HandleKeyUp" placeholder="Ingrese el folio a consultar..." />
+            </div>
+            <div style="margin-bottom:7px">
+                <button class="btn official-btn-primary px-4" @onclick="SearchFolio" disabled="@cargando">
+                    @if (cargando)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                    }
+                    else
+                    {
+                        <span><i class="bi bi-search me-2"></i> Buscar</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (cobro != null)
+{
+    <div class="resultado-scroll-container">
+        <div class="card shadow border-0 animate-fade-in card-folio-detalle">
+            <div class="card-header bg-dark text-white text-uppercase py-3" style="padding-left:15px">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-info-circle me-2"></i> Detalles del Recibo: @cobro.Folio_Recibo</span>
+                    <span class="badge @(cobro.Estado == "A" ? "bg-success" : "bg-danger")">
+                        @(cobro.Estado == "A" ? "ACTIVO" : "CANCELADO")
+                    </span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4" style="padding-left:25px">
+                    <div class="col-md-6 border-end">
+                        <h6 class="text-guinda fw-bold text-uppercase mb-3">Información del Contribuyente</h6>
+                        <div class="mb-2">
+                            <label class="lbl-info">Nombre Completo:</label>
+                            <p class="val-info">@(cobro.Padron != null ? $"{cobro.Padron.Nombre} {cobro.Padron.A_paterno} {cobro.Padron.A_materno}" : "No disponible")</p>
+                        </div>
+                        @* <div class="mb-2">
+                        <label class="lbl-info">ID Padrón:</label>
+                        <p class="val-info">@cobro.Id_padron</p>
+                    </div> *@
+                        <div class="mb-2">
+                            <label class="lbl-info">CURP:</label>
+                            <p class="val-info">@(cobro.Padron?.Curp ?? "N/A")</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 ps-4">
+                        <h6 class="text-guinda fw-bold text-uppercase mb-3">Detalles del Pago</h6>
+                        <div class="row">
+                            <div class="col-6 mb-2">
+                                <label class="lbl-info">Concepto:</label>
+                                <p class="val-info">@(cobro.Concepto?.Descripcion ?? "General")</p>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="lbl-info">Monto Cobrado:</label>
+                                <p class="val-info fw-bold fs-5 text-success">@cobro.Monto.ToString("C2")</p>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="lbl-info">Fecha y Hora de Cobro:</label>
+                                <p class="val-info">@cobro.Fecha_cobro.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="lbl-info">Cobrador:</label>
+                                <p class="val-info">@(cobro.Cobrador != null ? $"{cobro.Cobrador.Nombre} {cobro.Cobrador.A_paterno} {cobro.Cobrador.A_materno}" : "No disponible")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* <div class="col-12 border-top pt-3">
+                    <div class="row text-center text-muted small text-uppercase">
+                        <div class="col-md-3">ID Transacción: @cobro.Id_recaudacion</div>
+                        <div class="col-md-3">Latitud: @(cobro.Latitud?.ToString() ?? "N/A")</div>
+                        <div class="col-md-3">Longitud: @(cobro.Longitud?.ToString() ?? "N/A")</div>
+                        <div class="col-md-3">Folio Interno: @cobro.Folio_Recibo</div>
+                    </div>
+                </div> *@
+                </div>
+            </div>
+            <div class="card-footer bg-light text-end no-print">
+                <button class="btn btn-outline-secondary" @onclick="() => cobro = null">Cerrar Consulta</button>
+                <button class="btn btn-dark ms-2" @onclick="ImprimirRecibo"><i class="bi bi-printer me-2"></i> Imprimir Duplicado</button>
+            </div>
+        </div>
+    </div>
+
+}
+else if (busquedaRealizada && !cargando)
+{
+    <div class="alert alert-warning text-center mt-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> No se encontró ningún registro con el folio: <strong>@folioBusqueda</strong>
+    </div>
+}
+
+@code {
+    private string folioBusqueda = "";
+    private Recaudacion? cobro;
+    private bool cargando = false;
+    private bool busquedaRealizada = false;
+
+    private async Task SearchFolio()
+    {
+        if (string.IsNullOrWhiteSpace(folioBusqueda))
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Por favor ingrese un número de folio.", "warning");
+            return;
+        }
+
+        cargando = true;
+        busquedaRealizada = false;
+        cobro = null;
+
+        try
+        {
+            // Mandamos el parámetro capturado
+            cobro = await _recaudacionService.GetByFolio(folioBusqueda.Trim());
+            busquedaRealizada = true;
+
+            if (cobro == null)
+            {
+                await JSRuntime.InvokeVoidAsync("console.warn", "Folio no encontrado");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al recuperar los datos: {ex.Message}", "error");
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchFolio();
+        }
+    }
+
+    private async Task ImprimirRecibo()
+    {
+        await JSRuntime.InvokeVoidAsync("print");
+    }
+}

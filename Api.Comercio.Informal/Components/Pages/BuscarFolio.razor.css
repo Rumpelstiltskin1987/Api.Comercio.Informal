@@ -1,0 +1,74 @@
+﻿/* BuscarFolio.razor.css */
+
+/* Contenedor que limita el área de visualización */
+.resultado-scroll-container {
+    /* Calculamos la altura: 100% de pantalla menos el encabezado y buscador (aprox 300px) */
+    height: calc(100vh - 240px);
+    overflow-y: auto; /* Solo scroll vertical si el contenido excede la altura */
+    padding: 1rem;
+    background-color: #f0f2f5; /* Fondo gris para resaltar el formulario blanco */
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+/* Estilos de la tarjeta para que parezca una hoja dentro del scroll */
+.card-folio-detalle {
+    max-width: 900px;
+    margin: 0 auto; /* Centra la tarjeta horizontalmente */
+    background-color: white;
+}
+
+.text-guinda {
+    color: #9D2449;
+    margin: 15px 0 15px 0 
+}
+
+/* Estilo para las etiquetas del formulario */
+.lbl-info {
+    display: block;
+    font-weight: bold;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+/* Estilo para los valores recuperados */
+.val-info {
+    display: block;
+    font-size: 1rem;
+    color: #212529;
+    margin: 0 0 5px 0;
+    word-break: break-all;
+}
+
+/* Animación de entrada suave */
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;    
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media print {
+    /* Si decides imprimir el detalle individual */
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+
+    .card-header {
+        background-color: #eee !important;
+        color: #000 !important;
+        border-bottom: 1px solid #000 !important;
+    }
+}

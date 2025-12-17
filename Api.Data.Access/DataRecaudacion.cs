@@ -40,14 +40,16 @@ namespace Api.Data.Access
 
             try
             {
-                cobro = await context.Recaudacion.FindAsync(id) ?? throw new Exception("Recaudación no encontrada");
+                cobro = await context.Recaudacion
+                    .Where(r => r.Id_recaudacion == id)
+                    .FirstOrDefaultAsync() ?? throw new Exception("Cobro no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el cobro: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la categoria: " + ex.Message);
+                throw new Exception("Error al obtener el cobro: " + ex.Message);
             }
 
             return cobro;
@@ -61,14 +63,17 @@ namespace Api.Data.Access
             {
                 cobro = await context.Recaudacion
                     .Where(r => r.Folio_Recibo == folio)
+                    .Include(x => x.Cobrador)
+                    .Include(x => x.Padron)
+                    .Include(x => x.Concepto)
                     .FirstOrDefaultAsync() ?? throw new Exception("Folio no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener la categoria: " + ex.InnerException.Message);
+                    throw new Exception("Error al obtener el folio: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener la categoria: " + ex.Message);
+                throw new Exception("Error al obtener el folio: " + ex.Message);
             }
 
             return cobro;

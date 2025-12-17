@@ -69,27 +69,8 @@ namespace Api.Business
             return await _recaudacion.Search(query);
         }
 
-        public async Task<IEnumerable<Recaudacion>> Search(int? idPadron, int? idConcepto, decimal? monto, int idCobrador,
-            DateTime fechaCobro, string? estado)
-        {
-            var query = _context.Recaudacion.AsQueryable();
-            if (idPadron > 0)
-            {
-                query = query.Where(t => t.Id_concepto == (idConcepto));
-            }
-            if (monto.HasValue)
-            {
-                query = query.Where(t => (decimal)t.Monto == monto.Value);
-            }
-            if (!string.IsNullOrEmpty(estado))
-            {
-                query = query.Where(t => t.Estado == estado);
-            }
-            return await _recaudacion.Search(query);
-        }
-
         public async Task Create(int id_padron, int id_gremio, int id_concepto, decimal monto,
-    int id_cobrador, double? latitud, double? longitud)
+            int id_cobrador, double? latitud, double? longitud)
         {
 
             var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);

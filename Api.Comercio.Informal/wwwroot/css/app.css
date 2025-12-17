@@ -501,3 +501,9 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
         print-color-adjust: exact;
     }
 }
+
+
+/* Estilo para ancho automatico*/
+.width-auto {
+    width: auto;    
+}

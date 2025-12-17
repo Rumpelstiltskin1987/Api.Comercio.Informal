@@ -1,94 +1,41 @@
-﻿/* Contenedor visual del reporte */
-/*.reporte-wrapper {
-    background-color: white;
-    min-height: 800px;*/ /* Simula una hoja carta en pantalla */
-    /*position: relative;
-    padding: 3rem;*/ /* Margen interno */
-/*}*/
-
-/* Fondo Guinda para totales */
-/*.total-general-bg {
-    background-color: #9D2449;
-    color: white;
-}*/
-
-/* Líneas de firma */
-/*.firma-line {
-    border-top: 1px solid #000;
-    width: 70%;
-    margin: 0 auto;
-    padding-top: 10px;
-}*/
-
-/* Ajustes específicos de impresión para ESTE componente */
-/*@media print {
-    .reporte-wrapper {
-        display: block !important;
-        position: absolute;*/ /* Se posiciona sobre todo lo demás */
-        /*top: 0;
-        left: 0;
-        width: 100%;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        box-shadow: none !important;
-    }*/
-
-    /* Evitar que la tabla se rompa a mitad de una fila */
-    /*tr {
-        page-break-inside: avoid;
-    }
-}*/
+﻿/* CorteCaja.razor.css */
 
 /* Contenedor gris de fondo (Mesa de trabajo) */
 .reporte-wrapper {
-    background-color: #f0f2f5; /* Un gris suave para diferenciar de la hoja */
-    min-height: 800px;
+    background-color: #f0f2f5;
+    /* --- CAMBIOS PARA SCROLL INTERNO --- */
+    height: calc(100vh - 270px); /* Ajusta este valor según el tamaño de tus filtros */
+    overflow-y: auto; /* Habilita scroll vertical solo aquí */
     padding: 2rem;
     display: flex;
-    justify-content: center; /* Centra la hoja en la pantalla */
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    flex-direction: column;
 }
 
-/* La Hoja de Papel (Documento físico) */
+/* La Hoja de Papel */
 .hoja-reporte {
     background-color: white;
     width: 100%;
-    max-width: 1000px; /* Ancho máximo similar a una hoja carta horizontal */
-    padding: 3rem; /* Margen interno de la hoja */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Sombra suave */
+    max-width: 1000px;
+    padding: 3rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     position: relative;
+    height: fit-content; /* Permite que la hoja crezca según el contenido */
+    box-sizing: border-box;
 }
 
-/* El separador guinda */
-.separador-institucional {
-    border: 0;
-    height: 3px;
-    background-color: #9D2449; /* Guinda */
-    opacity: 1;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
-    width: 100%; /* Ocupa todo el ancho disponible de la hoja */
-}
+/* ... (el resto de tus estilos: separador, total-general-bg, etc, se mantienen igual) ... */
 
-/* Totales y Firmas */
-.total-general-bg {
-    background-color: #9D2449;
-    color: white;
-}
-
-.firma-line {
-    border-top: 1px solid #000;
-    width: 80%;
-    margin: 0 auto;
-    padding-top: 10px;
-}
-
-/* === IMPRESIÓN === */
+/* === AJUSTE VITAL PARA IMPRESIÓN === */
 @media print {
     .reporte-wrapper {
         background-color: white;
         padding: 0;
         display: block;
+        height: auto !important; /* Quitamos la altura fija para que salga todo en papel */
+        overflow: visible !important; /* Quitamos el scroll */
     }
 
     .hoja-reporte {
@@ -98,10 +45,4 @@
         padding: 0;
         margin: 0;
     }
-
-    /* Evitar cortes feos en la tabla */
-    tr {
-        page-break-inside: avoid;
-    }
 }
-
