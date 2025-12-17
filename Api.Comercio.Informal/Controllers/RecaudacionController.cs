@@ -1,5 +1,6 @@
 ﻿using Api.Business;
 using Api.Entities;
+using Api.Entities.DTO;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ namespace Api.Comercio.Informal.Controllers
 
                 if (!recaudacion.Any())
                     throw new Exception("No existen registros en la base de datos.");
-                
+
             }
             catch (Exception ex)
             {
@@ -58,12 +59,24 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<IActionResult> Create(int idPadron, int idGremio, int idConcepto, decimal monto,
-            int idCobrador, double? latitud, double? longitud)
-        {            
+        public async Task<IActionResult> Create([FromBody] DtoRecaudacion request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
-                await _recaudacion.Create(idPadron, idGremio, idConcepto, monto, idCobrador, latitud, longitud);
+                await _recaudacion.Create(
+                    request.IdPadron,
+                    request.IdGremio,
+                    request.IdConcepto,
+                    request.Monto,
+                    request.IdCobrador,
+                    request.Latitud,
+                    request.Longitud
+                );
             }
             catch (Exception ex)
             {

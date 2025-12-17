@@ -1,12 +1,12 @@
 # For more info on HTTP files go to https://aka.ms/vs/httpfile
-POST https://localhost:7011//api/recaudacion/Create
+POST https://localhost:7011/api/recaudacion/Create
 Content-Type: application/json
 
 {
-  "idCobrador": 1,
-  "idConcepto": 3,
-  "idGremio": 1,
   "idPadron": 2,
+  "idGremio": 1,
+  "idConcepto": 3,
+  "idCobrador": 1,  
   "latitud": 18.4437236,
   "longitud": -96.3657014,
   "monto": 90.0
