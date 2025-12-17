@@ -58,15 +58,12 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<IActionResult> Create(int id_padron, int id_concepto, decimal monto,
-            int id_cobrador, string folio_Recibo, string periodo_Inicio, string periodo_Fin, 
-            int id_tarifa, double? latitud, double? longitud)
+        public async Task<IActionResult> Create(int idPadron, int idGremio, int idConcepto, decimal monto,
+    int idCobrador, double? latitud, double? longitud)
         {            
             try
             {
-                await _recaudacion.Create(id_padron, id_concepto, monto,
-            id_cobrador, folio_Recibo, periodo_Inicio, periodo_Fin,
-            id_tarifa, latitud, longitud);
+                await _recaudacion.Create(idPadron, idGremio, idConcepto, monto, idCobrador, latitud, longitud);
             }
             catch (Exception ex)
             {

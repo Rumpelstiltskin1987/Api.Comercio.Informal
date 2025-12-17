@@ -11,9 +11,8 @@ namespace Api.Interfaces
     {
         public Task<IEnumerable<Recaudacion>> GetAll();
         public Task<Recaudacion> GetById(int id);
-        public Task Create(int id_padron, int id_concepto, decimal monto,
-            int id_cobrador, string folio_Recibo, string periodo_Inicio, string periodo_Fin,
-            int id_tarifa, double? latitud, double? longitud);
+        public Task Create(int id_padron, int id_gremio, int id_concepto, decimal monto,
+            int id_cobrador, double? latitud, double? longitud);
         public Task Update(int id, Recaudacion recaudacion);
         public Task Delete(int id);
     }

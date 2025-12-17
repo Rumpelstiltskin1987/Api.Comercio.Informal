@@ -14,6 +14,7 @@ namespace Api.Business
     {
         private readonly MySQLiteContext _context;
         private readonly DataRecaudacion _recaudacion;
+        private readonly DataFolio _dataFolio;
 
         public BusinessRecaudacion(MySQLiteContext context)
         {
@@ -55,10 +56,21 @@ namespace Api.Business
             return await _recaudacion.Search(query);
         }
 
-        public async Task Create(int id_padron, int id_concepto, decimal monto,
-            int id_cobrador, string folio_Recibo, string periodo_Inicio, string periodo_Fin,
-            int id_tarifa, double? latitud, double? longitud)
+        public async Task Create(int id_padron, int id_gremio, int id_concepto, decimal monto,
+    int id_cobrador, double? latitud, double? longitud)
         {
+
+            var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);
+            var listaFolios = await _dataFolio.Search(queryFolio);
+            var folioEncontrado = listaFolios.FirstOrDefault();
+
+            if (folioEncontrado == null)
+            {
+                throw new Exception("No se encontró configuración de folios para el gremio especificado.");
+            }
+
+            string folioRecibo = $"{folioEncontrado.Prefijo}{folioEncontrado.Anio_vigente % 100} - {folioEncontrado.Siguiente_folio:D6}";
+
             Recaudacion cobro = new()
             {
                 Id_padron = id_padron,
@@ -66,12 +78,26 @@ namespace Api.Business
                 Monto = monto,
                 Id_cobrador = id_cobrador,
                 Fecha_cobro = DateTime.Now,
-                Folio_Recibo = folio_Recibo,
+                Folio_Recibo = folioRecibo,
                 Latitud = latitud,
                 Longitud = longitud
             };
 
-            await _recaudacion.Create(cobro);
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                folioEncontrado.Siguiente_folio += 1;
+
+                await _recaudacion.Create(cobro);               
+                await _dataFolio.Update(folioEncontrado);
+
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         Task IRecaudacion.Update(int id, Recaudacion recaudacion)
