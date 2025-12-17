@@ -112,7 +112,7 @@ namespace Api.Business
                     await _dataMatriculaContador.Update(matriculaContador);
                 }
 
-                Padron padron = new()
+                Padron contribuyente = new()
                 {                    
                     Nombre = nombre,
                     A_paterno = a_paterno,
@@ -128,27 +128,27 @@ namespace Api.Business
                     Usuario_alta = usuario,
                     Fecha_alta = DateTime.Now
                 };
-                await _dataPadron.Create(padron);
+                await _dataPadron.Create(contribuyente);
 
                 PadronLog padronLog = new()
                 {
                     Id_movimiento = 1,
-                    Id_padron = padron.Id_padron,                    
-                    Nombre = padron.Nombre,
-                    A_paterno = padron.A_paterno,
-                    A_materno = padron.A_materno,
-                    Curp = padron.Curp,
-                    Direccion = padron.Direccion,
-                    Telefono = padron.Telefono,
-                    Email = padron.Email,
-                    Matricula = padron.Matricula,
-                    Matricula_anterior = padron.Matricula_anterior,
-                    Id_gremio = padron.Id_gremio,                    
-                    Tipo_vendedor = padron.Tipo_vendedor,
-                    Estado = padron.Estado,
+                    Id_padron = contribuyente.Id_padron,                    
+                    Nombre = contribuyente.Nombre,
+                    A_paterno = contribuyente.A_paterno,
+                    A_materno = contribuyente.A_materno,
+                    Curp = contribuyente.Curp,
+                    Direccion = contribuyente.Direccion,
+                    Telefono = contribuyente.Telefono,
+                    Email = contribuyente.Email,
+                    Matricula = contribuyente.Matricula,
+                    Matricula_anterior = contribuyente.Matricula_anterior,
+                    Id_gremio = contribuyente.Id_gremio,                    
+                    Tipo_vendedor = contribuyente.Tipo_vendedor,
+                    Estado = contribuyente.Estado,
                     Tipo_movimiento = "A",
-                    Usuario_modificacion = padron.Usuario_alta,
-                    Fecha_modificacion = padron.Fecha_alta,
+                    Usuario_modificacion = contribuyente.Usuario_alta,
+                    Fecha_modificacion = contribuyente.Fecha_alta,
                 };
 
                 await _dataPadronLog.AddLog(padronLog);

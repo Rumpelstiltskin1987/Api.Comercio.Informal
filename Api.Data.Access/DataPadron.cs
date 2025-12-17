@@ -33,11 +33,11 @@ namespace Api.Data.Access
 
         public async Task<Padron> GetById(int id)
         {
-            Padron vendedor;
+            Padron contribuyente;
 
             try
             {
-                vendedor = await context.Padron
+                contribuyente = await context.Padron
                     .Include(x => x.Gremio)
                     .FirstOrDefaultAsync(x => x.Id_padron == id) ?? throw new Exception("Afiliado no encontrado");
             }
@@ -49,7 +49,7 @@ namespace Api.Data.Access
                 throw new Exception("Error al obtener el afiliado: " + ex.Message);
             }
 
-            return vendedor;
+            return contribuyente;
         }
 
         public async Task<IEnumerable<Padron>> Search(IQueryable<Padron> query)
@@ -67,11 +67,11 @@ namespace Api.Data.Access
             }
         }
 
-        public async Task Create(Padron padron)
+        public async Task Create(Padron contribuyente)
         {
             try
             {
-                context.Padron.Add(padron);
+                context.Padron.Add(contribuyente);
                 await context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -83,11 +83,11 @@ namespace Api.Data.Access
             }
         }
 
-        public async Task Update(Padron padron)
+        public async Task Update(Padron contribuyente)
         {
             try
             {
-                context.Padron.Update(padron);
+                context.Padron.Update(contribuyente);
                 await context.SaveChangesAsync();
             }
             catch (Exception ex)
