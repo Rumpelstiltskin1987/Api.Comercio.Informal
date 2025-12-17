@@ -1,0 +1,107 @@
+﻿/* Contenedor visual del reporte */
+/*.reporte-wrapper {
+    background-color: white;
+    min-height: 800px;*/ /* Simula una hoja carta en pantalla */
+    /*position: relative;
+    padding: 3rem;*/ /* Margen interno */
+/*}*/
+
+/* Fondo Guinda para totales */
+/*.total-general-bg {
+    background-color: #9D2449;
+    color: white;
+}*/
+
+/* Líneas de firma */
+/*.firma-line {
+    border-top: 1px solid #000;
+    width: 70%;
+    margin: 0 auto;
+    padding-top: 10px;
+}*/
+
+/* Ajustes específicos de impresión para ESTE componente */
+/*@media print {
+    .reporte-wrapper {
+        display: block !important;
+        position: absolute;*/ /* Se posiciona sobre todo lo demás */
+        /*top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }*/
+
+    /* Evitar que la tabla se rompa a mitad de una fila */
+    /*tr {
+        page-break-inside: avoid;
+    }
+}*/
+
+/* Contenedor gris de fondo (Mesa de trabajo) */
+.reporte-wrapper {
+    background-color: #f0f2f5; /* Un gris suave para diferenciar de la hoja */
+    min-height: 800px;
+    padding: 2rem;
+    display: flex;
+    justify-content: center; /* Centra la hoja en la pantalla */
+}
+
+/* La Hoja de Papel (Documento físico) */
+.hoja-reporte {
+    background-color: white;
+    width: 100%;
+    max-width: 1000px; /* Ancho máximo similar a una hoja carta horizontal */
+    padding: 3rem; /* Margen interno de la hoja */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Sombra suave */
+    position: relative;
+}
+
+/* El separador guinda */
+.separador-institucional {
+    border: 0;
+    height: 3px;
+    background-color: #9D2449; /* Guinda */
+    opacity: 1;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    width: 100%; /* Ocupa todo el ancho disponible de la hoja */
+}
+
+/* Totales y Firmas */
+.total-general-bg {
+    background-color: #9D2449;
+    color: white;
+}
+
+.firma-line {
+    border-top: 1px solid #000;
+    width: 80%;
+    margin: 0 auto;
+    padding-top: 10px;
+}
+
+/* === IMPRESIÓN === */
+@media print {
+    .reporte-wrapper {
+        background-color: white;
+        padding: 0;
+        display: block;
+    }
+
+    .hoja-reporte {
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Evitar cortes feos en la tabla */
+    tr {
+        page-break-inside: avoid;
+    }
+}
+

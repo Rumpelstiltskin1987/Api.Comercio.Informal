@@ -57,6 +57,27 @@ namespace Api.Comercio.Informal.Controllers
             return Ok(cobro);
         }
 
+        [Route("Search")]
+        [HttpGet]
+        public async Task<IActionResult> Search(int? idCobrador, int? idConcepto, DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            try
+            {
+                var afiliados = await _recaudacion.Search(idCobrador, idConcepto, fechaInicio, fechaFin);
+
+                if (!afiliados.Any())
+                {
+                    return NotFound("No se encontraron resultados con los criterios proporcionados.");
+                }
+
+                return Ok(afiliados);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [Route("Create")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DtoRecaudacion request)

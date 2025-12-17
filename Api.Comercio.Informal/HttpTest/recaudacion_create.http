@@ -1,5 +1,7 @@
 # For more info on HTTP files go to https://aka.ms/vs/httpfile
-POST https://localhost:7011/api/recaudacion/Create
+@HostAddress = https://localhost:7011
+
+POST {{HostAddress}}/api/recaudacion/Create
 Content-Type: application/json
 
 {

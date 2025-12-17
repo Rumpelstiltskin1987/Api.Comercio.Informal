@@ -14,13 +14,13 @@ namespace Api.Business
     {
         private readonly MySQLiteContext _context;
         private readonly DataRecaudacion _recaudacion;
-        private readonly DataFolio _dataFolio;
+        private readonly DataFolio _folio;
 
         public BusinessRecaudacion(MySQLiteContext context)
         {
             _context = context;
             _recaudacion = new(_context);
-            _dataFolio = new(_context); 
+            _folio = new(_context); 
         }
 
         public async Task<IEnumerable<Recaudacion>> GetAll()
@@ -36,6 +36,37 @@ namespace Api.Business
         public async Task<Recaudacion> GetByFolio(string folio)
         {
             return await _recaudacion.GetByFolio(folio);
+        }
+
+        public async Task<IEnumerable<Recaudacion>> Search(int? idCobrador, int? idConcepto, DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            var query = _context.Recaudacion.AsQueryable();
+
+            // Filtro por Cobrador
+            if (idCobrador.HasValue && idCobrador > 0)
+            {
+                query = query.Where(c => c.Id_cobrador == idCobrador.Value);
+            }
+
+            // Filtro por Concepto (Si es null o 0, lo ignora y trae todos)
+            if (idConcepto.HasValue && idConcepto > 0)
+            {
+                query = query.Where(c => c.Id_concepto == idConcepto.Value);
+            }
+
+            // Filtro por Fechas (Corrigiendo el error de sintaxis y lógica)
+            if (fechaInicio.HasValue && fechaFin.HasValue)
+            {
+                // Ajustamos la fecha fin para incluir todo el día hasta las 23:59:59
+                DateTime fechaFinAjustada = fechaFin.Value.Date.AddDays(1).AddTicks(-1);
+
+                // Usamos operadores estándar >= y <= porque '.between' no existe en C# LINQ
+                query = query.Where(c => c.Fecha_cobro >= fechaInicio.Value && c.Fecha_cobro <= fechaFinAjustada);
+            }
+
+            query = query.OrderByDescending(c => c.Fecha_cobro);
+
+            return await _recaudacion.Search(query);
         }
 
         public async Task<IEnumerable<Recaudacion>> Search(int? idPadron, int? idConcepto, decimal? monto, int idCobrador,
@@ -62,7 +93,7 @@ namespace Api.Business
         {
 
             var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);
-            var listaFolios = await _dataFolio.Search(queryFolio);
+            var listaFolios = await _folio.Search(queryFolio);
             var folioEncontrado = listaFolios.FirstOrDefault();
 
             if (folioEncontrado == null)
@@ -90,7 +121,7 @@ namespace Api.Business
                 folioEncontrado.Siguiente_folio += 1;
 
                 await _recaudacion.Create(cobro);               
-                await _dataFolio.Update(folioEncontrado);
+                await _folio.Update(folioEncontrado);
 
                 transaction.Commit();
             }

@@ -1,5 +1,6 @@
 ﻿using Api.Business;
 using Api.Entities;
+using Api.Entities.DTO;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -80,18 +81,33 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<IActionResult> Create(string nombre, string a_paterno, string a_materno, string curp,
-            string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario)
+        public async Task<IActionResult> Create([FromBody] DtoPadron request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
-            {                
-                await _padron.Create(nombre, a_paterno, a_materno, curp,
-            direccion, telefono, email, id_gremio, tipo, usuario);
-                return Ok("Padron creado correctamente");
+            {
+                await _padron.Create(
+                    request.Nombre,
+                    request.APaterno,
+                    request.AMaterno,
+                    request.Curp,
+                    request.Direccion,
+                    request.Telefono,
+                    request.Email,
+                    request.IdGremio,
+                    request.Tipo,
+                    request.Usuario
+                );
+
+                return Ok(new { mensaje = "Contribuyente registrado correctamente" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
@@ -106,7 +122,7 @@ namespace Api.Comercio.Informal.Controllers
                 await _padron.Update(id, nombre, a_paterno, a_materno, curp,
                     direccion, telefono, email, matricula, matricula_anterior,
                     id_gremio, status, usuario);
-                return Ok("Padrón actualizado correctamente");
+                return Ok("Contribuyente actualizado correctamente");
             }
             catch (Exception ex)
             {

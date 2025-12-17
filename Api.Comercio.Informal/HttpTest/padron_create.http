@@ -1,0 +1,36 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+@HostAddress = https://localhost:7011
+
+### 1. Crear Contribuyente (Caso Exitoso)
+POST {{HostAddress}}/api/padron/Create
+Content-Type: application/json
+
+{
+  "nombre": "Ricardo",
+  "aPaterno": "López",
+  "aMaterno": "García",
+  "curp": "LOGR850101HDFRRN01",
+  "direccion": "Av. Independencia #45, Centro",
+  "telefono": "2741112233",
+  "email": "ricardo.lopez@ejemplo.com",
+  "idGremio": 1,
+  "tipo": "P",
+  "usuario": "admin_sistemas"
+}
+
+### 2. Prueba de Validación (Error intencional: CURP corta y falta Nombre)
+# Esto sirve para probar tu bloque: if (!ModelState.IsValid)
+POST {{HostAddress}}/api/padron/Create
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "aPaterno": "Pérez",
+  "aMaterno": "Sosa",
+  "curp": "CURP_INVALIDA",
+  "direccion": "Conocido",
+  "telefono": "0000000000",
+  "idGremio": 1,
+  "tipo": "P",
+  "usuario": "admin"
+}

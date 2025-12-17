@@ -78,7 +78,11 @@ namespace Api.Data.Access
         {
             try
             {
-                return await query.ToListAsync();
+                return await query
+                    .Include(x => x.Cobrador)
+                    .Include(x => x.Padron)
+                    .Include(x=> x.Concepto)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {

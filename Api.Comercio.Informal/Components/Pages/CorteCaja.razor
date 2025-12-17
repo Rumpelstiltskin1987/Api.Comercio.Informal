@@ -1,17 +1,273 @@
 ﻿@page "/cortedecaja"
 @using Api.Comercio.Informal.Components.Layout
-@using Microsoft.AspNetCore.Components.QuickGrid
-@inject BusinessGremio _gremioService
-@inject BusinessLider _liderService
-@inject BusinessFolio _folioService
+@using Api.Entities
+@using Api.Business
+@inject BusinessRecaudacion _recaudacionService
+@inject BusinessCobrador _cobradorService
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
-<link href="css/general.css" rel="stylesheet" />
-
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Cortes de Caja</h3>
+<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Generar Corte de Caja</h3>
 <hr />
 
-@code {
+<div class="no-print mb-4">
 
+    <div class="card shadow-sm border-0">
+        <div class="card-body bg-light">
+            <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: flex-end; gap: 1rem; width: auto; ">
+
+                <div style="width: auto; min-width: 160px; padding-bottom:12px">
+                    <label class="form-label fw-bold small text-uppercase mb-1">Cobrador</label>
+                    <select class="form-select" @bind="idCobradorSeleccionado">
+                        <option value="0">-- Seleccione --</option>
+                        @foreach (var cob in cobradores)
+                        {
+                            <option value="@cob.Id_cobrador">@cob.Nombre @cob.A_paterno</option>
+                        }
+                    </select>
+                </div>
+
+                <div style="width: auto; min-width: 160px; padding-bottom:12px">
+                    <label class="form-label fw-bold small text-uppercase mb-1">Fecha Inicio</label>
+                    <input type="date" class="form-control" @bind="fechaInicio" />
+                </div>
+
+                <div style="width: auto; min-width: 160px; padding-bottom:12px">
+                    <label class="form-label fw-bold small text-uppercase mb-1">Fecha Fin</label>
+                    <input type="date" class="form-control" @bind="fechaFin" />
+                </div>
+
+                <div style="width: auto; margin-bottom:7px">
+                    <button class="btn official-btn-primary px-4" @onclick="GenerarCorte" disabled="@cargando" style="white-space: nowrap;">
+                        @if (cargando)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-search me-2"></i> Generar</span>
+                        }
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (mostrarReporte && recaudacion != null && recaudacion.Any())
+{
+    <div class="reporte-wrapper mt-3">
+
+        <div class="hoja-reporte">
+            <div class="d-flex justify-content-end mb-3 no-print">
+                <button class="btn btn-dark btn-sm" @onclick="Imprimir">
+                    <i class="bi bi-printer-fill me-2"></i> Imprimir
+                </button>
+            </div>
+
+            <div class="text-center">
+                <img src="/img/escudo_armas.jpg" style="height: 80px; opacity: 0.8;" class="mb-2" alt="Logo" />
+                <h5 class="text-uppercase fw-bold mb-0">H. Ayuntamiento Constitucional de Tierra Blanca, Veracruz.</h5>
+                <h6 class="fw-light mb-0">Tesorería Municipal - Dirección de Comercio</h6>
+
+                <hr class="separador-institucional" />
+
+                <h3 class="mt-2 fw-bold text-uppercase">Corte de Caja General</h3>
+
+                <div class="row mt-4 mb-4 small text-muted text-uppercase border-bottom pb-3">
+                    <div class="col-6 text-start">
+                        <p class="mb-1"><strong>Cobrador:</strong> <span class="text-dark">@NombreCobradorSeleccionado()</span></p>
+                        <p class="mb-0"><strong>Emisión:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="mb-1"><strong>Periodo:</strong> Del @fechaInicio.ToShortDateString() al @fechaFin.ToShortDateString()</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered w-100">
+                    <thead class="text-white text-center" style="background-color: #333;">
+                        <tr>
+                            <th style="width: 10%">Folio</th>
+                            <th style="width: 15%">Fecha</th>
+                            <th style="width: 55%">Contribuyente</th>
+                            <th style="width: 20%">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            decimal granTotal = 0;
+                        }
+
+                        @foreach (var grupo in recaudacion.GroupBy(r => r.Concepto?.Descripcion ?? "OTROS"))
+                        {
+                            var subtotal = grupo.Sum(x => x.Monto);
+                            granTotal += subtotal;
+
+                            <tr style="background-color: #f8f9fa;">
+                                <td colspan="4" class="fw-bold text-uppercase py-2 ps-3 text-secondary">
+                                    <i class="bi bi-tag-fill me-2"></i> @grupo.Key
+                                </td>
+                            </tr>
+
+                            @foreach (var item in grupo)
+                            {
+                                <tr>
+                                    <td class="text-center small">@item.Id_recaudacion</td>
+                                    <td class="text-center small">@item.Fecha_cobro.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="small text-truncate" style="max-width: 300px;">
+                                        @(item.Padron != null
+                                                                    ? $"{item.Padron.Nombre} {item.Padron.A_paterno} {item.Padron.A_materno}"
+                                                                    : "Público en General")
+                        </td>
+                        <td class="text-end fw-bold">@item.Monto.ToString("C2")</td>
+                    </tr>
+                                        }
+
+                            <tr>
+                                <td colspan="3" class="text-end small text-uppercase fw-bold pt-2 pe-3">
+                                    Subtotal @grupo.Key:
+                                </td>
+                                <td class="text-end fw-bold pt-2" style="color: #9D2449;">
+                                    @subtotal.ToString("C2")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end py-3 fw-bold text-uppercase fs-5 pe-3">Total Recaudado:</td>
+                            <td class="text-end py-3 fw-bold fs-5 total-general-bg">@granTotal.ToString("C2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="row mt-5 pt-4 text-center" style="page-break-inside: avoid;">
+                <div class="col-6">
+                    <div class="firma-line">
+                        <strong>@NombreCobradorSeleccionado()</strong><br />
+                        <span class="text-muted small text-uppercase">Firma del Cobrador</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="firma-line">
+                        <strong>Vo. Bo.</strong><br />
+                        <span class="text-muted small text-uppercase">Director de Comercio</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+else if (mostrarReporte && !recaudacion.Any())
+{
+    <div class="alert alert-warning text-center mt-4 no-print shadow-sm">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        No se encontraron cobros registrados para los criterios seleccionados.
+    </div>
+}
+
+@code {
+    // === Variables de Estado ===
+    private DateTime fechaInicio = DateTime.Today;
+    private DateTime fechaFin = DateTime.Today;
+    private int idCobradorSeleccionado = 0;
+
+    private bool cargando = false;
+    private bool mostrarReporte = false;
+
+    // === LISTAS DE DATOS ===
+    private IEnumerable<Cobrador>? cobradores;
+    private IEnumerable<Recaudacion>? recaudacion;
+
+    // === INICIALIZACIÓN ===
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Carga inicial del combo cobradores
+            await CargarCobradores();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar cobradores: {ex.Message}");
+        }
+    }
+
+    private async Task CargarCobradores()
+    {
+        var lista = await _cobradorService.GetAll();
+        cobradores = lista.ToList();
+    }
+
+    private async Task ConsultaRecaudacion()
+    {
+        // Llamada al Business usando parámetros: (idCobrador, idConcepto, fInicio, fFin)
+        // Enviamos 'null' en idConcepto porque queremos TODOS los conceptos.
+        var lista = await _recaudacionService.Search(
+                idCobradorSeleccionado,
+                null,
+                fechaInicio,
+                fechaFin
+            );
+
+        recaudacion = lista.ToList();
+    }
+
+
+    // === MÉTODOS ===
+    private async Task GenerarCorte()
+    {
+        // Validaciones
+        if (idCobradorSeleccionado <= 0)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un cobrador.", "warning");
+            return;
+        }
+
+        if (fechaFin < fechaInicio)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error de Fechas", "La fecha final no puede ser menor a la inicial.", "error");
+            return;
+        }
+
+        cargando = true;
+        mostrarReporte = false;
+        recaudacion = null;
+
+        try
+        {
+            await ConsultaRecaudacion();
+            mostrarReporte = true;
+
+            if (recaudacion.Any())
+            {
+                await JSRuntime.InvokeVoidAsync("Swal.fire", "Corte Generado", "Datos cargados correctamente.", "success");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo generar el reporte: {ex.Message}", "error");
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task Imprimir()
+    {
+        await JSRuntime.InvokeVoidAsync("print");
+    }
+
+    // Helper para obtener nombre del combo
+    private string NombreCobradorSeleccionado()
+    {
+        var cob = cobradores.FirstOrDefault(c => c.Id_cobrador == idCobradorSeleccionado);
+        return cob != null ? $"{cob.Nombre} {cob.A_paterno} {cob.A_materno}" : "DESCONOCIDO";
+    }
 }

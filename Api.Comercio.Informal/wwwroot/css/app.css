@@ -114,7 +114,7 @@ main {
     border-bottom: 1px solid #e0e0e0; /* Borde sutil */
     /* Agregamos una línea decorativa dorada típica de documentos oficiales */
     border-top: 4px solid var(--gob-accent);
-    justify-content: flex-end;
+    justify-content: flex-start;
     height: 4rem; /* Un poco más alta */
     display: flex;
     align-items: center;
@@ -470,3 +470,34 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
         background-color: #7a1c38 !important; /* Guinda Oscuro */
         background-image: none !important;
     }
+
+/* =========================================
+   REGLAS GLOBALES DE IMPRESIÓN
+   ========================================= */
+@media print {
+    /* 1. Ocultar la interfaz de navegación de Blazor */
+    .sidebar, .top-row, .navbar, header, footer {
+        display: none !important;
+    }
+
+    /* 2. Ocultar botones y controles de formulario */
+    .no-print, button, input, select, label, .btn {
+        display: none !important;
+    }
+
+    /* 3. Resetear márgenes para usar toda la hoja */
+    .page, main, article, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: white !important;
+        width: 100% !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    /* 4. Asegurar impresión de colores (importante para tu guinda) */
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

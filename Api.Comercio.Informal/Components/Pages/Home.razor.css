@@ -1,0 +1,36 @@
+﻿/* Home.razor.css */
+
+/* Contenedor pasivo: No altera márgenes ni paddings, solo da contexto a la imagen */
+.home-layout-standard {
+    position: relative;
+    width: 100%;
+    /* Min-height para asegurar que la imagen de fondo tenga espacio si hay poco texto */
+    min-height: 80vh;
+    /* No agregamos padding aquí, ya lo tiene el <article class="px-4"> del MainLayout */
+}
+
+    /* La Marca de Agua */
+    .home-layout-standard::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* Configuración de la imagen */
+        background-image: url('/img/escudo_armas.jpg');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 300px; /* O el tamaño que gustes */
+        /*opacity: 0.75;*/ /* Sutil */
+        z-index: 0; /* Detrás del texto */
+        pointer-events: none;
+    }
+
+/* Línea dorada decorativa */
+.home-divider {
+    border: 0;
+    height: 3px;
+    background-color: #DDC686; /* Dorado Oficial */
+    opacity: 1;
+} 
