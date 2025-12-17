@@ -82,7 +82,7 @@ namespace Api.Comercio.Informal.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
-            return Ok("Recaudación registrada correctamente");
+            return Ok(new { mensaje = "Recaudación registrada correctamente" }); ;
         }
     }
 }
