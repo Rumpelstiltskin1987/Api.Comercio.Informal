@@ -1,0 +1,105 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using Api.Entities
+@using Microsoft.AspNetCore.Mvc
+@attribute [AllowAnonymous]
+@* NOTA: Eliminamos @rendermode para que sea Static SSR *@
+
+@inject SignInManager<Usuario> SignInManager
+@inject NavigationManager Navigation
+@inject ILogger<Login> Logger
+
+<PageTitle>SISCOIN - Inicio de Sesión</PageTitle>
+
+<div class="login-page">
+    <div class="login-card shadow-lg">
+        <div class="card-header text-center bg-white border-0 pt-4">
+            <h2 class="fw-bold text-guinda">SISCOIN</h2>
+            <p class="text-muted small">Sistema de Control de Comercio Informal</p>
+        </div>
+        <div class="card-body px-5 pb-5">
+            @* Usamos un Form normal de HTML o EditForm con FormName *@
+            <EditForm Model="Input" OnValidSubmit="LoginUser" FormName="loginForm" method="post">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary small">Correo Electrónico</label>
+                    <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" placeholder="usuario@ejemplo.com" />
+                    <ValidationMessage For="() => Input.Email" class="text-danger small" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-secondary small">Contraseña</label>
+                    <InputText @bind-Value="Input.Password" type="password" class="form-control" autocomplete="current-password" placeholder="******" />
+                    <ValidationMessage For="() => Input.Password" class="text-danger small" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger py-2 small text-center">
+                        @errorMessage
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-guinda w-100 py-2 fw-bold text-uppercase shadow-sm">
+                    Iniciar Sesión
+                </button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    public HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private LoginInput Input { get; set; } = new();
+
+    private string? errorMessage;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Si el usuario ya está autenticado, lo mandamos al home directamente
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            if (HttpContext.User.Identity?.IsAuthenticated == true)
+            {
+                Navigation.NavigateTo("/");
+            }
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        // El login en SSR permite a SignInManager escribir la Cookie
+        var result = await SignInManager.PasswordSignInAsync(Input.Email!, Input.Password!, isPersistent: true, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("Usuario logueado.");
+            // Redirigir a la URL solicitada o al Home
+            Navigation.NavigateTo(ReturnUrl ?? "/");
+        }
+        else
+        {
+            errorMessage = "Error: Credenciales no válidas.";
+        }
+    }
+
+    public class LoginInput
+    {
+        [Required(ErrorMessage = "Requerido")]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Requerido")]
+        public string Password { get; set; } = "";
+    }
+}

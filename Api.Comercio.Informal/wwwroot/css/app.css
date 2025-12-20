@@ -502,8 +502,54 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
     }
 }
 
-
 /* Estilo para ancho automatico*/
 .width-auto {
     width: auto;    
 }
+
+.login-page {
+    /* Ruta relativa a la carpeta wwwroot */
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/img/SISCOIN.png') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 450px;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: none;
+}
+
+.text-guinda {
+    color: #9D2449; /* Color guinda institucional */
+}
+
+.btn-guinda {
+    background-color: #9D2449;
+    color: white;
+    border: none;
+    transition: 0.3s;
+}
+
+    .btn-guinda:hover {
+        background-color: #7D1D3A;
+        color: white;
+    }
+
+.input-group-text {
+    border-right: none;
+}
+
+.form-control {
+    border-left: none;
+}
+
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #ced4da;
+    }
