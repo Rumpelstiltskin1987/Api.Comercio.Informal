@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -171,6 +172,18 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Ocurrió un error al inicializar la base de datos.");
     }
 }
+
+#endregion
+
+#region Cierrar sesion
+
+app.MapPost("Account/Logout", async (
+    SignInManager<Usuario> signInManager,
+    [FromForm] string returnUrl) =>
+{
+    await signInManager.SignOutAsync();
+    return TypedResults.LocalRedirect(returnUrl ?? "/login");
+});
 
 #endregion
 

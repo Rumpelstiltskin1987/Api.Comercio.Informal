@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Api.Entities
+
+<AuthorizeView>
+    <Authorized>
+        <div class="d-flex align-items-center gap-3">
+            @* Identidad del Usuario *@
+            <div class="d-none d-md-block text-end">
+                <div class="fw-bold mb-0" style="font-size: 0.9rem;">
+                    @context.User.Identity?.Name
+                </div>
+                @* <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">
+                    Sesión Activa
+                </div> *@
+            </div>
+
+            @* Formulario de Salida *@
+            <form action="Account/Logout" method="post" class="m-0">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="/login" />
+                <button type="submit" class="btn btn-outline-guinda btn-sm d-flex align-items-center px-3">
+                    <i class="bi bi-box-arrow-right me-2"></i>
+                    <span>Salir</span>
+                </button>
+            </form>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    .btn-outline-guinda {
+        color: #9D2449;
+        border-color: #9D2449;
+        border-radius: 20px;
+        transition: all 0.2s;
+    }
+
+        .btn-outline-guinda:hover {
+            background-color: #9D2449;
+            color: white;
+        }
+</style>
