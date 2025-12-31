@@ -142,7 +142,7 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // 2. Crear el Usuario Administrador Maestro
+        // 2. Crear el Usuario Administrador Maestro        
         var emailAdmin = "admin@siscoin.com";
         var adminUser = await userManager.FindByEmailAsync(emailAdmin);
 
