@@ -1,0 +1,76 @@
+﻿@page "/login"
+@layout LoginLayout
+@attribute [AllowAnonymous]
+@using System.ComponentModel.DataAnnotations
+@using Api.Comercio.Informal.Components.Layout
+@using Microsoft.AspNetCore.Identity
+@using Api.Entities
+@inject SignInManager<Usuario> SignInManager
+@inject NavigationManager Navigation
+
+<div class="login-bg">
+    <div class="login-box">
+
+        <EditForm Model="Input" OnValidSubmit="LoginUser" FormName="loginForm" method="post">
+            <DataAnnotationsValidator />
+
+            @* Input de Correo *@
+            <div class="mb-3 d-flex align-items-center">
+
+                <label class="form-label small lbl-fixed mb-0">Correo Electrónico</label>
+
+
+                <center class="marg-buttom">
+                    <InputText @bind-Value="Input.Email" class="form-control" placeholder="usuario@siscoin.com" />
+                    <ValidationMessage For="() => Input.Email" class="text-danger small" />
+                </center>
+
+            </div>
+
+            @* Input de Contraseña *@
+            <div class="mb-4 d-flex align-items-center">
+                <label class="form-label small lbl-fixed mb-0">Contraseña</label>
+
+                <center class="marg-buttom">
+                    <InputText @bind-Value="Input.Password" type="password" class="form-control" placeholder="••••••" />
+                    <ValidationMessage For="() => Input.Password" class="text-danger small" />
+                </center>
+
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger py-2 small text-center">@errorMessage</div>
+            }
+
+            @* Botón de Ingreso *@
+            <center class="marg-buttom">
+                <button type="submit" class="btn btn-siscoin w-100 shadow">
+                    INICIAR SESIÓN
+                </button>
+            </center>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromForm] private LoginInput Input { get; set; } = new();
+    private string? errorMessage;
+
+    public async Task LoginUser()
+    {
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, isPersistent: true, lockoutOnFailure: false);
+        if (result.Succeeded) Navigation.NavigateTo("/");
+        else errorMessage = "Datos incorrectos";
+    }
+
+    public class LoginInput
+    {
+        [Required(ErrorMessage = "Campo requerido")]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+        [Required(ErrorMessage = "Campo requerido")]
+        public string Password { get; set; } = "";
+    }
+}

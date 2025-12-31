@@ -114,7 +114,8 @@ main {
     border-bottom: 1px solid #e0e0e0; /* Borde sutil */
     /* Agregamos una línea decorativa dorada típica de documentos oficiales */
     border-top: 4px solid var(--gob-accent);
-    justify-content: flex-start;
+    /*justify-content: flex-start;*/
+    justify-content: space-between !important;
     height: 4rem; /* Un poco más alta */
     display: flex;
     align-items: center;
@@ -124,11 +125,12 @@ main {
 
     .top-row a, .top-row .btn-link {
         white-space: nowrap;
-        margin-left: 1.5rem;
+        /*margin-left: 1.5rem;*/
         color: var(--gob-gray);
         text-decoration: none;
         text-transform: uppercase;
         font-size: 0.8rem;
+        margin-left: 0;
     }
 
         .top-row a:hover {
@@ -502,8 +504,80 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
     }
 }
 
-
 /* Estilo para ancho automatico*/
 .width-auto {
     width: auto;    
+}
+
+/* =========================================
+   ESTILOS PARA EL LOGIN
+   ========================================= */
+
+/* Contenedor principal que abarca toda la pantalla */
+.login-bg {
+    /*background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/img/SISCOIN.png') no-repeat center center fixed;*/
+    background: url('/img/SISCOIN.png') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Caja de login integrada (Efecto cristal) */
+.login-box {
+    background: rgba(255, 255, 255, 0.1); /* Transparencia */
+    backdrop-filter: blur(10px); /* Desenfoque del fondo */
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    color: white;
+}
+
+    /* Estilo para los inputs para que no desentonen */
+    .login-box .form-control {
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 5px;
+        padding: 0.75rem;
+    }
+
+/* Color Azul Oscuro para los labels del login */
+    .login-box .form-label.small {
+        color: #1B396A; /* Azul oscuro profundo */
+        font-weight: 600; /* Le da un poco más de cuerpo para que sea legible */
+        margin-bottom: 0.3rem;
+        display: block;
+    }
+
+    .login-box .marg-buttom {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Botón Guinda Institucional */
+    .btn-siscoin {
+        background-color: #9D2449;
+        color: white;
+        border: none;
+        font-weight: bold;
+        padding: 0.75rem;
+        transition: 0.3s;
+    }
+
+    .btn-siscoin:hover {
+        background-color: #7D1D3A;
+        color: white;
+        transform: scale(1.02);
+    }
+
+/* Ancho fijo para etiquetas del login */
+.lbl-fixed {
+    width: auto; /* Ancho deseado */
+    text-align: center; /* (Opcional) Alinea el texto a la derecha pegado al input */
+    flex-shrink: 0; /* IMPRESCINDIBLE: Evita que la etiqueta se aplaste */
 }

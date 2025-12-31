@@ -10,7 +10,7 @@ using Api.Entities;
 
 namespace Api.Entities
 {
-    public class MySQLiteContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
+    public class MySQLiteContext : IdentityDbContext<Usuario, IdentityRole<int>, int>
     {
         public MySQLiteContext(DbContextOptions<MySQLiteContext> options)
             : base(options)
@@ -32,7 +32,7 @@ namespace Api.Entities
         public DbSet<Recaudacion> Recaudacion { get; set; }
         public DbSet<Tarifa> Tarifa { get; set; }
         public DbSet<TarifaLog> TarifaLog { get; set; } 
-
+        public DbSet<Usuario> Usuario { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -253,6 +253,20 @@ namespace Api.Entities
                 entity.Property(e => e.Anio).IsRequired();
                 entity.Property(e => e.Siguiente_numero).IsRequired();
             });
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                // Si quieres que el Alias sea obligatorio o tenga un largo máximo
+                entity.Property(u => u.Alias).HasMaxLength(50);
+
+                // Configurar explícitamente la relación con Cobrador
+                entity.HasOne(u => u.Cobrador)
+                      .WithMany() // Un cobrador puede no tener usuarios o tener varios
+                      .HasForeignKey(u => u.Id_cobrador)
+                      .OnDelete(DeleteBehavior.SetNull); // Si se borra el cobrador, el usuario queda pero sin ID_cobrador
+            });
+
+
         }
     }
 }

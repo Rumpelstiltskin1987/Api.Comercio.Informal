@@ -1,0 +1,19 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+# Configuración de variables
+@HostAddress = https://localhost:7011
+
+### Intento de Inicio de Sesión (Login)
+POST {{HostAddress}}/api/auth/Login
+Content-Type: application/json
+
+{
+  "userName": "admin@siscoin.com",
+  "password": "Admin123!"
+}
+
+### Prueba de acceso a un endpoint protegido (GetAll Conceptos)
+# Una vez que obtengas el Token del login, pégalo abajo para probar
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBzaXNjb2luLmNvbSIsImp0aSI6IjliYmI1YmQ0LWUyM2UtNGQ4OC1iOGM4LWFmZTNiZWU4Yzg2OCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiMiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHNpc2NvaW4uY29tIiwiQWxpYXMiOiJTdXBlclVzdWFyaW8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJJVCBNYW5hZ2VyIiwiZXhwIjoxNzY3MDg2MDEyLCJpc3MiOiJTaXNjb2luQXBpIiwiYXVkIjoiU2lzY29pbkFuZHJvaWQifQ.a_vAhhlpuQ4PjSD_2dHyyMEADrW0sYUuAI2t95Oq30U
+
+GET {{host}}/api/concepto/GetAll
+Authorization: Bearer {{token}}

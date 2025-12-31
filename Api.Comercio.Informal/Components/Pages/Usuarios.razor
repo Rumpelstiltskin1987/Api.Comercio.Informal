@@ -1,0 +1,158 @@
+﻿@page "/admin/usuarios"
+@using Api.Entities
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Authorization
+@inject UserManager<Usuario> _userManager
+@inject RoleManager<IdentityRole<int>> _roleManager
+@inject IJSRuntime JSRuntime
+@* @attribute [Authorize(Roles = "IT Manager, Administrador")] *@
+@rendermode InteractiveServer
+
+<PageTitle>Gestión de Usuarios</PageTitle>
+
+<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">
+    <i class="bi bi-people-fill me-2"></i> Control de Usuarios y Perfiles
+</h3>
+<hr />
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-dark text-white py-3">
+        <span class="text-uppercase fw-bold">Listado de Personal</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-4">Usuario / Email</th>
+                        <th>Alias</th>
+                        <th>Vínculo Cobrador</th>
+                        <th style="width: 250px;">Perfil / Rol</th>
+                        <th class="text-center">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in usuariosLista)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold">@user.Email</div>
+                                <div class="text-muted small">ID: @user.Id</div>
+                            </td>
+                            <td>@(user.Alias ?? "---")</td>
+                            <td>
+                                @(user.Id_cobrador != null ? $"ID Cobrador: {user.Id_cobrador}" : "Sin vínculo")
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm"
+                                        @onchange="(e) => CambiarRol(user, e.Value.ToString())">
+                                    @foreach (var rol in rolesDisponibles)
+                                    {
+                                        <option value="@rol" selected="@(user.RolActual == rol)">@rol</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge @(user.EmailConfirmed ? "bg-success" : "bg-warning")">
+                                    @(user.EmailConfirmed ? "Verificado" : "Pendiente")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (cargando)
+{
+    <div class="text-center mt-4">
+        <div class="spinner-border text-guinda" role="status"></div>
+        <p class="text-muted mt-2">Actualizando permisos...</p>
+    </div>
+}
+
+@code {
+    private List<UserView> usuariosLista = new();
+    private List<string> rolesDisponibles = new();
+    private bool cargando = false;
+
+    // Clase auxiliar para la tabla
+    public class UserView
+    {
+        public int Id { get; set; }
+        public string Email { get; set; }
+        public string RolActual { get; set; }
+        public string Alias { get; set; }
+        public int? Id_cobrador { get; set; }
+        public bool EmailConfirmed { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Obtener roles disponibles
+        rolesDisponibles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+
+        // 2. Cargar usuarios
+        await CargarUsuarios();
+    }
+
+    private async Task CargarUsuarios()
+    {
+        var users = await _userManager.Users.ToListAsync();
+        usuariosLista.Clear();
+
+        foreach (var u in users)
+        {
+            var roles = await _userManager.GetRolesAsync(u);
+            usuariosLista.Add(new UserView
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Alias = u.Alias,
+                Id_cobrador = u.Id_cobrador,
+                EmailConfirmed = u.EmailConfirmed,
+                RolActual = roles.FirstOrDefault() ?? "Sin Rol"
+            });
+        }
+    }
+
+    private async Task CambiarRol(UserView userView, string nuevoRol)
+    {
+        cargando = true;
+        try
+        {
+            var user = await _userManager.FindByIdAsync(userView.Id.ToString());
+            if (user == null) return;
+
+            // 1. Quitar roles actuales
+            var rolesActuales = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, rolesActuales);
+
+            // 2. Agregar nuevo rol
+            var result = await _userManager.AddToRoleAsync(user, nuevoRol);
+
+            if (result.Succeeded)
+            {
+                await JSRuntime.InvokeVoidAsync("Swal.fire", "Actualizado",
+                    $"El usuario {user.Email} ahora tiene el perfil de {nuevoRol}.", "success");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
+        }
+        finally
+        {
+            cargando = false;
+            await CargarUsuarios(); // Refrescar tabla
+        }
+    }
+}
+
+<style>
+    .text-guinda { color: #9D2449; }
+    .bg-guinda { background-color: #9D2449; }
+</style>
