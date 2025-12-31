@@ -10,26 +10,32 @@
 
 <div class="login-bg">
     <div class="login-box">
-        @* <div class="text-center mb-4">
-            <h2 class="fw-bold m-0">SISCOIN</h2>
-            <small class="text-white-50">Acceso al Sistema</small>
-        </div> *@
 
         <EditForm Model="Input" OnValidSubmit="LoginUser" FormName="loginForm" method="post">
             <DataAnnotationsValidator />
 
             @* Input de Correo *@
-            <div class="mb-3">
-                <label class="form-label small">Correo Electrónico</label>
-                <InputText @bind-Value="Input.Email" class="form-control" placeholder="usuario@siscoin.com" />
-                <ValidationMessage For="() => Input.Email" class="text-danger small" />
+            <div class="mb-3 d-flex align-items-center">
+
+                <label class="form-label small lbl-fixed mb-0">Correo Electrónico</label>
+
+
+                <center class="marg-buttom">
+                    <InputText @bind-Value="Input.Email" class="form-control" placeholder="usuario@siscoin.com" />
+                    <ValidationMessage For="() => Input.Email" class="text-danger small" />
+                </center>
+
             </div>
 
             @* Input de Contraseña *@
-            <div class="mb-4">
-                <label class="form-label small">Contraseña</label>
-                <InputText @bind-Value="Input.Password" type="password" class="form-control" placeholder="••••••" />
-                <ValidationMessage For="() => Input.Password" class="text-danger small" />
+            <div class="mb-4 d-flex align-items-center">
+                <label class="form-label small lbl-fixed mb-0">Contraseña</label>
+
+                <center class="marg-buttom">
+                    <InputText @bind-Value="Input.Password" type="password" class="form-control" placeholder="••••••" />
+                    <ValidationMessage For="() => Input.Password" class="text-danger small" />
+                </center>
+
             </div>
 
             @if (!string.IsNullOrEmpty(errorMessage))
@@ -38,9 +44,11 @@
             }
 
             @* Botón de Ingreso *@
-            <button type="submit" class="btn btn-siscoin w-100 shadow">
-                INICIAR SESIÓN
-            </button>
+            <center class="marg-buttom">
+                <button type="submit" class="btn btn-siscoin w-100 shadow">
+                    INICIAR SESIÓN
+                </button>
+            </center>
         </EditForm>
     </div>
 </div>

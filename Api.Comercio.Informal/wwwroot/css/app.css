@@ -532,7 +532,7 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 15px;
-    padding: 3rem;
+    padding: 2.5rem;
     width: 100%;
     max-width: 400px;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -552,21 +552,32 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
         color: #1B396A; /* Azul oscuro profundo */
         font-weight: 600; /* Le da un poco más de cuerpo para que sea legible */
         margin-bottom: 0.3rem;
-/*        display: block;*/
+        display: block;
     }
 
-/* Botón Guinda Institucional */
-.btn-siscoin {
-    background-color: #9D2449;
-    color: white;
-    border: none;
-    font-weight: bold;
-    padding: 0.75rem;
-    transition: 0.3s;
-}
+    .login-box .marg-buttom {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Botón Guinda Institucional */
+    .btn-siscoin {
+        background-color: #9D2449;
+        color: white;
+        border: none;
+        font-weight: bold;
+        padding: 0.75rem;
+        transition: 0.3s;
+    }
 
     .btn-siscoin:hover {
         background-color: #7D1D3A;
         color: white;
         transform: scale(1.02);
     }
+
+/* Ancho fijo para etiquetas del login */
+.lbl-fixed {
+    width: auto; /* Ancho deseado */
+    text-align: center; /* (Opcional) Alinea el texto a la derecha pegado al input */
+    flex-shrink: 0; /* IMPRESCINDIBLE: Evita que la etiqueta se aplaste */
+}
