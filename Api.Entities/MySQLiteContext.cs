@@ -256,14 +256,12 @@ namespace Api.Entities
 
             modelBuilder.Entity<Usuario>(entity =>
             {
-                // Si quieres que el Alias sea obligatorio o tenga un largo máximo
-                entity.Property(u => u.Alias).HasMaxLength(50);
-
-                // Configurar explícitamente la relación con Cobrador
-                entity.HasOne(u => u.Cobrador)
-                      .WithMany() // Un cobrador puede no tener usuarios o tener varios
-                      .HasForeignKey(u => u.Id_cobrador)
-                      .OnDelete(DeleteBehavior.SetNull); // Si se borra el cobrador, el usuario queda pero sin ID_cobrador
+                entity.Property(u => u.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(u => u.A_paterno).IsRequired().HasMaxLength(100);
+                entity.Property(u => u.A_materno).IsRequired().HasMaxLength(100);
+                entity.Property(u => u.Usuario_alta).IsRequired().HasMaxLength(50);
+                entity.Property(u => u.Fecha_alta).IsRequired();
+                entity.Property(u => u.Alias).HasMaxLength(50);                
             });
 
 

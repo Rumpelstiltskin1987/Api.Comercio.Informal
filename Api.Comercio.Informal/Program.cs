@@ -19,7 +19,7 @@ builder.Services.AddSwaggerGen();
 // [NUEVO] Agregamos los servicios de Blazor (Razor Components)
 // AddInteractiveServerComponents habilita la interactividad vía SignalR (Blazor Server)
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options => options.DetailedErrors = true); // <--- AGREGA ESTO
 
 #region Configuracion del Contexto de la Base de Datos
 
@@ -41,6 +41,10 @@ builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options => {
 .AddApiEndpoints() // Habilita los endpoints para Android (/login)
 .AddDefaultTokenProviders();
 
+// 2. ¡AGREGA ESTA LÍNEA OBLIGATORIA! 
+// Sin esto, el componente <CascadingAuthenticationState> no funciona.
+builder.Services.AddCascadingAuthenticationState();
+
 // --- 2. CONFIGURACIÓN DE AUTENTICACIÓN HÍBRIDA (WEB + ANDROID) ---
 builder.Services.AddAuthentication(options =>
 {
@@ -57,7 +61,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.Name = "SISCOIN_Auth";
     options.LoginPath = "/login";
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // 330 min exactos
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;
 });
 
@@ -133,7 +137,7 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
         // 1. Crear los Roles si no existen
-        string[] roles = { "Cobrador", "Administrador", "IT Manager" };
+        string[] roles = { "Cobrador", "Supervisor", "IT Manager" };
         foreach (var roleName in roles)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
@@ -142,17 +146,21 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // 2. Crear el Usuario Administrador Maestro        
-        var emailAdmin = "admin@siscoin.com";
-        var adminUser = await userManager.FindByEmailAsync(emailAdmin);
+        // 2. Crear el Usuario Administrador Maestro
+
+        var adminUser = await userManager.FindByEmailAsync("admin@siscoin.com");
 
         if (adminUser == null)
         {
             var user = new Usuario
             {
-                UserName = emailAdmin,
-                Email = emailAdmin,
+                Nombre = "SuperUsuario",
+                A_paterno = "SISCOIN",
+                A_materno = "ADMIN",
+                UserName = "SuperUsuario",
+                Email = "admin@siscoin.com",
                 Alias = "SuperUsuario",
+                Usuario_alta = "System",
                 EmailConfirmed = true
             };
 

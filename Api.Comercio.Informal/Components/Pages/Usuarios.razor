@@ -1,94 +1,138 @@
 ﻿@page "/admin/usuarios"
 @using Api.Entities
+@using Api.Entities.DTO
+@using Api.Comercio.Informal.Components.Layout
+@using Microsoft.AspNetCore.Components.QuickGrid
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Authorization
-@inject UserManager<Usuario> _userManager
+@inject UserManager<Api.Entities.Usuario> _userManager
 @inject RoleManager<IdentityRole<int>> _roleManager
 @inject IJSRuntime JSRuntime
-@* @attribute [Authorize(Roles = "IT Manager, Administrador")] *@
-@rendermode InteractiveServer
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "IT Manager")]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<PageTitle>Gestión de Usuarios</PageTitle>
+<link href="css/general.css" rel="stylesheet" />
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">
-    <i class="bi bi-people-fill me-2"></i> Control de Usuarios y Perfiles
-</h3>
+<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Control de Usuarios y Perfiles</h3>
 <hr />
 
+<div class="d-flex justify-content-between mb-4 align-items-center">
+    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+    </button>
+
+    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+        @if (mostrarActivos)
+        {
+            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+        }
+        else
+        {
+            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+        }
+    </button>
+</div>
+
 <div class="card shadow-sm border-0">
-    <div class="card-header bg-dark text-white py-3">
-        <span class="text-uppercase fw-bold">Listado de Personal</span>
-    </div>
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-uppercase small fw-bold">
-                    <tr>
-                        <th class="ps-4">Usuario / Email</th>
-                        <th>Alias</th>
-                        <th>Vínculo Cobrador</th>
-                        <th style="width: 250px;">Perfil / Rol</th>
-                        <th class="text-center">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in usuariosLista)
-                    {
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold">@user.Email</div>
-                                <div class="text-muted small">ID: @user.Id</div>
-                            </td>
-                            <td>@(user.Alias ?? "---")</td>
-                            <td>
-                                @(user.Id_cobrador != null ? $"ID Cobrador: {user.Id_cobrador}" : "Sin vínculo")
-                            </td>
-                            <td>
-                                <select class="form-select form-select-sm"
-                                        @onchange="(e) => CambiarRol(user, e.Value.ToString())">
-                                    @foreach (var rol in rolesDisponibles)
-                                    {
-                                        <option value="@rol" selected="@(user.RolActual == rol)">@rol</option>
-                                    }
-                                </select>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge @(user.EmailConfirmed ? "bg-success" : "bg-warning")">
-                                    @(user.EmailConfirmed ? "Verificado" : "Pendiente")
-                                </span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <QuickGrid Items="@usuariosExtQueryable" TGridItem="UsuarioExt" Pagination="@paginationState" Class="table mb-0 official-grid grid-usuarios">
+            <PropertyColumn Property="@(c => c.Nombre)" Sortable="true" Title="Nombre(s)" />
+            <PropertyColumn Property="@(c => c.A_paterno)" Sortable="true" Title="Apellido Paterno" />
+            <PropertyColumn Property="@(c => c.A_materno)" Sortable="true" Title="Apellido Materno" />
+            <PropertyColumn Property="@(c => c.Rol)" Sortable="true" Title="Rol" />
+
+            <TemplateColumn Title="Gestión">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                        <i class="bi bi-pencil-square fs-6"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                        <i class="bi bi-eye fs-6"></i>
+                    </button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <div class="paginator-container p-2 border-top bg-light">
+            <PaginadorEsp State="@paginationState" />
         </div>
     </div>
 </div>
 
-@if (cargando)
-{
-    <div class="text-center mt-4">
-        <div class="spinner-border text-guinda" role="status"></div>
-        <p class="text-muted mt-2">Actualizando permisos...</p>
-    </div>
-}
+<SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarUsuario" HideSaveButton="@soloLectura">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre(s)</label>
+                <input class="form-control" @bind="inputModel.Nombre" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Apellido Paterno</label>
+                <input class="form-control" @bind="inputModel.A_paterno" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Apellido Materno</label>
+                <input class="form-control" @bind="inputModel.A_materno" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted text-uppercase fw-bold">Teléfono</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
+                    <input class="form-control" @bind="inputModel.PhoneNumber" placeholder="10 dígitos" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted text-uppercase fw-bold">Correo Electrónico</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                    <input class="form-control" @bind="inputModel.Email" placeholder="oficial@dominio.gob" />
+                </div>
+            </div>
+
+            @* --- NUEVO CAMPO DE CONTRASEÑA --- *@
+            @* Solo mostramos contraseña si es un registro NUEVO (Id == 0) *@
+            @if (inputModel.Id == 0)
+            {
+                <div class="col-md-12">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                        <input type="password" class="form-control" @bind="inputModel.Password" placeholder="Mínimo 6 caracteres" />
+                    </div>
+                </div>
+            }
+            <div class="col-12">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Rol Asignado</label>
+                <select class="form-select" @bind="inputModel.Rol">
+                    <option value="0">-- Seleccione un Rol --</option>
+                    @if (rolesDisponibles != null)
+                    {
+                        @foreach (var rol in rolesDisponibles)
+                        {
+                            <option value="@rol">@rol</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </fieldset>
+</SimpleModal>
 
 @code {
-    private List<UserView> usuariosLista = new();
+    private List<Usuario> usuarios = new();
+    private List<UsuarioExt> usuariosExt = new();
+    private IQueryable<UsuarioExt> usuariosExtQueryable = Enumerable.Empty<UsuarioExt>().AsQueryable();
     private List<string> rolesDisponibles = new();
-    private bool cargando = false;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    private bool soloLectura = false;
+    private bool mostrarActivos = true;
+    private bool mostrarModal = false;
+    private string tituloModal = "";
+    private string usuarioActual = "";
 
-    // Clase auxiliar para la tabla
-    public class UserView
-    {
-        public int Id { get; set; }
-        public string Email { get; set; }
-        public string RolActual { get; set; }
-        public string Alias { get; set; }
-        public int? Id_cobrador { get; set; }
-        public bool EmailConfirmed { get; set; }
-    }
+    private DtoUsuario inputModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,29 +143,49 @@
         await CargarUsuarios();
     }
 
-    private async Task CargarUsuarios()
+    private async Task AlternarVista()
     {
-        var users = await _userManager.Users.ToListAsync();
-        usuariosLista.Clear();
-
-        foreach (var u in users)
+        mostrarActivos = !mostrarActivos;
+        try
         {
-            var roles = await _userManager.GetRolesAsync(u);
-            usuariosLista.Add(new UserView
-            {
-                Id = u.Id,
-                Email = u.Email,
-                Alias = u.Alias,
-                Id_cobrador = u.Id_cobrador,
-                EmailConfirmed = u.EmailConfirmed,
-                RolActual = roles.FirstOrDefault() ?? "Sin Rol"
-            });
+            await CargarUsuarios();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
         }
     }
 
-    private async Task CambiarRol(UserView userView, string nuevoRol)
+    private async Task CargarUsuarios()
     {
-        cargando = true;
+        usuarios.Clear();
+        usuariosExt.Clear();
+
+        usuarios = await _userManager.Users.ToListAsync();
+
+        foreach (var u in usuarios)
+        {
+            var roles = await _userManager.GetRolesAsync(u);
+
+            UsuarioExt usuarioExt = new UsuarioExt
+            {
+                Id = u.Id,
+                Nombre = u.Nombre,
+                A_paterno = u.A_paterno,
+                A_materno = u.A_materno,
+                PhoneNumber = u.PhoneNumber,
+                Email = u.Email,
+                Rol = roles.FirstOrDefault() ?? "Sin Rol"
+            };
+
+            usuariosExt.Add(usuarioExt);
+        }
+        usuariosExtQueryable = usuariosExt.AsQueryable();
+    }
+
+    private async Task CambiarRol(Usuario userView, string nuevoRol)
+    {
         try
         {
             var user = await _userManager.FindByIdAsync(userView.Id.ToString());
@@ -146,13 +210,88 @@
         }
         finally
         {
-            cargando = false;
-            await CargarUsuarios(); // Refrescar tabla
+            await CargarUsuarios();
         }
+    }
+
+    private void AbrirModalCrear()
+    {
+        soloLectura = false;
+        inputModel = new();
+        tituloModal = "REGISTRO DE NUEVO USUARIO";
+        mostrarModal = true;
+    }
+
+    private void AbrirModalEditar(Usuario item)
+    {
+
+    }
+
+    private void AbrirModalDetalle(Usuario item)
+    {
+    }
+
+    private void CerrarModal() => mostrarModal = false;
+
+    private async Task GuardarUsuario()
+    {
+        var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        usuarioActual = user.Identity?.Name ?? "System";
+        inputModel.UserName = inputModel.Nombre.Substring(0, 1).ToUpper() + inputModel.A_paterno.ToUpper();
+
+        Usuario nuevoUsuario = new()
+        {
+            Nombre = inputModel.Nombre,
+            A_paterno = inputModel.A_paterno,
+            A_materno = inputModel.A_materno,
+            PhoneNumber = inputModel.PhoneNumber,
+            Email = inputModel.Email,
+            UserName = inputModel.UserName,
+            EmailConfirmed = true,
+            Usuario_alta = usuarioActual
+        };
+
+
+        try
+        {
+            var result = await _userManager.CreateAsync(nuevoUsuario, inputModel.Password);
+            if (!result.Succeeded)
+            {
+                var errores = string.Join("<br/>", result.Errors.Select(e => e.Description));
+                await JSRuntime.InvokeVoidAsync("Swal.fire", "Error al crear usuario", errores, "error");
+                return;
+            }
+            // Asignar rol predeterminado
+            await _userManager.AddToRoleAsync(nuevoUsuario, inputModel.Rol);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error: {ex.Message}", "error");
+            return;
+        }
+
+        mostrarModal = false;
+
+        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title = "¡Éxito!",
+            text = $"Se registró el usuario {inputModel.UserName} con el rol de {inputModel.Rol}.",
+            icon = "success",
+            confirmButtonColor = "#9D2449"
+        });
+
+        await CargarUsuarios();
     }
 }
 
+
 <style>
-    .text-guinda { color: #9D2449; }
-    .bg-guinda { background-color: #9D2449; }
+    .text-guinda {
+        color: #9D2449;
+    }
+
+    .bg-guinda {
+        background-color: #9D2449;
+    }
 </style>

@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,11 +10,20 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="Api.Comercio.Informal.styles.css" rel="stylesheet" />
+
     <HeadOutlet />
 </head>
+
 <body>
-    <Routes />
+    @* --- INICIO DEL CAMBIO --- *@
+    @* Este componente es OBLIGATORIO para usar [Authorize] en páginas interactivas *@
+    <CascadingAuthenticationState>
+        <Routes />
+    </CascadingAuthenticationState>
+    @* --- FIN DEL CAMBIO --- *@
+
     <script src="_framework/blazor.web.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
+
 </html>

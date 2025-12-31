@@ -3,6 +3,7 @@ using System;
 using Api.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Entities.Migrations
 {
     [DbContext(typeof(MySQLiteContext))]
-    partial class MySQLiteContextModelSnapshot : ModelSnapshot
+    [Migration("20251231155942_AgregarDatosPersonalesUsuario")]
+    partial class AgregarDatosPersonalesUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");

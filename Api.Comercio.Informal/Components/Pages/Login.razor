@@ -14,15 +14,15 @@
         <EditForm Model="Input" OnValidSubmit="LoginUser" FormName="loginForm" method="post">
             <DataAnnotationsValidator />
 
-            @* Input de Correo *@
+            @* Input de Usuario *@
             <div class="mb-3 d-flex align-items-center">
 
-                <label class="form-label small lbl-fixed mb-0">Correo Electrónico</label>
+                <label class="form-label small lbl-fixed mb-0">Nombre de Usuario</label>
 
 
                 <center class="marg-buttom">
-                    <InputText @bind-Value="Input.Email" class="form-control" placeholder="usuario@siscoin.com" />
-                    <ValidationMessage For="() => Input.Email" class="text-danger small" />
+                    <InputText @bind-Value="Input.UserName" class="form-control" placeholder="Nombre de usuario" />
+                    <ValidationMessage For="() => Input.UserName" class="text-danger small" />
                 </center>
 
             </div>
@@ -60,7 +60,7 @@
 
     public async Task LoginUser()
     {
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, isPersistent: true, lockoutOnFailure: false);
+        var result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, isPersistent: true, lockoutOnFailure: false);
         if (result.Succeeded) Navigation.NavigateTo("/");
         else errorMessage = "Datos incorrectos";
     }
@@ -68,8 +68,7 @@
     public class LoginInput
     {
         [Required(ErrorMessage = "Campo requerido")]
-        [EmailAddress]
-        public string Email { get; set; } = "";
+        public string UserName { get; set; } = "";
         [Required(ErrorMessage = "Campo requerido")]
         public string Password { get; set; } = "";
     }
