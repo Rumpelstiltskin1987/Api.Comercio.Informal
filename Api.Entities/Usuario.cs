@@ -18,5 +18,7 @@ namespace Api.Entities
         public string? Alias { get; set; }
         public string? Usuario_alta { get; set; }
         public DateTime? Fecha_alta { get; set; } = DateTime.Now;
+        public string? Usuario_modificacion { get; set; }
+        public DateTime? Fecha_modificacion { get; set; }
     }
 }

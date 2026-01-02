@@ -1,12 +1,14 @@
 ﻿@* Este archivo no puede llamarse Padron porque causaría conflicto con la clase Api.Entities.Padron *@
 @page "/padron"
-@using Api.Comercio.Informal.Components.Layout
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Api.Comercio.Informal.Components.Layout
 @using Api.Entities
 @using Api.Business
+@inject IJSRuntime JSRuntime
 @inject BusinessPadron _padronService
 @inject BusinessGremio _gremioService
-@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />
@@ -73,7 +75,7 @@
 </div>
 
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarPadron" HideSaveButton="@soloLectura">
-    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             @if (soloLectura)
             {
@@ -166,7 +168,7 @@
         new TipoOpcion { Id = "P", Descripcion = "Padron" },
         new TipoOpcion { Id = "E", Descripcion = "Eventual" }
     };
-    private const string usuario = "Administrador";
+    private string usuario = "";
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
 
     // --- Modal ---
@@ -180,6 +182,11 @@
     {
         try
         {
+            // Obtener el usuario logueado
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
             await CargarDatos();
             await CargarGremios();
         }

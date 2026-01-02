@@ -1,5 +1,6 @@
 // Necesitarás agregar el using donde ubicarás tus componentes (explicado abajo)
 using Api.Comercio.Informal.Components;
+using Api.Comercio.Informal.Helpers;
 using Api.Entities;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -39,7 +40,8 @@ builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options => {
 })
 .AddEntityFrameworkStores<MySQLiteContext>()
 .AddApiEndpoints() // Habilita los endpoints para Android (/login)
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddErrorDescriber<SpanishIdentityErrorDescriber>();
 
 // 2. ¡AGREGA ESTA LÍNEA OBLIGATORIA! 
 // Sin esto, el componente <CascadingAuthenticationState> no funciona.

@@ -1,10 +1,12 @@
 ﻿@page "/gremios"
 @using Api.Comercio.Informal.Components.Layout
 @using Microsoft.AspNetCore.Components.QuickGrid
+@inject IJSRuntime JSRuntime
 @inject BusinessGremio _gremioService
 @inject BusinessLider _liderService
 @inject BusinessFolio _folioService
-@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
@@ -100,7 +102,7 @@
     private IEnumerable<Lider>? lideres = new List<Lider>();
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
-    private const string usuario = "Administrador";
+    private string usuario = "";
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
 
     // --- Modal ---
@@ -114,6 +116,11 @@
     {
         try
         {
+            // Obtener el usuario logueado
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
             await CargarDatos();
             await CargarLideres();
         }

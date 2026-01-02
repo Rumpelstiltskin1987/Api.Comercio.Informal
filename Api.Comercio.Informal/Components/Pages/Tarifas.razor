@@ -3,10 +3,12 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Entities
 @using Api.Business
+@inject IJSRuntime JSRuntime
 @inject BusinessTarifa _tarifaService
 @inject BusinessConcepto _conceptoService
 @inject BusinessGremio _gremioService
-@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
@@ -117,7 +119,7 @@
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
-    private const string usuario = "Administrador";
+    private string usuario = "";
 
     // --- Modal ---
     private bool mostrarModal = false;
@@ -130,6 +132,11 @@
     {
         try
         {
+            // Obtener el usuario logueado
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
             await CargarDatos();
             await CargarConceptos();
             await CargarGremios();

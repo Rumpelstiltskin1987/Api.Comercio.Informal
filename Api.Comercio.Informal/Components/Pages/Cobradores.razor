@@ -1,11 +1,13 @@
 ﻿@page "/cobradores"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Api.Comercio.Informal.Components.Layout
 @using Api.Entities
 @using Api.Business
-@using Api.Comercio.Informal.Components.Layout
-@using Microsoft.AspNetCore.Components.QuickGrid
-@inject BusinessCobrador _cobradorService
 @inject IJSRuntime JSRuntime
-@* @attribute [Authorize(Roles = "Supervisor")] *@
+@inject BusinessCobrador _cobradorService
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />
@@ -113,7 +115,7 @@
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
-    private const string usuario = "Administrador";
+    private string usuario = "";
 
     // --- Modal ---
     private bool mostrarModal = false;
@@ -126,6 +128,12 @@
     {
         try
         {
+            // Obtener usuario autenticado aquí (dentro de método async)
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
+            //Carga de datos inicial
             await CargarDatos();
         }
         catch (Exception ex)
@@ -199,7 +207,7 @@
 
     private async Task GuardarCobrador()
     {
-        // Validaciones básicas
+        // Validaciones de datos
         if (string.IsNullOrWhiteSpace(cobradorEdicion.Nombre) ||
             string.IsNullOrWhiteSpace(cobradorEdicion.A_paterno) ||
             string.IsNullOrWhiteSpace(cobradorEdicion.A_materno) ||

@@ -29,6 +29,7 @@ namespace Api.Entities.DTO
 
         [Required(ErrorMessage = "La contraseña es obligatoria")]
         public string Password { get; set; } = "";
+        [Required(ErrorMessage = "El Rol es obligatorio")]
         public string? Rol { get; set; }
     }
 }
