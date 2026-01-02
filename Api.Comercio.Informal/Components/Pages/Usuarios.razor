@@ -38,6 +38,7 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <QuickGrid Items="@usuariosExtQueryable" TGridItem="DtoUsuario" Pagination="@paginationState" Class="table mb-0 official-grid grid-usuarios">
+            <PropertyColumn Property="@(c => c.UserName)" Sortable="true" Title="Usuario" />
             <PropertyColumn Property="@(c => c.Nombre)" Sortable="true" Title="Nombre(s)" />
             <PropertyColumn Property="@(c => c.A_paterno)" Sortable="true" Title="Apellido Paterno" />
             <PropertyColumn Property="@(c => c.A_materno)" Sortable="true" Title="Apellido Materno" />
@@ -65,9 +66,10 @@
     <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre de Usuario</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Usuario</label>
                 <input class="form-control" @bind="inputModel.UserName" />
             </div>
+
             <div class="col-md-6">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre(s)</label>
                 <input class="form-control" @bind="inputModel.Nombre" />
@@ -126,11 +128,11 @@
 
 @code {
     private List<Usuario> usuarios = new();
-    private List<DtoUsuario> usuariosExt = new(); 
+    private List<DtoUsuario> usuariosExt = new();
     private IQueryable<DtoUsuario> usuariosExtQueryable = Enumerable.Empty<DtoUsuario>().AsQueryable();
     private List<string> rolesDisponibles = new();
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
-    private bool soloLectura = false;   
+    private bool soloLectura = false;
     private bool mostrarActivos = true;
     private bool mostrarModal = false;
     private string tituloModal = "";
@@ -171,7 +173,7 @@
     {
         usuarios.Clear();
         usuariosExt.Clear();
-        usuarios = await _userManager.Users.ToListAsync();        
+        usuarios = await _userManager.Users.ToListAsync();
 
         foreach (var u in usuarios)
         {
@@ -179,6 +181,7 @@
 
             DtoUsuario usuarioExt = new DtoUsuario
             {
+                UserName = u.UserName,
                 Id = u.Id,
                 Nombre = u.Nombre,
                 A_paterno = u.A_paterno,
@@ -190,10 +193,10 @@
 
             usuariosExt.Add(usuarioExt);
         }
-        usuariosExtQueryable = usuariosExt.AsQueryable(); 
+        usuariosExtQueryable = usuariosExt.AsQueryable();
     }
 
-    
+
 
     private void AbrirModalCrear()
     {
@@ -226,6 +229,10 @@
 
     private void AbrirModalDetalle(DtoUsuario item)
     {
+        soloLectura = true;
+        inputModel = item;
+        tituloModal = "DETALLES DEL ASUARIO";
+        mostrarModal = true;
     }
 
     private void CerrarModal() => mostrarModal = false;
@@ -254,7 +261,7 @@
                     A_materno = inputModel.A_materno,
                     PhoneNumber = inputModel.PhoneNumber,
                     Email = inputModel.Email,
-                    UserName = inputModel.Nombre.Substring(0, 1).ToUpper() + inputModel.A_paterno.ToUpper(),
+                    UserName = inputModel.UserName,
                     EmailConfirmed = true,
                     Usuario_alta = usuario
                 };
@@ -282,7 +289,7 @@
                     usuarioDb.A_materno = inputModel.A_materno;
                     usuarioDb.PhoneNumber = inputModel.PhoneNumber;
                     usuarioDb.Email = inputModel.Email;
-                    usuarioDb.UserName = inputModel.UserName;                    
+                    usuarioDb.UserName = inputModel.UserName;
 
                     // ASIGNAR CAMPOS DE AUDITORÍA
                     usuarioDb.Usuario_modificacion = usuario;
@@ -302,7 +309,7 @@
                     await CambiarRol(usuarioDb, inputModel.Rol);
                 }
 
-                
+
             }
         }
         catch (Exception ex)

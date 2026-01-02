@@ -261,7 +261,9 @@ namespace Api.Entities
                 entity.Property(u => u.A_materno).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.Usuario_alta).IsRequired().HasMaxLength(50);
                 entity.Property(u => u.Fecha_alta).IsRequired();
-                entity.Property(u => u.Alias).HasMaxLength(50);                
+                entity.Property(u => u.Alias).HasMaxLength(50);
+                entity.Property(u => u.Fecha_modificacion);
+                entity.Property(u => u.Usuario_modificacion).HasMaxLength(50);
             });
 
 

@@ -15,18 +15,18 @@
         @if (currentMenu == "main")
         {
             <div class="nav-item px-3"><NavLink class="nav-link" href="" Match="NavLinkMatch.All"><span class="bi bi-house-door-fill"></span> Inicio</NavLink></div>
-            <AuthorizeView Roles="Supervisor">
+            <AuthorizeView Roles="Superadmin, Supervisor">
                 <Authorized>
                     <div class="nav-item px-3"><NavLink class="nav-link" href="padron"><span class="bi bi-people-fill"></span> Padrón</NavLink></div>
                     <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "catalogos"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-collection-fill"></span> Catálogos</a></div>
                 </Authorized>
             </AuthorizeView>
-            <AuthorizeView Roles="Supervisor, Cobrador">
+            <AuthorizeView Roles="Superadmin, Supervisor, Cobrador">
                 <Authorized>
                     <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "reportes"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-file-earmark-bar-graph-fill"></span> Reportes </a></div>
                 </Authorized>
             </AuthorizeView>
-            <AuthorizeView Roles="IT Manager">
+            <AuthorizeView Roles="Superadmin, IT Manager">
                 <Authorized>
                     <div class="nav-item px-3"><NavLink class="nav-link" href="admin/usuarios"><span class="bi bi-person-circle"></span> Usuarios</NavLink></div>
                     <div class="nav-item px-3"><a class="nav-link" @onclick='() => currentMenu = "auditoria"' @onclick:preventDefault style="cursor:pointer;"><span class="bi bi-shield-check"></span> Auditoría</a></div>

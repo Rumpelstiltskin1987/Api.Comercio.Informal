@@ -139,7 +139,7 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
         // 1. Crear los Roles si no existen
-        string[] roles = { "Cobrador", "Supervisor", "IT Manager" };
+        string[] roles = { "Cobrador", "Supervisor", "IT Manager", "Superadmin" };
         foreach (var roleName in roles)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
@@ -172,7 +172,7 @@ using (var scope = app.Services.CreateScope())
             if (result.Succeeded)
             {
                 // Le asignamos el rol más alto
-                await userManager.AddToRoleAsync(user, "IT Manager");
+                await userManager.AddToRoleAsync(user, "Superadmin");
             }
         }
     }
