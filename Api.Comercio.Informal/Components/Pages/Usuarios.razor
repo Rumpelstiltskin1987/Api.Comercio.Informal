@@ -10,7 +10,7 @@
 @inject UserManager<Api.Entities.Usuario> _userManager
 @inject RoleManager<IdentityRole<int>> _roleManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "IT Manager")]
+@attribute [Authorize(Roles = "Superadmin ,IT Manager")]
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <link href="css/general.css" rel="stylesheet" />
@@ -117,7 +117,10 @@
                     {
                         @foreach (var rol in rolesDisponibles)
                         {
-                            <option value="@rol">@rol</option>
+                            @if (rol != "Superadmin")
+                            {
+                                <option value="@rol">@rol</option>
+                            }
                         }
                     }
                 </select>
@@ -263,6 +266,7 @@
                     Email = inputModel.Email,
                     UserName = inputModel.UserName,
                     EmailConfirmed = true,
+                    EsPasswordTemporal = true,
                     Usuario_alta = usuario
                 };
 

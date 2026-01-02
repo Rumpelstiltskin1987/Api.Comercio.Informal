@@ -60,9 +60,29 @@
 
     public async Task LoginUser()
     {
+        // Validar credenciales
         var result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, isPersistent: true, lockoutOnFailure: false);
-        if (result.Succeeded) Navigation.NavigateTo("/");
-        else errorMessage = "Datos incorrectos";
+
+        if (result.Succeeded)
+        {
+            // Obtener el usuario para revisar la bandera
+            var user = await SignInManager.UserManager.FindByNameAsync(Input.UserName);
+
+            if (user != null && user.EsPasswordTemporal)
+            {
+                // Si es temporal, redirigir OBLIGATORIAMENTE a cambiar password
+                Navigation.NavigateTo("/cambiar-password", forceLoad: true);
+            }
+            else
+            {
+                // Si es normal, entrar al sistema
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+        }
+        else
+        {
+            errorMessage = "Usuario o contraseña incorrectos";
+        }
     }
 
     public class LoginInput

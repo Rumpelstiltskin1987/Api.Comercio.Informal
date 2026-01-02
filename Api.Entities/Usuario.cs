@@ -20,5 +20,6 @@ namespace Api.Entities
         public DateTime? Fecha_alta { get; set; } = DateTime.Now;
         public string? Usuario_modificacion { get; set; }
         public DateTime? Fecha_modificacion { get; set; }
+        public bool EsPasswordTemporal { get; set; } = false;
     }
 }

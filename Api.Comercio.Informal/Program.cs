@@ -138,19 +138,18 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<Usuario>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
-        // 1. Crear los Roles si no existen
-        string[] roles = { "Cobrador", "Supervisor", "IT Manager", "Superadmin" };
-        foreach (var roleName in roles)
+        // Crear los Roles si no existen
+        string[] roles = { "Superadmin", "IT Manager", "Supervisor", "Cobrador" };
+
+        foreach (var role in roles)
         {
-            if (!await roleManager.RoleExistsAsync(roleName))
-            {
-                await roleManager.CreateAsync(new IdentityRole<int>(roleName));
-            }
+            if (!await roleManager.RoleExistsAsync(role))
+                await roleManager.CreateAsync(new IdentityRole<int>(role));
         }
 
-        // 2. Crear el Usuario Administrador Maestro
-
-        var adminUser = await userManager.FindByEmailAsync("admin@siscoin.com");
+        // Crear el Usuario Administrador Maestro
+        var adminEmail = "superadmin@siscoin.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
         if (adminUser == null)
         {
@@ -160,14 +159,15 @@ using (var scope = app.Services.CreateScope())
                 A_paterno = "SISCOIN",
                 A_materno = "ADMIN",
                 UserName = "SuperUsuario",
-                Email = "admin@siscoin.com",
+                Email = adminEmail,
                 Alias = "SuperUsuario",
                 Usuario_alta = "System",
+                EsPasswordTemporal = false,
                 EmailConfirmed = true
             };
 
             // Definimos una contraseña segura temporal
-            var result = await userManager.CreateAsync(user, "Admin123!");
+            var result = await userManager.CreateAsync(user, "Admin123!ñ");
 
             if (result.Succeeded)
             {
