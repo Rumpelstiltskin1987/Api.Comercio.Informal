@@ -34,3 +34,9 @@ Content-Type: application/json
   "tipo": "P",
   "usuario": "admin"
 }
+
+### 3. Request de andriod (Error 404 : Badrequest)
+# Esto sirve para probar tu bloque: if (!ModelState.IsValid)
+POST {{HostAddress}}/api/padron/Create
+Content-Type: application/json
+{"aMaterno":"fnffj","aPaterno":"xnxjxfj","curp":"fkffj","direccion":"fjfj","email":"xkxj","idGremio":1,"nombre":"djfjfj","telefono":"xkxjx","tipo":"E","usuario":"MDELFIN"}

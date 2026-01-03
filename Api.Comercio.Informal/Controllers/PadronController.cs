@@ -83,11 +83,6 @@ namespace Api.Comercio.Informal.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DtoPadron request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
                 await _padron.Create(
