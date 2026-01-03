@@ -6,7 +6,7 @@
 @inject IJSRuntime JSRuntime
 @inject BusinessLider _liderService
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "Supervisor")]
+@attribute [Authorize(Roles = "Superadmin, Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />

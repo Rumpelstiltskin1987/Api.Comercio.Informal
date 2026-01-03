@@ -8,7 +8,7 @@
 @inject BusinessPadron _padronService
 @inject BusinessGremio _gremioService
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "Supervisor")]
+@attribute [Authorize(Roles = "Superadmin, Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />

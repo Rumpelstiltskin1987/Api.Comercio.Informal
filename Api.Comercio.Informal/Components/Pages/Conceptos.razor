@@ -6,7 +6,7 @@
 @inject IJSRuntime JSRuntime
 @inject BusinessConcepto _conceptoService
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "Supervisor")]
+@attribute [Authorize(Roles = "Superadmin, Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />

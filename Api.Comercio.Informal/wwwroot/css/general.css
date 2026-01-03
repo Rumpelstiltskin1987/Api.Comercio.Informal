@@ -229,3 +229,35 @@
     .grid-tarifas td:last-child .d-flex {
         justify-content: center !important;
     }
+
+/* =========================================
+   ESTILOS ESPECÍFICOS: Usuarios
+   ========================================= */
+
+/* --- DISTRIBUCIÓN DE ANCHOS (Total = 100%) --- */
+/* Usuario */
+.grid-usuarios th:nth-child(1) {
+    width: 11%;
+}
+/* Nombre */
+.grid-usuarios th:nth-child(2) {
+    width: 20%;
+}
+/* A. Paterno */
+.grid-usuarios th:nth-child(3) {
+    width: 25%;
+}
+/* A. Materno */
+.grid-usuarios th:nth-child(4) {
+    width: 25%;
+}
+/* Rol */
+.grid-usuarios th:nth-child(5) {
+    width: 9%;
+}
+/* Columna Gestión */
+.grid-usuarios th:nth-child(6) {
+    width: 10%;
+    text-align: left !important;
+}
+

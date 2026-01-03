@@ -23,7 +23,7 @@
         <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
     </button>
 
-    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+    @* <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
         @if (mostrarActivos)
         {
             <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
@@ -32,7 +32,7 @@
         {
             <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
         }
-    </button>
+    </button> *@
 </div>
 
 <div class="card shadow-sm border-0">
@@ -97,7 +97,6 @@
                 </div>
             </div>
 
-            @* --- NUEVO CAMPO DE CONTRASEÑA --- *@
             @* Solo mostramos contraseña si es un registro NUEVO (Id == 0) *@
             @if (inputModel.Id == 0)
             {
@@ -110,7 +109,7 @@
                 </div>
             }
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Rol Asignado</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Rol Asignado</label>
                 <select class="form-select" @bind="inputModel.Rol">
                     <option value="0">-- Seleccione un Rol --</option>
                     @if (rolesDisponibles != null)
@@ -182,6 +181,12 @@
         {
             var roles = await _userManager.GetRolesAsync(u);
 
+            // Si el usuario tiene el rol "Superadmin", saltamos al siguiente (no lo agregamos)
+            if (roles.Contains("Superadmin"))
+            {
+                continue;
+            }
+
             DtoUsuario usuarioExt = new DtoUsuario
             {
                 UserName = u.UserName,
@@ -198,8 +203,6 @@
         }
         usuariosExtQueryable = usuariosExt.AsQueryable();
     }
-
-
 
     private void AbrirModalCrear()
     {

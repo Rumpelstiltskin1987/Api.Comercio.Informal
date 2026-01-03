@@ -4,6 +4,8 @@
 @using Api.Entities
 @using Api.Business
 @inject BusinessFolio _folioService
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin , Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />

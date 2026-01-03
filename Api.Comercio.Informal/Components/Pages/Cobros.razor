@@ -5,6 +5,8 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject IJSRuntime JSRuntime
 @inject BusinessRecaudacion _recaudacionService
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin , Supervisor, Cobrador")]
 @rendermode InteractiveServer
 
 <link href="css/recaudacion.css" rel="stylesheet" />

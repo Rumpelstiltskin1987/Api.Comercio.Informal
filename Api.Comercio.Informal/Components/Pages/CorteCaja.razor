@@ -2,9 +2,11 @@
 @using Api.Comercio.Informal.Components.Layout
 @using Api.Entities
 @using Api.Business
+@inject IJSRuntime JSRuntime
 @inject BusinessRecaudacion _recaudacionService
 @inject BusinessCobrador _cobradorService
-@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin , Supervisor, Cobrador")]
 @rendermode InteractiveServer
 
 <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Generar Corte de Caja</h3>
