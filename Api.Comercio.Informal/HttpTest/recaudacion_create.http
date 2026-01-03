@@ -5,10 +5,10 @@ POST {{HostAddress}}/api/recaudacion/Create
 Content-Type: application/json
 
 {
-  "idPadron": 2,
+  "idPadron": 1,
   "idGremio": 1,
-  "idConcepto": 3,
-  "idCobrador": 1,  
+  "idConcepto": 1,
+  "idCobrador": 3,  
   "latitud": 18.4437236,
   "longitud": -96.3657014,
   "monto": 90.0

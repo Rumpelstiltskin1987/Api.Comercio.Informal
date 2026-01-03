@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
             {
                 Token = tokenString,
                 IdCobrador = user.Id,
-                Alias = user.Alias
+                User = user.UserName
             });
         }
 

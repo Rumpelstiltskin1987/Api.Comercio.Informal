@@ -210,7 +210,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_padron).IsRequired();
                 entity.Property(e => e.Id_concepto).IsRequired();
                 entity.Property(e => e.Monto).IsRequired();
-                entity.Property(e => e.Id_cobrador).IsRequired();
+                entity.Property(e => e.Id).IsRequired();
                 entity.Property(e => e.Fecha_cobro).IsRequired();
                 entity.Property(e => e.Folio_Recibo).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();

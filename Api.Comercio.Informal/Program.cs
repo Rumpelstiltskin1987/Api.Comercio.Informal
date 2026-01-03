@@ -85,6 +85,7 @@ builder.Services.AddScoped<Api.Business.BusinessLider>();
 builder.Services.AddScoped<Api.Business.BusinessPadron>();
 builder.Services.AddScoped<Api.Business.BusinessRecaudacion>();
 builder.Services.AddScoped<Api.Business.BusinessTarifa>();
+builder.Services.AddScoped<Api.Business.BusinessUsuario>();
 
 #endregion
 
