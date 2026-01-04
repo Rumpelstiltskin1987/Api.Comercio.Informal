@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,14 +51,61 @@ builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options => {
 builder.Services.AddCascadingAuthenticationState();
 
 // --- 2. CONFIGURACIÓN DE AUTENTICACIÓN HÍBRIDA (WEB + ANDROID) ---
+// ... (Tu configuración de AddIdentity existente va aquí arriba) ...
+
+// --- INICIO DEL AJUSTE: CONFIGURACIÓN JWT Y API ---
+
+// 1. Configurar JWT para que la API entienda el Token de Android
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "TuClaveSecretaSuperSeguraDebeSerLarga123!";
+var key = Encoding.ASCII.GetBytes(jwtKey);
+
 builder.Services.AddAuthentication(options =>
 {
-    // Esquema por defecto para la Web
+    // Esto permite que convivan Cookies (Blazor) y Tokens (Android)
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
 })
-.AddBearerToken(IdentityConstants.BearerScheme); // Esquema para Android
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
 
+// 2. EVITAR QUE LA API REDIRIJA AL LOGIN (HTML) EN CASO DE ERROR
+// Esto es CRÍTICO para que Android reciba errores JSON reales y no HTML
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 403;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
+
+// --- FIN DEL AJUSTE ---
 // --- 3. CONFIGURACIÓN DE TIEMPOS (330 MINUTOS) ---
 
 // Para la aplicación WEB (Cookies)
@@ -85,6 +135,7 @@ builder.Services.AddScoped<Api.Business.BusinessLider>();
 builder.Services.AddScoped<Api.Business.BusinessPadron>();
 builder.Services.AddScoped<Api.Business.BusinessRecaudacion>();
 builder.Services.AddScoped<Api.Business.BusinessTarifa>();
+builder.Services.AddScoped<Api.Business.BusinessUsuario>();
 
 #endregion
 

@@ -45,7 +45,7 @@ namespace Api.Business
             // Filtro por Cobrador
             if (idCobrador.HasValue && idCobrador > 0)
             {
-                query = query.Where(c => c.Id_cobrador == idCobrador.Value);
+                query = query.Where(c => c.Id == idCobrador.Value);
             }
 
             // Filtro por Concepto (Si es null o 0, lo ignora y trae todos)
@@ -89,7 +89,7 @@ namespace Api.Business
                 Id_padron = id_padron,
                 Id_concepto = id_concepto,
                 Monto = monto,
-                Id_cobrador = id_cobrador,
+                Id = id_cobrador,
                 Fecha_cobro = DateTime.Now,
                 Folio_Recibo = folioRecibo,
                 Latitud = latitud,

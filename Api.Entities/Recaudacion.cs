@@ -18,8 +18,8 @@ namespace Api.Entities
         public virtual Concepto Concepto { get; set; }
         public decimal Monto { get; set; }
         [ForeignKey("Cobrador")]
-        public int Id_cobrador { get; set; }
-        public virtual Cobrador Cobrador { get; set; }  
+        public int Id { get; set; }
+        public virtual Usuario? Cobrador { get; set; }  
         public DateTime Fecha_cobro { get; set; } = DateTime.Now;
         public string Folio_Recibo { get; set; }
         public string Estado { get; set; } = "A"; // A: Activo, C: Cancelado

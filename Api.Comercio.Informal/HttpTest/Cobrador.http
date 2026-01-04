@@ -1,0 +1,43 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+# Configuración de variables
+@HostAddress = https://localhost:7011
+
+### 1. Obtener todos los cobradores
+GET {{HostAddress}}/api/Cobrador/GetAll
+Accept: application/json
+
+###
+
+### 2. Obtener un cobrador por ID
+# Cambia el valor de 'id' según tus datos de prueba
+GET {{HostAddress}}/api/Cobrador/GetById?id=1
+Accept: application/json
+
+###
+
+### 3. Buscar cobradores (Filtros opcionales)
+# Puedes combinar parametros: ?nombre=Juan&estado=Activo
+GET {{HostAddress}}/api/Cobrador/Search?nombre=Juan
+Accept: application/json
+
+###
+
+### 4. Crear un nuevo cobrador
+# NOTA: Al no usar un DTO (objeto) en el controlador, los parámetros 
+# se envían en la Query String incluso siendo un POST.
+POST {{HostAddress}}/api/Cobrador/Create?nombre=Marcos&aPaterno=Delfin&aMaterno=Alonso&telefono=5551234567&email=juan.perez@email.com&usuario=Admin
+Content-Type: application/json
+
+###
+
+### 5. Actualizar un cobrador existente
+# Asegúrate de que el ID (primer parámetro) exista.
+POST {{HostAddress}}/api/Cobrador/Update?id=1&nombre=Juan Actualizado&aPaterno=Perez&aMaterno=Lopez&telefono=999888777&email=nuevo.email@test.com&status=Activo&usuario=AdminEditor
+Content-Type: application/json
+
+###
+
+### 6. Eliminar un cobrador
+# Cambia el ID por el que deseas eliminar
+POST {{HostAddress}}/api/Cobrador/Delete?id=1
+Content-Type: application/json

@@ -237,7 +237,7 @@ CREATE TABLE Recaudacion (
     Longitud REAL,	
 	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron),
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
-	FOREIGN KEY (Id_cobrador) REFERENCES Cobrador(Id_cobrador)
+	FOREIGN KEY (Id_cobrador) REFERENCES AspNetUsers(Id)
 );
 
 
