@@ -31,5 +31,8 @@ namespace Api.Entities.DTO
         public string Password { get; set; } = "";
         [Required(ErrorMessage = "El Rol es obligatorio")]
         public string? Rol { get; set; }
+        public string Estado { get; set; } = "A";
+        public string? Usuario_alta { get; set; }
+        public string? Usuario_modificacion { get; set; }
     }
 }

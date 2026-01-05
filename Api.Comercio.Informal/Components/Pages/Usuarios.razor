@@ -9,6 +9,8 @@
 @inject IJSRuntime JSRuntime
 @inject UserManager<Api.Entities.Usuario> _userManager
 @inject RoleManager<IdentityRole<int>> _roleManager
+@inject BusinessUsuario _serviceUsuario
+@inject BusinessRol _serviceRol
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
 @attribute [Authorize(Roles = "Superadmin ,IT Manager")]
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
@@ -23,7 +25,7 @@
         <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
     </button>
 
-    @* <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
         @if (mostrarActivos)
         {
             <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
@@ -32,12 +34,12 @@
         {
             <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
         }
-    </button> *@
+    </button>
 </div>
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        <QuickGrid Items="@usuariosExtQueryable" TGridItem="DtoUsuario" Pagination="@paginationState" Class="table mb-0 official-grid grid-usuarios">
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid grid-usuarios">
             <PropertyColumn Property="@(c => c.UserName)" Sortable="true" Title="Usuario" />
             <PropertyColumn Property="@(c => c.Nombre)" Sortable="true" Title="Nombre(s)" />
             <PropertyColumn Property="@(c => c.A_paterno)" Sortable="true" Title="Apellido Paterno" />
@@ -45,14 +47,29 @@
             <PropertyColumn Property="@(c => c.Rol)" Sortable="true" Title="Rol" />
 
             <TemplateColumn Title="Gestión">
-                <div class="d-flex gap-2">
+                @if (mostrarActivos)
+                {
                     <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
                         <i class="bi bi-pencil-square fs-6"></i>
                     </button>
-                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
+                }
+                else
+                {
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                        <i class="bi bi-box-arrow-up fs-6"></i>
                     </button>
-                </div>
+                }
+
+                <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                    <i class="bi bi-eye fs-6"></i>
+                </button>
+
+                @if (mostrarActivos)
+                {
+                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                        <i class="bi bi-trash fs-6"></i>
+                    </button>
+                }
             </TemplateColumn>
         </QuickGrid>
 
@@ -129,9 +146,7 @@
 </SimpleModal>
 
 @code {
-    private List<Usuario> usuarios = new();
-    private List<DtoUsuario> usuariosExt = new();
-    private IQueryable<DtoUsuario> usuariosExtQueryable = Enumerable.Empty<DtoUsuario>().AsQueryable();
+    private IQueryable<DtoUsuario>? listado;
     private List<string> rolesDisponibles = new();
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     private bool soloLectura = false;
@@ -151,7 +166,7 @@
         usuario = user.Identity?.Name ?? "System";
 
         // Obtener roles disponibles
-        rolesDisponibles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+        await ObtenerRolesDisponibles();
 
         // Cargar usuarios
         await CargarUsuarios();
@@ -171,37 +186,21 @@
         }
     }
 
+    private async Task ObtenerRolesDisponibles()
+    {
+        rolesDisponibles = await _serviceRol.GetAll();
+    }
+
     private async Task CargarUsuarios()
     {
-        usuarios.Clear();
-        usuariosExt.Clear();
-        usuarios = await _userManager.Users.ToListAsync();
 
-        foreach (var u in usuarios)
-        {
-            var roles = await _userManager.GetRolesAsync(u);
+        var lista = await _serviceUsuario.GetAll();
 
-            // Si el usuario tiene el rol "Superadmin", saltamos al siguiente (no lo agregamos)
-            if (roles.Contains("Superadmin"))
-            {
-                continue;
-            }
+        var filtrados = mostrarActivos
+            ? lista.Where(u => u.Estado == "A")
+            : lista.Where(u => u.Estado == "I");
 
-            DtoUsuario usuarioExt = new DtoUsuario
-            {
-                UserName = u.UserName,
-                Id = u.Id,
-                Nombre = u.Nombre,
-                A_paterno = u.A_paterno,
-                A_materno = u.A_materno,
-                PhoneNumber = u.PhoneNumber,
-                Email = u.Email,
-                Rol = roles.FirstOrDefault() ?? "Sin Rol"
-            };
-
-            usuariosExt.Add(usuarioExt);
-        }
-        usuariosExtQueryable = usuariosExt.AsQueryable();
+        listado = filtrados.AsQueryable();
     }
 
     private void AbrirModalCrear()
@@ -249,79 +248,40 @@
         if (string.IsNullOrWhiteSpace(inputModel.UserName) ||
             string.IsNullOrWhiteSpace(inputModel.Nombre) ||
             string.IsNullOrWhiteSpace(inputModel.A_paterno) ||
-            string.IsNullOrWhiteSpace(inputModel.A_materno) ||
-            string.IsNullOrWhiteSpace(inputModel.Password) ||
+            string.IsNullOrWhiteSpace(inputModel.A_materno) ||            
             string.IsNullOrWhiteSpace(inputModel.Rol))
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
-        try
+
+        // Validar contraseña para nuevos usuarios
+        if (inputModel.Id == 0 && string.IsNullOrWhiteSpace(inputModel.Password))
         {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La contraseña es obligatoria para nuevos usuarios.", "warning");
+            return;
+        }
+
+        try
+        {   
+            // Si el id es 0, es un nuevo usuario
             if (inputModel.Id == 0)
             {
-                Usuario nuevoUsuario = new()
-                {
-                    Nombre = inputModel.Nombre,
-                    A_paterno = inputModel.A_paterno,
-                    A_materno = inputModel.A_materno,
-                    PhoneNumber = inputModel.PhoneNumber,
-                    Email = inputModel.Email,
-                    UserName = inputModel.UserName,
-                    EmailConfirmed = true,
-                    EsPasswordTemporal = true,
-                    Usuario_alta = usuario
-                };
+                inputModel.Usuario_alta = usuario;
+                await _serviceUsuario.Create(inputModel);
 
-                var result = await _userManager.CreateAsync(nuevoUsuario, inputModel.Password);
-                if (!result.Succeeded)
-                {
-                    var errores = string.Join("<br/>", result.Errors.Select(e => e.Description));
-                    await JSRuntime.InvokeVoidAsync("Swal.fire", "Error al crear usuario", errores, "error");
-                    return;
-                }
-                // Asignar rol seleccionado
-                await _userManager.AddToRoleAsync(nuevoUsuario, inputModel.Rol);
+                
             }
+            // Si no, es una actualización
             else
             {
-                // Buscar el usuario que se va a editar en la DB
-                var usuarioDb = await _userManager.FindByIdAsync(inputModel.Id.ToString());
-
-                if (usuarioDb != null)
-                {
-                    // Mapear datos del formulario al objeto de la DB
-                    usuarioDb.Nombre = inputModel.Nombre;
-                    usuarioDb.A_paterno = inputModel.A_paterno;
-                    usuarioDb.A_materno = inputModel.A_materno;
-                    usuarioDb.PhoneNumber = inputModel.PhoneNumber;
-                    usuarioDb.Email = inputModel.Email;
-                    usuarioDb.UserName = inputModel.UserName;
-
-                    // ASIGNAR CAMPOS DE AUDITORÍA
-                    usuarioDb.Usuario_modificacion = usuario;
-                    usuarioDb.Fecha_modificacion = DateTime.Now;
-
-                    // Actualizar
-                    var result = await _userManager.UpdateAsync(usuarioDb);
-
-                    if (result.Succeeded)
-                    {
-                        await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", "Usuario actualizado", "success");
-                    }
-                }
-
-                if (inputModel.Rol != rolAnterior)
-                {
-                    await CambiarRol(usuarioDb, inputModel.Rol);
-                }
-
-
+                inputModel.Usuario_modificacion = usuario;
+                await _serviceUsuario.Update(inputModel);
             }
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error: {ex.Message}", "error");
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
             return;
         }
 
@@ -338,33 +298,25 @@
         await CargarUsuarios();
     }
 
-    private async Task CambiarRol(Usuario userView, string nuevoRol)
+    
+
+    // Método unificado para cambiar estado (Baja / Reincorporar)
+    private async Task CambiarEstado(DtoUsuario item, string estado)
     {
+        inputModel = item;
+
         try
         {
-            var user = await _userManager.FindByIdAsync(userView.Id.ToString());
-            if (user == null) return;
-
-            // Quitar roles actuales
-            var rolesActuales = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, rolesActuales);
-
-            // Agregar nuevo rol
-            var result = await _userManager.AddToRoleAsync(user, nuevoRol);
-
-            if (result.Succeeded)
-            {
-                await JSRuntime.InvokeVoidAsync("Swal.fire", "Actualizado",
-                    $"El usuario {user.Email} ahora tiene el perfil de {nuevoRol}.", "success");
-            }
+            inputModel.Estado = estado;
+            inputModel.Usuario_modificacion = usuario;
+            await _serviceUsuario.Update(inputModel);
+            await CargarUsuarios();
+            var accion = estado == "A" ? "reactivó" : "dio de baja";
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
-        }
-        finally
-        {
-            await CargarUsuarios();
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
         }
     }
 }

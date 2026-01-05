@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Api.Entities.Migrations
 {
     /// <inheritdoc />
-    public partial class InicializarSeguridadInt : Migration
+    public partial class InitialSecurityV2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,6 +24,41 @@ namespace Api.Entities.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    A_paterno = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    A_materno = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Estado = table.Column<string>(type: "TEXT", nullable: false),
+                    Usuario_alta = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Fecha_alta = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Usuario_modificacion = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    Fecha_modificacion = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    EsPasswordTemporal = table.Column<bool>(type: "INTEGER", nullable: false),
+                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                 });            
 
             migrationBuilder.CreateTable(
@@ -46,40 +81,6 @@ namespace Api.Entities.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUsers",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Id_cobrador = table.Column<int>(type: "INTEGER", nullable: true),
-                    Alias = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_Cobrador_Id_cobrador",
-                        column: x => x.Id_cobrador,
-                        principalTable: "Cobrador",
-                        principalColumn: "Id_cobrador",
-                        onDelete: ReferentialAction.SetNull);
-                });            
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
@@ -164,7 +165,7 @@ namespace Api.Entities.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });            
+                }); 
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -198,17 +199,35 @@ namespace Api.Entities.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_Id_cobrador",
-                table: "AspNetUsers",
-                column: "Id_cobrador");
-
-            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
 
-            
+            migrationBuilder.CreateIndex(
+                name: "IX_Folio_Id_gremio",
+                table: "Folio",
+                column: "Id_gremio");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Gremio_Id_lider",
+                table: "Gremio",
+                column: "Id_lider");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Padron_Id_gremio",
+                table: "Padron",
+                column: "Id_gremio");            
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tarifa_Id_concepto",
+                table: "Tarifa",
+                column: "Id_concepto");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tarifa_Id_gremio",
+                table: "Tarifa",
+                column: "Id_gremio");
         }
 
         /// <inheritdoc />

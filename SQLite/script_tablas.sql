@@ -222,6 +222,26 @@ CREATE TABLE PadronLog (
 	FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
 );
 
+DROP TABLE IF EXISTS UsuarioLog;
+
+CREATE TABLE UsuarioLog (
+	Id_movimiento	INTEGER NOT NULL,
+	Id	INTEGER NOT NULL,
+	UserName	TEXT NOT NULL,
+	Nombre	TEXT NOT NULL,
+	A_paterno	TEXT NOT NULL,
+	A_materno	TEXT NOT NULL,
+	Email	TEXT,
+	PhoneNumber	TEXT,
+	Rol TEXT NOT NULL,
+	Estado	TEXT NOT NULL CHECK("Estado" IN ('A', 'I')),
+	Tipo_movimiento	TEXT NOT NULL CHECK("Tipo_movimiento" IN ('A', 'B', 'M')),
+	Usuario_modificacion	TEXT,
+	Fecha_modificacion	TEXT,
+	PRIMARY KEY("Id_movimiento","Id"),
+	FOREIGN KEY("Id") REFERENCES "AspNetUsers"("Id")
+);
+
 DROP TABLE IF EXISTS Recaudacion;
 
 CREATE TABLE Recaudacion (
@@ -229,7 +249,7 @@ CREATE TABLE Recaudacion (
 	Id_padron INTEGER NOT NULL,
 	Id_concepto INTEGER NOT NULL,
 	Monto REAL NOT NULL,
-	Id_cobrador INTEGER NOT NULL,
+	Id INTEGER NOT NULL,
 	Fecha_cobro TEXT NOT NULL,
     Folio_Recibo TEXT NOT NULL UNIQUE,
     Estado TEXT NOT NULL DEFAULT 'A' CHECK(Estado IN ('A', 'C')), -- A=Activo, C=Cancelado
@@ -237,7 +257,7 @@ CREATE TABLE Recaudacion (
     Longitud REAL,	
 	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron),
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
-	FOREIGN KEY (Id_cobrador) REFERENCES AspNetUsers(Id)
+	FOREIGN KEY (Id) REFERENCES AspNetUsers(Id)
 );
 
 

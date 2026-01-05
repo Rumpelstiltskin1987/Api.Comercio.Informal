@@ -136,6 +136,7 @@ builder.Services.AddScoped<Api.Business.BusinessPadron>();
 builder.Services.AddScoped<Api.Business.BusinessRecaudacion>();
 builder.Services.AddScoped<Api.Business.BusinessTarifa>();
 builder.Services.AddScoped<Api.Business.BusinessUsuario>();
+builder.Services.AddScoped<Api.Business.BusinessRol>();
 
 #endregion
 
@@ -210,8 +211,7 @@ using (var scope = app.Services.CreateScope())
                 A_paterno = "SISCOIN",
                 A_materno = "ADMIN",
                 UserName = "SuperUsuario",
-                Email = adminEmail,
-                Alias = "SuperUsuario",
+                Email = adminEmail,                
                 Usuario_alta = "System",
                 EsPasswordTemporal = false,
                 EmailConfirmed = true

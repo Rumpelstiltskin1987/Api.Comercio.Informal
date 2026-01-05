@@ -56,8 +56,7 @@ public class AuthController : ControllerBase
         new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Este es tu idCobrador
-        new Claim(ClaimTypes.Email, user.Email!),
-        new Claim("Alias", user.Alias ?? "")
+        new Claim(ClaimTypes.Email, user.Email!)
     };
 
         // Agregar los roles del usuario al token
