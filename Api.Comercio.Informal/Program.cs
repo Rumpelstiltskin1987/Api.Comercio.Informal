@@ -127,7 +127,7 @@ builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme, o
 #region Injeccion de la capa de negocios  
 
 // Tus Servicios de Negocio (Se reutilizan perfectamente en Blazor)
-builder.Services.AddScoped<Api.Business.BusinessCobrador>();
+//builder.Services.AddScoped<Api.Business.BusinessCobrador>();
 builder.Services.AddScoped<Api.Business.BusinessConcepto>();
 builder.Services.AddScoped<Api.Business.BusinessFolio>();
 builder.Services.AddScoped<Api.Business.BusinessGremio>();

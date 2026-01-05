@@ -17,8 +17,8 @@ namespace Api.Entities
         {
         }
 
-        public DbSet<Cobrador> Cobrador { get; set; }
-        public DbSet<CobradorLog> CobradorLog { get; set; }
+        //public DbSet<Cobrador> Cobrador { get; set; }
+        //public DbSet<CobradorLog> CobradorLog { get; set; }
         public DbSet<Concepto> Concepto { get; set; }
         public DbSet<ConceptoLog> ConceptoLog { get; set; }
         public DbSet<Folio> Folio { get; set; }
@@ -39,37 +39,37 @@ namespace Api.Entities
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Cobrador>(entity =>
-            {
-                entity.HasKey(e => e.Id_cobrador);
-                entity.Property(e => e.Id_cobrador).IsRequired();
-                entity.Property(e => e.Nombre).IsRequired();
-                entity.Property(e => e.A_paterno).IsRequired();
-                entity.Property(e => e.A_materno).IsRequired();
-                entity.Property(e => e.Telefono);
-                entity.Property(e => e.Email);
-                entity.Property(e => e.Estado).IsRequired();
-                entity.Property(e => e.Usuario_alta).IsRequired();
-                entity.Property(e => e.Fecha_alta).IsRequired();
-                entity.Property(e => e.Usuario_modificacion);
-                entity.Property(e => e.Fecha_modificacion);
-            });
+            //modelBuilder.Entity<Cobrador>(entity =>
+            //{
+            //    entity.HasKey(e => e.Id_cobrador);
+            //    entity.Property(e => e.Id_cobrador).IsRequired();
+            //    entity.Property(e => e.Nombre).IsRequired();
+            //    entity.Property(e => e.A_paterno).IsRequired();
+            //    entity.Property(e => e.A_materno).IsRequired();
+            //    entity.Property(e => e.Telefono);
+            //    entity.Property(e => e.Email);
+            //    entity.Property(e => e.Estado).IsRequired();
+            //    entity.Property(e => e.Usuario_alta).IsRequired();
+            //    entity.Property(e => e.Fecha_alta).IsRequired();
+            //    entity.Property(e => e.Usuario_modificacion);
+            //    entity.Property(e => e.Fecha_modificacion);
+            //});
 
-            modelBuilder.Entity<CobradorLog>(entity =>
-            {
-                entity.HasKey(e => new { e.Id_movimiento, e.Id_cobrador });
-                entity.Property(e => e.Id_movimiento).IsRequired();
-                entity.Property(e => e.Id_cobrador).IsRequired();
-                entity.Property(e => e.Nombre).IsRequired();
-                entity.Property(e => e.A_paterno).IsRequired();
-                entity.Property(e => e.A_materno).IsRequired();
-                entity.Property(e => e.Telefono);
-                entity.Property(e => e.Email);
-                entity.Property(e => e.Estado).IsRequired();
-                entity.Property(e => e.Tipo_movimiento).IsRequired();
-                entity.Property(e => e.Usuario_modificacion).IsRequired();
-                entity.Property(e => e.Fecha_modificacion).IsRequired();
-            });
+            //modelBuilder.Entity<CobradorLog>(entity =>
+            //{
+            //    entity.HasKey(e => new { e.Id_movimiento, e.Id_cobrador });
+            //    entity.Property(e => e.Id_movimiento).IsRequired();
+            //    entity.Property(e => e.Id_cobrador).IsRequired();
+            //    entity.Property(e => e.Nombre).IsRequired();
+            //    entity.Property(e => e.A_paterno).IsRequired();
+            //    entity.Property(e => e.A_materno).IsRequired();
+            //    entity.Property(e => e.Telefono);
+            //    entity.Property(e => e.Email);
+            //    entity.Property(e => e.Estado).IsRequired();
+            //    entity.Property(e => e.Tipo_movimiento).IsRequired();
+            //    entity.Property(e => e.Usuario_modificacion).IsRequired();
+            //    entity.Property(e => e.Fecha_modificacion).IsRequired();
+            //});
 
             modelBuilder.Entity<Concepto>(entity =>
             {

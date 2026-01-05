@@ -3,9 +3,10 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Comercio.Informal.Components.Layout
 @using Api.Entities
+@using Api.Entities.DTO
 @using Api.Business
 @inject IJSRuntime JSRuntime
-@inject BusinessCobrador _cobradorService
+@inject BusinessUsuario _usuarioService
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
 @attribute [Authorize(Roles = "Superadmin, Supervisor")]
 @rendermode InteractiveServer
@@ -38,10 +39,10 @@
             <PropertyColumn Property="@(c => c.Nombre)" Sortable="true" Title="Nombre(s)" />
             <PropertyColumn Property="@(c => c.A_paterno)" Sortable="true" Title="Apellido Paterno" />
             <PropertyColumn Property="@(c => c.A_materno)" Sortable="true" Title="Apellido Materno" />
-            <PropertyColumn Property="@(c => c.Telefono)" Sortable="true" Title="Teléfono" />
+            <PropertyColumn Property="@(c => c.PhoneNumber)" Sortable="true" Title="Teléfono" />
             <PropertyColumn Property="@(c => c.Email)" Sortable="true" Title="Correo Electrónico" />
 
-            <TemplateColumn Title="Gestión">
+            @* <TemplateColumn Title="Gestión">
                 <div class="d-flex gap-2">
                     @if (mostrarActivos)
                     {
@@ -67,7 +68,7 @@
                         </button>
                     }
                 </div>
-            </TemplateColumn>
+            </TemplateColumn> *@
         </QuickGrid>
 
         <div class="paginator-container p-2 border-top bg-light">
@@ -95,7 +96,7 @@
                 <label class="form-label small text-muted text-uppercase fw-bold">Teléfono</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
-                    <input class="form-control" @bind="cobradorEdicion.Telefono" placeholder="10 dígitos" />
+                    <input class="form-control" @bind="cobradorEdicion.PhoneNumber" placeholder="10 dígitos" />
                 </div>
             </div>
             <div class="col-md-6">
@@ -111,7 +112,7 @@
 
 @code {
     // --- Datos ---
-    private IQueryable<Cobrador>? listado;
+    private IQueryable<DtoUsuario>? listado;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
@@ -122,7 +123,7 @@
     private string tituloModal = "";
 
     // Inicialización segura
-    private Cobrador cobradorEdicion = new();
+    private DtoUsuario cobradorEdicion = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,14 +144,39 @@
         }
     }
 
+    // private async Task CargarDatos()
+    // {
+    //     var lista = await _cobradorService.GetAll();
+    //     var filtrados = mostrarActivos
+    //         ? lista.Where(c => c.Estado == "A")
+    //         : lista.Where(c => c.Estado == "I");
+
+    //     listado = filtrados.AsQueryable();
+    // }
+
     private async Task CargarDatos()
     {
-        var lista = await _cobradorService.GetAll();
-        var filtrados = mostrarActivos
-            ? lista.Where(c => c.Estado == "A")
-            : lista.Where(c => c.Estado == "I");
+        try
+        {
+            var usuariosdb = await _usuarioService.GetByRol("Cobrador");
+            var filtrados = mostrarActivos
+                ? usuariosdb.Where(u => u.Estado == "A")
+                : usuariosdb.Where(u => u.Estado == "I");
 
-        listado = filtrados.AsQueryable();
+            listado = filtrados.Select(u => new DtoUsuario
+            {
+                Id = u.Id,
+                Nombre = u.Nombre,
+                A_paterno = u.A_paterno,
+                A_materno = u.A_materno,
+                PhoneNumber = u.PhoneNumber,
+                Email = u.Email
+            }).ToList().AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
+        }
     }
 
     private async Task AlternarVista()
@@ -176,17 +202,17 @@
         mostrarModal = true;
     }
 
-    private void AbrirModalEditar(Cobrador item)
+    private void AbrirModalEditar(DtoUsuario item)
     {
         soloLectura = false;
         // Clonación manual necesaria para editar
-        cobradorEdicion = new Cobrador
+        cobradorEdicion = new DtoUsuario
         {
-            Id_cobrador = item.Id_cobrador,
+            Id = item.Id,
             Nombre = item.Nombre,
             A_paterno = item.A_paterno,
             A_materno = item.A_materno,
-            Telefono = item.Telefono,
+            PhoneNumber = item.PhoneNumber,
             Email = item.Email,
             Estado = item.Estado
         };
@@ -194,7 +220,7 @@
         mostrarModal = true;
     }
 
-    private void AbrirModalDetalle(Cobrador item)
+    private void AbrirModalDetalle(DtoUsuario item)
     {
         soloLectura = true;
         // Asignación directa por referencia (Optimización)
@@ -211,7 +237,7 @@
         if (string.IsNullOrWhiteSpace(cobradorEdicion.Nombre) ||
             string.IsNullOrWhiteSpace(cobradorEdicion.A_paterno) ||
             string.IsNullOrWhiteSpace(cobradorEdicion.A_materno) ||
-            string.IsNullOrWhiteSpace(cobradorEdicion.Telefono) ||
+            string.IsNullOrWhiteSpace(cobradorEdicion.PhoneNumber) ||
             string.IsNullOrWhiteSpace(cobradorEdicion.Email))
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios (Nombre y Apellidos)", "warning");
@@ -220,19 +246,13 @@
 
         try
         {
-            if (cobradorEdicion.Id_cobrador == 0)
+            if (cobradorEdicion.Id == 0)
             {
-                await _cobradorService.Create(
-                    cobradorEdicion.Nombre, cobradorEdicion.A_paterno, cobradorEdicion.A_materno,
-                    cobradorEdicion.Telefono, cobradorEdicion.Email, usuario
-                );
+                await _usuarioService.Create(cobradorEdicion);
             }
             else
             {
-                await _cobradorService.Update(
-                    cobradorEdicion.Id_cobrador, cobradorEdicion.Nombre, cobradorEdicion.A_paterno, cobradorEdicion.A_materno,
-                    cobradorEdicion.Telefono, cobradorEdicion.Email, cobradorEdicion.Estado, usuario
-                );
+                await _usuarioService.Update(cobradorEdicion);
             }            
         }
         catch (Exception ex)
@@ -254,14 +274,11 @@
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)
-    private async Task CambiarEstado(Cobrador item, string estado)
+    private async Task CambiarEstado(DtoUsuario item, string estado)
     {
         try
         {
-            await _cobradorService.Update(
-                item.Id_cobrador, item.Nombre, item.A_paterno, item.A_materno,
-                item.Telefono, item.Email, estado, usuario
-            );
+            await _usuarioService.Update(cobradorEdicion);
 
             await CargarDatos();
 
