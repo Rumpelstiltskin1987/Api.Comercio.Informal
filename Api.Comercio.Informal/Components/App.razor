@@ -8,6 +8,7 @@
     <base href="/" />
     <link rel="stylesheet" href="css/app.css?v=1.1" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="Api.Comercio.Informal.styles.css" rel="stylesheet" />
 
@@ -36,6 +37,33 @@
             anchorElement.click();
             anchorElement.remove();
             URL.revokeObjectURL(url);
+        }
+    </script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        window.renderizarMapa = (contenedorId, lat, lng) => {
+            // Verificar si el contenedor existe
+            var container = L.DomUtil.get(contenedorId);
+            if(container != null){
+                // Si ya tiene un mapa instanciado, lo limpiamos para evitar errores de "Map already initialized"
+                container._leaflet_id = null;
+            }
+
+            // Crear el mapa
+            var map = L.map(contenedorId).setView([lat, lng], 16);
+
+            // Cargar las losetas (tiles) de OpenStreetMap
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            // Agregar el marcador (Pin)
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup('<b>Ubicación del Cobro</b><br>Registrada por el dispositivo.')
+                .openPopup();
         }
     </script>
 </body>

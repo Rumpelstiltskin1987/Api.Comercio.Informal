@@ -49,55 +49,80 @@
                 </div>
             </div>
             <div class="card-body p-4">
+                @* Eliminamos el div wrapper 'flex-colum' para que funcione el grid *@
                 <div class="row g-4" style="padding-left:25px">
-                    <div class="col-md-6 border-end">
-                        <h6 class="text-guinda fw-bold text-uppercase mb-3">Información del Contribuyente</h6>
-                        <div class="mb-2">
-                            <label class="lbl-info">Nombre Completo:</label>
-                            <p class="val-info">@(cobro.Padron != null ? $"{cobro.Padron.Nombre} {cobro.Padron.A_paterno} {cobro.Padron.A_materno}" : "No disponible")</p>
-                        </div>
-                        @* <div class="mb-2">
-                        <label class="lbl-info">ID Padrón:</label>
-                        <p class="val-info">@cobro.Id_padron</p>
-                    </div> *@
-                        <div class="mb-2">
-                            <label class="lbl-info">CURP:</label>
-                            <p class="val-info">@(cobro.Padron?.Curp ?? "N/A")</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6 ps-4">
-                        <h6 class="text-guinda fw-bold text-uppercase mb-3">Detalles del Pago</h6>
-                        <div class="row">
-                            <div class="col-6 mb-2">
-                                <label class="lbl-info">Concepto:</label>
-                                <p class="val-info">@(cobro.Concepto?.Descripcion ?? "General")</p>
-                            </div>
-                            <div class="col-6 mb-2">
-                                <label class="lbl-info">Monto Cobrado:</label>
-                                <p class="val-info fw-bold fs-5 text-success">@cobro.Monto.ToString("C2")</p>
-                            </div>
-                            <div class="col-6 mb-2">
-                                <label class="lbl-info">Fecha y Hora de Cobro:</label>
-                                <p class="val-info">@cobro.Fecha_cobro.ToString("dd/MM/yyyy HH:mm:ss")</p>
-                            </div>
-                            <div class="col-6 mb-2">
-                                <label class="lbl-info">Cobrador:</label>
-                                <p class="val-info">@(cobro.Cobrador != null ? $"{cobro.Cobrador.Nombre} {cobro.Cobrador.A_paterno} {cobro.Cobrador.A_materno}" : "No disponible")</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    @* <div class="col-12 border-top pt-3">
-                    <div class="row text-center text-muted small text-uppercase">
-                        <div class="col-md-3">ID Transacción: @cobro.Id_recaudacion</div>
-                        <div class="col-md-3">Latitud: @(cobro.Latitud?.ToString() ?? "N/A")</div>
-                        <div class="col-md-3">Longitud: @(cobro.Longitud?.ToString() ?? "N/A")</div>
-                        <div class="col-md-3">Folio Interno: @cobro.Folio_Recibo</div>
-                    </div>
-                </div> *@
+                    <table>
+                        <tr>
+                            <td style="vertical-align: top;">
+                                @* COLUMNA IZQUIERDA: Contribuyente *@
+                                <div class="col-md-6 border-end">
+                                    <h6 class="text-guinda fw-bold text-uppercase mb-3">Información del Contribuyente</h6>
+                                    <div class="mb-2">
+                                        <label class="lbl-info">Nombre Completo:</label>
+                                        <p class="val-info">@(cobro.Padron != null ? $"{cobro.Padron.Nombre} {cobro.Padron.A_paterno} {cobro.Padron.A_materno}" : "No disponible")</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="lbl-info">CURP:</label>
+                                        <p class="val-info">@(cobro.Padron?.Curp ?? "N/A")</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td></td>
+                            <td style="vertical-align: top;">
+                                @* COLUMNA DERECHA: Detalles del Pago *@
+                                <div class="col-md-6 ps-4">
+                                    <h6 class="text-guinda fw-bold text-uppercase mb-3">Detalles del Pago</h6>
+                                    @* Aquí usamos un row anidado para los detalles internos si quieres mantener la estructura interna *@
+                                    <div class="row">
+                                        <div class="col-6 mb-2">
+                                            <label class="lbl-info">Concepto:</label>
+                                            <p class="val-info">@(cobro.Concepto?.Descripcion ?? "General")</p>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <label class="lbl-info">Monto Cobrado:</label>
+                                            <p class="val-info fw-bold fs-5 text-success">@cobro.Monto.ToString("C2")</p>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <label class="lbl-info">Fecha y Hora de Cobro:</label>
+                                            <p class="val-info">@cobro.Fecha_cobro.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <label class="lbl-info">Cobrador:</label>
+                                            <p class="val-info">@(cobro.Cobrador != null ? $"{cobro.Cobrador.Nombre} {cobro.Cobrador.A_paterno} {cobro.Cobrador.A_materno}" : "No disponible")</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
+
+            @* --- AQUI INICIA LA SECCION DEL MAPA AÑADIDA --- *@
+            @if (cobro.Latitud != null && cobro.Longitud != null && cobro.Latitud != 0)
+            {
+                <div class="mt-4 border-top pt-3">
+                    <h6 class="text-uppercase fw-bold mb-3" style="color: #9D2449;">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Ubicación del Cobro
+                    </h6>
+
+                    <div id="mapaCobro" style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"></div>
+
+                    @* <div class="text-end text-muted small mt-1">
+                        Coordenadas: @cobro.Latitud, @cobro.Longitud
+                    </div> *@
+                </div>
+            }
+            else
+            {
+                <div class="mt-4 border-top pt-3">
+                    <div class="alert alert-light text-center border text-muted">
+                        <i class="bi bi-geo-alt-slash me-2"></i> Ubicación geográfica no registrada.
+                    </div>
+                </div>
+            }
+            @* --- FIN DE SECCION DEL MAPA --- *@
+
             <div class="card-footer bg-light text-end no-print">
                 <button class="btn btn-outline-secondary" @onclick="() => cobro = null">Cerrar Consulta</button>
                 <button class="btn btn-dark ms-2" @onclick="ImprimirRecibo"><i class="bi bi-printer me-2"></i> Imprimir Duplicado</button>
@@ -163,5 +188,17 @@ else if (busquedaRealizada && !cargando)
     private async Task ImprimirRecibo()
     {
         await JSRuntime.InvokeVoidAsync("print");
+    }
+
+    // --- LOGICA DEL MAPA ---
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Solo intentamos pintar el mapa si ya se realizó la búsqueda y hay coordenadas validas
+        if (busquedaRealizada && cobro != null && cobro.Latitud != null && cobro.Longitud != null && cobro.Latitud != 0)
+        {
+            // Pequeño delay para asegurar que el div 'mapaCobro' existe en el DOM
+            await Task.Delay(100);
+            await JSRuntime.InvokeVoidAsync("renderizarMapa", "mapaCobro", cobro.Latitud, cobro.Longitud);
+        }
     }
 }
