@@ -20,13 +20,13 @@ namespace Api.Business
         {
             _context = context;
             _recaudacion = new(_context);
-            _folio = new(_context); 
+            _folio = new(_context);
         }
 
         public async Task<IEnumerable<Recaudacion>> GetAll()
         {
             return await _recaudacion.GetAll();
-        }   
+        }
 
         public async Task<Recaudacion> GetById(int id)
         {
@@ -75,14 +75,15 @@ namespace Api.Business
 
             var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);
             var listaFolios = await _folio.Search(queryFolio);
-            var folioEncontrado = listaFolios.FirstOrDefault();
+            var folioEncontrado = listaFolios.FirstOrDefault() ?? throw new Exception("No se encontró configuración de folios para el gremio especificado.");
 
-            if (folioEncontrado == null)
+            if (folioEncontrado.Anio_vigente != DateTime.Now.Year)
             {
-                throw new Exception("No se encontró configuración de folios para el gremio especificado.");
+                folioEncontrado.Anio_vigente = DateTime.Now.Year;
+                folioEncontrado.Siguiente_folio = 1;
             }
 
-            string folioRecibo = $"{folioEncontrado.Prefijo}{folioEncontrado.Anio_vigente % 100} - {folioEncontrado.Siguiente_folio:D6}";
+            string folioRecibo = $"{folioEncontrado.Prefijo}{folioEncontrado.Anio_vigente % 100}{folioEncontrado.Siguiente_folio:D6}";
 
             Recaudacion cobro = new()
             {
@@ -99,9 +100,14 @@ namespace Api.Business
             using var transaction = _context.Database.BeginTransaction();
             try
             {
+                if (folioEncontrado.Siguiente_folio == 1)
+                {
+                    await _folio.Update(folioEncontrado);
+                }
+
                 folioEncontrado.Siguiente_folio += 1;
 
-                await _recaudacion.Create(cobro);               
+                await _recaudacion.Create(cobro);
                 await _folio.Update(folioEncontrado);
 
                 transaction.Commit();

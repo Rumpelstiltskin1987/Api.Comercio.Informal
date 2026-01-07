@@ -57,6 +57,32 @@ namespace Api.Comercio.Informal.Controllers
             return Ok(cobro);
         }
 
+        [Route("GetByFolio")]
+        [HttpPost]
+        public async Task<IActionResult> GetByFolio([FromBody] DtoBusquedaFolio request) 
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Folio))
+            {
+                return BadRequest(new { message = "El folio es obligatorio." });
+            }
+
+            try
+            {
+                var cobro = await _recaudacion.GetByFolio(request.Folio);
+
+                if (cobro == null)
+                {
+                    return NotFound(new { message = "No se encontró el folio especificado." });
+                }
+
+                return Ok(cobro);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [Route("Search")]
         [HttpGet]
         public async Task<IActionResult> Search(int? idCobrador, int? idConcepto, DateTime? fechaInicio, DateTime? fechaFin)

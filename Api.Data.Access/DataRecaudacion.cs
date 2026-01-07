@@ -66,6 +66,7 @@ namespace Api.Data.Access
                     .Include(x => x.Cobrador)
                     .Include(x => x.Padron)
                     .Include(x => x.Concepto)
+                    .Include(x => x.Padron.Gremio)
                     .FirstOrDefaultAsync() ?? throw new Exception("Folio no encontrado");
             }
             catch (Exception ex)

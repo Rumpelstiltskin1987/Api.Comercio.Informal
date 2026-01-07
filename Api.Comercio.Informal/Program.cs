@@ -37,7 +37,8 @@ builder.Services.AddDbContext<MySQLiteContext>(options =>
 
 // --- 1. CONFIGURACIÓN ÚNICA DE IDENTITY ---
 // Usamos AddIdentity porque configura Cookies, Roles y UI de una sola vez.
-builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options => {
+builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
+{
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
 })
@@ -118,7 +119,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 // Para la aplicación ANDROID (Tokens)
-builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme, options => {
+builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme, options =>
+{
     options.BearerTokenExpiration = TimeSpan.FromMinutes(330);
 });
 
@@ -211,7 +213,7 @@ using (var scope = app.Services.CreateScope())
                 A_paterno = "SISCOIN",
                 A_materno = "ADMIN",
                 UserName = "SuperUsuario",
-                Email = adminEmail,                
+                Email = adminEmail,
                 Usuario_alta = "System",
                 EsPasswordTemporal = false,
                 EmailConfirmed = true
@@ -233,6 +235,124 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Ocurrió un error al inicializar la base de datos.");
     }
 }
+
+#endregion
+
+#region Crear Gremio y Lider para cobradores Eventuales
+
+// --- INICIO DE SEEDING PARA EVENTUALES ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Necesitamos el Contexto de Datos normal, no el UserManager
+        var context = services.GetRequiredService<MySQLiteContext>();
+
+        // 1. Asegurar que exista el LÍDER EVENTUAL
+        // Buscamos por nombre para no duplicar
+        var liderEventual = await context.Lider
+            .FirstOrDefaultAsync(l => l.Nombre == "LIDER" && l.A_paterno == "EVENTUAL");
+
+        if (liderEventual == null)
+        {
+            liderEventual = new Api.Entities.Lider
+            {
+                Nombre = "LIDER",
+                A_paterno = "EVENTUAL",
+                A_materno = "SISTEMA",
+                Telefono = "-",
+                Email = "-",
+                Direccion = "-",
+                Estado = "A",
+                Usuario_alta = "System",
+                Fecha_alta = DateTime.Now
+            };
+
+            context.Lider.Add(liderEventual);
+            await context.SaveChangesAsync(); // Guardamos para generar el ID_LIDER
+
+            var log = new Api.Entities.LiderLog
+            {
+                Id_movimiento = 1,
+                Id_lider = liderEventual.Id_lider,
+                Nombre = liderEventual.Nombre,
+                A_paterno = liderEventual.A_paterno,
+                A_materno = liderEventual.A_materno,
+                Telefono = liderEventual.Telefono,
+                Email = liderEventual.Email,
+                Direccion = liderEventual.Direccion,
+                Estado = liderEventual.Estado,
+                Tipo_movimiento = "A",
+                Usuario_modificacion = liderEventual.Usuario_alta,
+                Fecha_modificacion = liderEventual.Fecha_alta
+            };
+
+            context.LiderLog.Add(log);
+            await context.SaveChangesAsync();
+        }
+
+        // 2. Asegurar que exista el GREMIO EVENTUALES
+        var gremioEventual = await context.Gremio
+            .FirstOrDefaultAsync(g => g.Descripcion == "EVENTUALES");
+
+        if (gremioEventual == null)
+        {
+            gremioEventual = new Api.Entities.Gremio
+            {
+                Descripcion = "EVENTUALES",
+                Id_lider = liderEventual.Id_lider,
+                Estado = "A",
+                Usuario_alta = "System",
+                Fecha_alta = DateTime.Now,
+                Usuario_modificacion = "System",
+                Fecha_modificacion = DateTime.Now
+            };
+
+            context.Gremio.Add(gremioEventual);
+            await context.SaveChangesAsync();
+
+            var log = new Api.Entities.GremioLog
+            {
+                Id_movimiento = 1,
+                Id_gremio = gremioEventual.Id_gremio,
+                Descripcion = gremioEventual.Descripcion,
+                Id_lider = gremioEventual.Id_lider,
+                Estado = gremioEventual.Estado,
+                Tipo_movimiento = "A",
+                Usuario_modificacion = gremioEventual.Usuario_alta,
+                Fecha_modificacion = gremioEventual.Fecha_alta
+            };
+
+            context.GremioLog.Add(log);
+            await context.SaveChangesAsync();
+        }
+
+        // 3. Crear el folio para el gremio EVENTUALES si no existe
+        var folioEventual = await context.Folio
+            .FirstOrDefaultAsync(f => f.Id_gremio == gremioEventual.Id_gremio);
+
+        if (folioEventual == null)
+        {
+            folioEventual = new Api.Entities.Folio
+            {
+                Id_gremio = gremioEventual.Id_gremio,
+                Descripcion = "Folio para cobradores eventuales",
+                Prefijo = "EVT",
+                Anio_vigente = DateTime.Now.Year,
+                Siguiente_folio = 1
+            };
+            context.Folio.Add(folioEventual);
+            await context.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Error al crear los datos semilla de Eventuales.");
+    }
+}
+// --- FIN DE SEEDING PARA EVENTUALES ---
 
 #endregion
 

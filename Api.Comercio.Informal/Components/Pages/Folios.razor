@@ -47,7 +47,7 @@
                 <PropertyColumn Property="@(c => c.Siguiente_folio)" Sortable="true" Title="Consecutivo" />
                 <PropertyColumn Property="@(c => c.Anio_vigente)" Sortable="true" Title="Año Vigente" />
                 <TemplateColumn Title="Folio" SortBy="@ordenFolio">
-                    @($"{context.Prefijo}{(context.Anio_vigente % 100)} - {context.Siguiente_folio:D6}")
+                    @($"{context.Prefijo}{(context.Anio_vigente % 100)}{context.Siguiente_folio:D6}")
                 </TemplateColumn>
             </QuickGrid>
 

@@ -13,3 +13,12 @@ Content-Type: application/json
   "longitud": -96.3657014,
   "monto": 90.0
 }
+
+###
+
+POST {{HostAddress}}/api/recaudacion/GetByFolio
+Content-Type: application/json
+
+{
+  "folio": "UGO26 - 000001"
+}
