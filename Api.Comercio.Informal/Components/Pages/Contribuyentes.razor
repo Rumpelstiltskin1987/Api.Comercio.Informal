@@ -244,6 +244,7 @@
         // Clonación manual para edición segura
         registro = new()
         {
+            Id_padron = item.Id_padron,
             Nombre = item.Nombre,
             A_paterno = item.A_paterno,
             A_materno = item.A_materno,
@@ -293,6 +294,18 @@
         if (registro.Tipo_vendedor == "0")
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un tipo de vendedor", "warning");
+            return;
+        }
+
+        if (registro.Telefono.Length != 10 || !registro.Telefono.All(char.IsDigit))
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El número de teléfono debe tener 10 dígitos numéricos", "warning");
+            return;
+        }
+
+        if (registro.Curp.Length != 18)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La CURP debe tener 18 caracteres", "warning");
             return;
         }
 

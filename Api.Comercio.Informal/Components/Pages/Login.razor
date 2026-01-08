@@ -22,7 +22,7 @@
 
                 <center class="marg-buttom">
                     <InputText @bind-Value="Input.UserName" class="form-control" placeholder="Nombre de usuario" />
-                    <ValidationMessage For="() => Input.UserName" class="text-danger small" />
+                    <ValidationMessage For="() => Input.UserName" class="text-danger small" style="color: red !important;" />
                 </center>
 
             </div>
@@ -33,14 +33,16 @@
 
                 <center class="marg-buttom">
                     <InputText @bind-Value="Input.Password" type="password" class="form-control" placeholder="••••••" />
-                    <ValidationMessage For="() => Input.Password" class="text-danger small" />
+                    <ValidationMessage For="() => Input.Password" class="text-danger small" style="color: red !important;" />
                 </center>
 
             </div>
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="alert alert-danger py-2 small text-center">@errorMessage</div>
+                <center>
+                    <div class="alert alert-danger py-2 small text-center" style="color: red !important;">@errorMessage</div>
+                </center>                
             }
 
             @* Botón de Ingreso *@
