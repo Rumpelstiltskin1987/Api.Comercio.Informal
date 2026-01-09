@@ -1,36 +1,47 @@
 ﻿@* Este archivo no puede llamarse Padron porque causaría conflicto con la clase Api.Entities.Padron *@
 @page "/padron"
+@page "/auditoria/padron"
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Comercio.Informal.Components.Layout
-@using Api.Entities
-@using Api.Business
+@using Api.Entities.DTO
 @inject IJSRuntime JSRuntime
 @inject BusinessPadron _padronService
 @inject BusinessGremio _gremioService
+@inject NavigationManager NavManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
 @attribute [Authorize(Roles = "Superadmin, Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />
+@if (EsModoAuditoria)
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Historial de registros del Padron</h3>
+}
+else
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Padron de Vendedores</h3>
+}
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Padron de Vendedores</h3>
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
-    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
-        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
-    </button>
+    @if (!EsModoAuditoria)
+    {
+        <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+        </button>
 
-    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
-        @if (mostrarActivos)
-        {
-            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
-        }
-        else
-        {
-            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
-        }
-    </button>
+        <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+            @if (mostrarActivos)
+            {
+                <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+            }
+            else
+            {
+                <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+            }
+        </button>
+    }
 </div>
 
 <div class="card shadow-sm border-0">
@@ -43,26 +54,39 @@
             <PropertyColumn Property="@(c => c.Matricula)" Sortable="true" Title="Matrícula" />
             <TemplateColumn Title="Gestión" Align="Align.Right">
                 <div class="d-flex gap-2 justify-content-end">
-                    @if (mostrarActivos)
-                    {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
-                            <i class="bi bi-pencil-square fs-6"></i>
+                    @if (EsModoAuditoria)
+                    {@* BOTÓN SOLO PARA AUDITORÍA *@
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none"
+                                title="Ver Historial de Cambios"
+                                @onclick="() => VerHistorial(context)">
+                            <i class="bi bi-clock-history fs-5"></i>
                         </button>
+
                     }
                     else
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
-                            <i class="bi bi-box-arrow-up fs-6"></i>
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                                <i class="bi bi-pencil-square fs-6"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                                <i class="bi bi-box-arrow-up fs-6"></i>
+                            </button>
+                        }
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
                         </button>
-                    }
-                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
-                    </button>
-                    @if (mostrarActivos)
-                    {
-                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
-                            <i class="bi bi-trash fs-6"></i>
-                        </button>
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
+                        }
+
                     }
                 </div>
             </TemplateColumn>
@@ -156,6 +180,10 @@
     </fieldset>
 </SimpleModal>
 
+<ModalHistorial @bind-Mostrar="mostrarModalHistorial"
+                Logs="historial"
+                Cargando="cargandoLogs" />
+
 @code {
     // --- Datos ---
     private IQueryable<Padron>? listado;
@@ -177,6 +205,12 @@
 
     // Inicialización segura
     private Padron registro = new();
+
+    // Variables para historial
+    private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
+    private bool mostrarModalHistorial = false;
+    private bool cargandoLogs = false;
+    private List<DtoHistorial>? historial;
 
     protected override async Task OnInitializedAsync()
     {
@@ -336,7 +370,7 @@
                 title = "¡Éxito!",
                 text = "La información se guardó correctamente.",
                 icon = "success",
-                confirmButtonColor = "#9D2449" 
+                confirmButtonColor = "#9D2449"
             });
 
             await CargarDatos();
@@ -370,6 +404,27 @@
         catch (Exception ex)
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al actualizar el estado: {ex.Message}", "error");
+        }
+    }
+
+    // --- Historial ---
+    private async Task VerHistorial(Padron item)
+    {
+        mostrarModalHistorial = true;
+        cargandoLogs = true;
+
+        try
+        {
+            historial = await _padronService.GetHistorial(item.Id_padron);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            mostrarModalHistorial = false;
+        }
+        finally
+        {
+            cargandoLogs = false;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Api.Entities
         public required string Rol { get; set; }
         public required string Estado { get; set; }
         public required string Tipo_movimiento { get; set; }
-        public required string Usuario_modificacion { get; set; }
+        public string? Usuario_modificacion { get; set; }
         public DateTime? Fecha_modificacion { get; set; }
     }
 }

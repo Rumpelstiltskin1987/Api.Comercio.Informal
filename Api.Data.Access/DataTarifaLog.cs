@@ -1,4 +1,5 @@
 ﻿using Api.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +47,22 @@ namespace Api.Data.Access
             }
 
             return id_movimiento;
+        }
+
+        public async Task<IEnumerable<TarifaLog>> GetLogsByTarifaId(int id)
+        {
+            IEnumerable<TarifaLog> historial;
+            try
+            {
+                historial = await context.TarifaLog.Where(x => x.Id_tarifa == id).ToListAsync();
+                return historial;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el historial: " + ex.InnerException.Message);
+                throw new Exception("Error al obtener el historial: " + ex.Message);
+            }
         }
     }
 }

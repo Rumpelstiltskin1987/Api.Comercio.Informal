@@ -15,5 +15,6 @@ namespace Api.Interfaces
         public Task<IEnumerable<Usuario>> GetByRol(string rol);
         public Task Create(DtoUsuario usuario);
         public Task Update(DtoUsuario usuario);
+        public Task<List<DtoHistorial>> GetHistorial(int id);
     }
 }

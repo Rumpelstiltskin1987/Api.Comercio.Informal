@@ -77,8 +77,8 @@ DROP TABLE IF EXISTS TarifaLog;
 CREATE TABLE TarifaLog (
     Id_movimiento INTEGER NOT NULL,
     Id_tarifa INTEGER NOT NULL,
-    Id_concepto INTEGER NOT NULL,
-    Id_gremio INTEGER,
+    Concepto TEXT NOT NULL,
+    Gremio TEXT NOT NULL,
     Monto REAL NOT NULL,
     Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
     Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
@@ -165,14 +165,13 @@ CREATE TABLE GremioLog (
 	Id_movimiento INTEGER NOT NULL,
 	Id_gremio INTEGER NOT NULL,
 	Descripcion TEXT NOT NULL,
-	Id_lider INTEGER NOT NULL,
+	Lider TEXT NOT NULL,
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
 	Usuario_modificacion TEXT,
 	Fecha_modificacion TEXT,
 	PRIMARY KEY (Id_movimiento, Id_gremio),
 	FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
-	FOREIGN KEY (Id_lider) REFERENCES Lider(Id_lider)	
 );
 
 DROP TABLE IF EXISTS Padron;
@@ -212,14 +211,13 @@ CREATE TABLE PadronLog (
 	Email TEXT,
 	Matricula TEXT,
 	Matricula_anterior TEXT,
-	Id_gremio INTEGER,
+	Gremio Text,
     Tipo_Vendedor TEXT NOT NULL CHECK(Tipo_Vendedor IN ('P', 'E')),
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
 	Usuario_modificacion TEXT,
 	Fecha_modificacion TEXT,    
-	PRIMARY KEY (Id_movimiento, Id_padron),
-	FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
+	PRIMARY KEY (Id_movimiento, Id_padron)
 );
 
 DROP TABLE IF EXISTS UsuarioLog;

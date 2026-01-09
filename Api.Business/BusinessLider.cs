@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Api.Data.Access;
 using Api.Entities;
+using Api.Entities.DTO;
 using Api.Interfaces;  
 
 
@@ -140,6 +141,36 @@ namespace Api.Business
                 transaction.Rollback();
                 throw;
             }
-        }       
+        }
+        
+        public async Task<List<DtoHistorial>> GetHistorial(int id)
+        {
+            // 1. Obtenemos la lista cruda de la base de datos
+            var logs = await _liderLog.GetLogsByLiderId(id);
+
+            // 2. Transformamos (Mapeamos) cada LiderLog a DtoHistorial
+            var historial = logs.Select(log => new DtoHistorial
+            {
+                Fecha = log.Fecha_modificacion,
+                Usuario = log.Usuario_modificacion,
+                Movimiento = log.Tipo_movimiento.ToUpper() switch
+                {
+                    "A" => "Alta",
+                    "M" => "Modificación",
+                    _ => log.Tipo_movimiento
+                },
+                Detalles = new StringBuilder()
+                    .AppendLine($"Nombre: {log.Nombre} | ")
+                    .AppendLine($"A_paterno: {log.A_paterno} | ")
+                    .AppendLine($"A_materno: {log.A_materno} | ")
+                    .AppendLine($"Telefono: {log.Telefono} |")
+                    .AppendLine($"Email: {log.Email} |")
+                    .AppendLine($"Direccion: {log.Direccion} |")
+                    .AppendLine($"Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))}")
+                    .ToString()
+            }).ToList();
+
+            return historial;
+        }
     }
 }

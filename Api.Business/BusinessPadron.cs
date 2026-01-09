@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Api.Data.Access;
+using Api.Entities;
+using Api.Entities.DTO;
+using Api.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.XPath;
-using Api.Data.Access;
-using Api.Entities;
-using Api.Interfaces;
 
 namespace Api.Business
 {
@@ -16,6 +17,7 @@ namespace Api.Business
         private readonly DataPadron _dataPadron;
         private readonly DataPadronLog _dataPadronLog;
         private readonly DataMatriculaContador _dataMatriculaContador;
+        private readonly DataGremio _gremio;
 
         public BusinessPadron(MySQLiteContext context)
         {
@@ -23,6 +25,7 @@ namespace Api.Business
             _dataPadron = new(_context);
             _dataPadronLog = new(_context);
             _dataMatriculaContador = new(_context);
+            _gremio = new(_context);
         }
 
         public async Task<IEnumerable<Padron>> GetAll()
@@ -130,6 +133,8 @@ namespace Api.Business
                 };
                 await _dataPadron.Create(contribuyente);
 
+                var gremio = await _gremio.GetById(id_gremio);
+
                 PadronLog padronLog = new()
                 {
                     Id_movimiento = 1,
@@ -143,7 +148,7 @@ namespace Api.Business
                     Email = contribuyente.Email,
                     Matricula = contribuyente.Matricula,
                     Matricula_anterior = contribuyente.Matricula_anterior,
-                    Id_gremio = contribuyente.Id_gremio,                    
+                    Gremio = gremio.Descripcion,                    
                     Tipo_vendedor = contribuyente.Tipo_vendedor,
                     Estado = contribuyente.Estado,
                     Tipo_movimiento = "A",
@@ -185,6 +190,7 @@ namespace Api.Business
             {
                 await _dataPadron.Update(padron);
                 int idMovimiento = await _dataPadronLog.GetIdMovement(id) + 1;
+                var gremio = await _gremio.GetById(id_gremio);
 
                 PadronLog padronLog = new()
                 {
@@ -198,7 +204,7 @@ namespace Api.Business
                     Direccion = padron.Direccion,
                     Telefono = padron.Telefono,
                     Email = padron.Email,
-                    Id_gremio = padron.Id_gremio,
+                    Gremio = gremio.Descripcion,
                     Estado = padron.Estado,
                     Tipo_movimiento = "M",
                     Usuario_modificacion = padron.Usuario_modificacion,
@@ -230,6 +236,42 @@ namespace Api.Business
                 transaction.Rollback();
                 throw;
             }
-        }   
+        }
+
+        public async Task<List<DtoHistorial>> GetHistorial(int id)
+        {
+            try
+            {
+                // 1. Obtenemos la lista cruda de la base de datos
+                var logs = await _dataPadronLog.GetLogsByPadronId(id);
+
+                // 2. Transformamos (Mapeamos) cada UsuarioLog a DtoHistorial
+                var historial = logs.Select(log => new DtoHistorial
+                {
+                    Fecha = log.Fecha_modificacion,
+                    Usuario = log.Usuario_modificacion,
+                    Movimiento = log.Tipo_movimiento.ToUpper() switch
+                    {
+                        "A" => "Alta",
+                        "M" => "Modificación",
+                        _ => log.Tipo_movimiento
+                    },
+                    Detalles = $"Matrícula: {log.Matricula} " +
+                               $"| Nombre: {log.Nombre} {log.A_paterno} {log.A_materno}" +
+                               $"| CURP: {log.Curp} " +
+                               $"| Dirección: {log.Direccion} " +
+                               $"| Gremio: {log.Gremio}" +
+                               $"| Teléfono: {log.Telefono} " +
+                               $"| Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))} " +
+                               $"| Email: {log.Email}"
+                }).ToList();
+
+                return historial;
+            }
+            catch (Exception)
+            {                
+                throw;
+            }
+        }
     }
 }

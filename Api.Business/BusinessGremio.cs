@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Api.Data.Access;
+using Api.Entities;
+using Api.Entities.DTO;
+using Api.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Api.Data.Access;
-using Api.Entities;
-using Api.Interfaces;
 
 namespace Api.Business
 {
@@ -15,6 +16,7 @@ namespace Api.Business
         private readonly DataGremio _gremio;
         private readonly DataGremioLog _gremioLog;
         private readonly DataFolio _folio;
+        private readonly DataLider _lider;
 
         public BusinessGremio(MySQLiteContext context)
         {
@@ -22,6 +24,7 @@ namespace Api.Business
             _gremio = new DataGremio(_context);
             _gremioLog = new DataGremioLog(_context);
             _folio = new DataFolio(_context);
+            _lider = new DataLider(_context);
         }
 
         public async Task<IEnumerable<Gremio>> GetAll()
@@ -71,13 +74,14 @@ namespace Api.Business
             try
             {
                 await _gremio.Create(gremio);
+                var lider =  await _lider.GetById(id_lider);
 
                 GremioLog log = new()
                 {
                     Id_movimiento = 1,
                     Id_gremio = gremio.Id_gremio,
                     Descripcion = gremio.Descripcion,
-                    Id_lider = gremio.Id_lider,
+                    Lider = $"{lider.Nombre} {lider.A_paterno} {lider.A_materno}",
                     Estado = gremio.Estado,
                     Tipo_movimiento = "A",
                     Usuario_modificacion = gremio.Usuario_modificacion,
@@ -120,6 +124,7 @@ namespace Api.Business
             try
             {
                 await _gremio.Update(gremio);
+                var lider = await _lider.GetById(id_lider);
                 var idMovimiento = await _gremioLog.GetIdMovement(id) + 1;
 
                 GremioLog log = new()
@@ -127,7 +132,7 @@ namespace Api.Business
                     Id_movimiento = idMovimiento,
                     Id_gremio = gremio.Id_gremio,
                     Descripcion = gremio.Descripcion,
-                    Id_lider = gremio.Id_lider,
+                    Lider = $"{lider.Nombre} {lider.A_paterno} {lider.A_materno}",
                     Estado = gremio.Estado,
                     Tipo_movimiento = "M",
                     Usuario_modificacion = gremio.Usuario_modificacion,
@@ -175,6 +180,40 @@ namespace Api.Business
                 transaction.Rollback();
                 throw;
             }
-        }        
+        }
+
+        public async Task<List<DtoHistorial>> GetHistorial(int id)
+        {
+            try
+            {
+                // 1. Obtenemos la lista cruda de la base de datos
+                var logs = await _gremioLog.GetLogsByGremioId(id);
+
+                // 2. Transformamos (Mapeamos) cada UsuarioLog a DtoHistorial
+                var historial = logs.Select(log => new DtoHistorial
+                {
+                    Fecha = log.Fecha_modificacion,
+                    Usuario = log.Usuario_modificacion,
+                    Movimiento = log.Tipo_movimiento.ToUpper() switch
+                    {
+                        "A" => "Alta",
+                        "M" => "Modificación",
+                        _ => log.Tipo_movimiento
+                    },
+                    Detalles = new StringBuilder()
+                    .AppendLine($"Descripcion: {log.Descripcion} | ")
+                    .AppendLine($"Lider: {log.Lider} | ")
+                    .AppendLine($"Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))}")
+                    .ToString()
+                }).ToList();
+
+                return historial;
+            }
+            catch (Exception ex)
+            {
+                // Es buena práctica loguear el error antes de lanzarlo, si tienes un logger
+                throw new Exception("Error al obtener el historial", ex);
+            }
+        }
     }
 }

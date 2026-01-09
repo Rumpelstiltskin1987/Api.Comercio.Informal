@@ -122,7 +122,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_movimiento).IsRequired();
                 entity.Property(e => e.Id_gremio).IsRequired();
                 entity.Property(e => e.Descripcion).IsRequired();
-                entity.Property(e => e.Id_lider).IsRequired();
+                entity.Property(e => e.Lider).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
@@ -197,7 +197,7 @@ namespace Api.Entities
                 entity.Property(e => e.Telefono).IsRequired();
                 entity.Property(e => e.Email);
                 entity.Property(e => e.Matricula_anterior);
-                entity.Property(e => e.Id_gremio).IsRequired();
+                entity.Property(e => e.Gremio).IsRequired();
                 entity.Property(e => e.Tipo_vendedor).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
@@ -237,8 +237,8 @@ namespace Api.Entities
                 entity.HasKey(e => new { e.Id_movimiento, e.Id_tarifa });
                 entity.Property(e => e.Id_movimiento).IsRequired();
                 entity.Property(e => e.Id_tarifa).IsRequired();
-                entity.Property(e => e.Id_concepto).IsRequired();
-                entity.Property(e => e.Id_gremio);
+                entity.Property(e => e.Concepto).IsRequired();
+                entity.Property(e => e.Gremio).IsRequired();
                 entity.Property(e => e.Monto).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();

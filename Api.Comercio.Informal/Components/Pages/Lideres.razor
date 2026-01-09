@@ -1,34 +1,48 @@
 ﻿@page "/lideres"
+@page "/auditoria/lideres"
 @using Api.Comercio.Informal.Components.Layout
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Entities
+@using Api.Entities.DTO
 @using Api.Business
 @inject IJSRuntime JSRuntime
 @inject BusinessLider _liderService
+@inject NavigationManager NavManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
 @attribute [Authorize(Roles = "Superadmin, Supervisor")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />
+@if (EsModoAuditoria)
+{    
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Historial de Líderes</h3>
+}
+else
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Directorio de Líderes</h3>
+}
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Directorio de Líderes</h3>
+
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
-    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
-        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
-    </button>
+    @if (!EsModoAuditoria)
+    {
+        <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+        </button>
 
-    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
-        @if (mostrarActivos)
-        {
-            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
-        }
-        else
-        {
-            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
-        }
-    </button>
+        <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+            @if (mostrarActivos)
+            {
+                <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+            }
+            else
+            {
+                <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+            }
+        </button>
+    }    
 </div>
 
 <div class="card shadow-sm border-0">
@@ -42,29 +56,42 @@
 
             <TemplateColumn Title="Gestión">
                 <div class="d-flex gap-2">
-                    @if (mostrarActivos)
+                    @if (EsModoAuditoria)
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
-                            <i class="bi bi-pencil-square fs-6"></i>
+                        @* BOTÓN SOLO PARA AUDITORÍA *@
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none"
+                        title="Ver Historial de Cambios"
+                        @onclick="() => VerHistorial(context)">
+                            <i class="bi bi-clock-history fs-5"></i>
                         </button>
                     }
                     else
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
-                            <i class="bi bi-box-arrow-up fs-6"></i>
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                                <i class="bi bi-pencil-square fs-6"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                                <i class="bi bi-box-arrow-up fs-6"></i>
+                            </button>
+                        }
+
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
                         </button>
+
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
+                        }
                     }
 
-                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
-                    </button>
-
-                    @if (mostrarActivos)
-                    {
-                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
-                            <i class="bi bi-trash fs-6"></i>
-                        </button>
-                    }
                 </div>
             </TemplateColumn>
         </QuickGrid>
@@ -79,23 +106,23 @@
     <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre(s)</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre(s)</label>
                 <input class="form-control" @bind="lider.Nombre" />
             </div>
             <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Paterno</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Apellido Paterno</label>
                 <input class="form-control" @bind="lider.A_paterno" />
             </div>
             <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Apellido Materno</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Apellido Materno</label>
                 <input class="form-control" @bind="lider.A_materno" />
             </div>
             <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Dirección</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Dirección</label>
                 <input class="form-control" @bind="lider.Direccion" />
             </div>
             <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Teléfono</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Teléfono</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
                     <input class="form-control" @bind="lider.Telefono" placeholder="10 dígitos" />
@@ -113,6 +140,10 @@
 
 </SimpleModal>
 
+<ModalHistorial @bind-Mostrar="mostrarModalHistorial"
+                Logs="historial"
+                Cargando="cargandoLogs" />
+
 @code {
     // --- Datos ---
     private IQueryable<Lider>? listado;
@@ -127,6 +158,12 @@
 
     // Inicialización segura
     private Lider lider = new();
+
+    // Variables para historial
+    private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
+    private bool mostrarModalHistorial = false;
+    private bool cargandoLogs = false;
+    private List<DtoHistorial>? historial;
 
     protected override async Task OnInitializedAsync()
     {
@@ -210,8 +247,19 @@
 
     private async Task GuardarLider()
     {
-        if (string.IsNullOrWhiteSpace(lider.Nombre) || string.IsNullOrWhiteSpace(lider.A_paterno))
+        if (string.IsNullOrWhiteSpace(lider.Nombre) || 
+        string.IsNullOrWhiteSpace(lider.A_paterno) ||
+        string.IsNullOrWhiteSpace(lider.A_materno) ||
+        string.IsNullOrWhiteSpace(lider.Direccion) ||
+        string.IsNullOrWhiteSpace(lider.Telefono))
         {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            return;
+        }
+
+        if (lider.Telefono.Length != 10 || !lider.Telefono.All(char.IsDigit))
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El número de teléfono debe tener 10 dígitos numéricos", "warning");
             return;
         }
 
@@ -261,6 +309,27 @@
         catch (Exception ex)
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+        }
+    }
+
+        // --- Historial ---
+    private async Task VerHistorial(Lider item)
+    {
+        mostrarModalHistorial = true;
+        cargandoLogs = true;
+
+        try
+        {
+            historial = await _liderService.GetHistorial(item.Id_lider);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            mostrarModalHistorial = false;
+        }
+        finally
+        {
+            cargandoLogs = false;
         }
     }
 }

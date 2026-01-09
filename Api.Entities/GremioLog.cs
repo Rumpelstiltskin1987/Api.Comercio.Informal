@@ -11,7 +11,7 @@ namespace Api.Entities
         public int Id_movimiento { get; set; }
         public int Id_gremio { get; set; }
         public string? Descripcion { get; set; }
-        public int Id_lider { get; set; }
+        public string ? Lider { get; set; }
         public string? Estado { get; set; }
         public string? Tipo_movimiento { get; set; }
         public string? Usuario_modificacion { get; set; }

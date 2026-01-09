@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Api.Entities;
+using Api.Entities.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Api.Entities;
 
 namespace Api.Interfaces
 {
@@ -16,5 +17,6 @@ namespace Api.Interfaces
         public Task Update(int id, string nombre, string a_paterno, string a_materno, string telefono, 
             string email, string direccion, string estado, string usuario);
         public Task Delete(int id);
+        public Task<List<DtoHistorial>> GetHistorial(int id);
     }
 }

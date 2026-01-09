@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Api.Entities.DTO;
+using System.Reflection.Metadata;
 
 namespace Api.Business
 {
@@ -139,6 +140,39 @@ namespace Api.Business
             {
                 transaction.Rollback();
                 throw;
+            }
+        }
+
+        public async Task<List<DtoHistorial>> GetHistorial(int id)
+        {
+            try
+            {
+                // 1. Obtenemos la lista cruda de la base de datos
+                var logs = await _usuarioLog.GetLogsByUserId(id);
+
+                // 2. Transformamos (Mapeamos) cada UsuarioLog a DtoHistorial
+                var historial = logs.Select(log => new DtoHistorial
+                {
+                    Fecha = log.Fecha_modificacion,
+                    Usuario = log.Usuario_modificacion,
+                    Movimiento = log.Tipo_movimiento.ToUpper() switch
+                    {
+                        "A" => "Alta",
+                        "M" => "Modificación",
+                        _ => log.Tipo_movimiento 
+                    },
+                    Detalles = $"Nombre: {log.Nombre} {log.A_paterno} {log.A_materno}" +
+                               $"| Rol: {log.Rol} " +
+                               $"| Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))} " +
+                               $"| Email: {log.Email}"
+                }).ToList();
+
+                return historial;
+            }   
+            catch (Exception ex)
+            {
+                // Es buena práctica loguear el error antes de lanzarlo, si tienes un logger
+                throw new Exception("Error al obtener el historial", ex);
             }
         }
     }

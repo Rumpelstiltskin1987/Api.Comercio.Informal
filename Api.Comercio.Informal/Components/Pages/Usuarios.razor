@@ -1,4 +1,5 @@
 ﻿@page "/admin/usuarios"
+@page "/auditoria/usuarios"
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
@@ -11,30 +12,42 @@
 @inject RoleManager<IdentityRole<int>> _roleManager
 @inject BusinessUsuario _serviceUsuario
 @inject BusinessRol _serviceRol
+@inject NavigationManager NavManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
 @attribute [Authorize(Roles = "Superadmin ,IT Manager")]
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<link href="css/general.css" rel="stylesheet" />
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Control de Usuarios y Perfiles</h3>
+<link href="css/general.css" rel="stylesheet" />
+@if (EsModoAuditoria)
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Historial de Usuarios y Perfiles</h3>
+}
+else
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Control de Usuarios y Perfiles</h3>
+}
+
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
-    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
-        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
-    </button>
+    @if (!EsModoAuditoria)
+    {
+        <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+        </button>
 
-    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
-        @if (mostrarActivos)
-        {
-            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
-        }
-        else
-        {
-            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
-        }
-    </button>
+        <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+            @if (mostrarActivos)
+            {
+                <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+            }
+            else
+            {
+                <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+            }
+        </button>
+    }
 </div>
 
 <div class="card shadow-sm border-0">
@@ -47,28 +60,40 @@
             <PropertyColumn Property="@(c => c.Rol)" Sortable="true" Title="Rol" />
 
             <TemplateColumn Title="Gestión">
-                @if (mostrarActivos)
-                {
-                    <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
-                        <i class="bi bi-pencil-square fs-6"></i>
+                @if (EsModoAuditoria)
+                {@* BOTÓN SOLO PARA AUDITORÍA *@
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none"
+                            title="Ver Historial de Cambios"
+                            @onclick="() => VerHistorial(context)">
+                        <i class="bi bi-clock-history fs-5"></i>
                     </button>
+
                 }
                 else
                 {
-                    <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
-                        <i class="bi bi-box-arrow-up fs-6"></i>
-                    </button>
-                }
+                    @if (mostrarActivos)
+                    {
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                            <i class="bi bi-pencil-square fs-6"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                            <i class="bi bi-box-arrow-up fs-6"></i>
+                        </button>
+                    }
 
-                <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                    <i class="bi bi-eye fs-6"></i>
-                </button>
-
-                @if (mostrarActivos)
-                {
-                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
-                        <i class="bi bi-trash fs-6"></i>
+                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                        <i class="bi bi-eye fs-6"></i>
                     </button>
+
+                    @if (mostrarActivos)
+                    {
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                            <i class="bi bi-trash fs-6"></i>
+                        </button>
+                    }
                 }
             </TemplateColumn>
         </QuickGrid>
@@ -145,7 +170,11 @@
     </fieldset>
 </SimpleModal>
 
-@code {
+<ModalHistorial @bind-Mostrar="mostrarModalHistorial"
+                Logs="historial"
+                Cargando="cargandoLogs" />
+
+@code {    
     private IQueryable<DtoUsuario>? listado;
     private List<string> rolesDisponibles = new();
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
@@ -155,8 +184,13 @@
     private string tituloModal = "";
     private string usuario = "";
     private string rolAnterior = "";
-
     private DtoUsuario inputModel = new();
+
+    // Variables para historial
+    private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
+    private bool mostrarModalHistorial = false;
+    private bool cargandoLogs = false;
+    private List<DtoHistorial>? historial;
 
     protected override async Task OnInitializedAsync()
     {
@@ -248,7 +282,7 @@
         if (string.IsNullOrWhiteSpace(inputModel.UserName) ||
             string.IsNullOrWhiteSpace(inputModel.Nombre) ||
             string.IsNullOrWhiteSpace(inputModel.A_paterno) ||
-            string.IsNullOrWhiteSpace(inputModel.A_materno) ||            
+            string.IsNullOrWhiteSpace(inputModel.A_materno) ||
             string.IsNullOrWhiteSpace(inputModel.Rol))
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
@@ -263,14 +297,14 @@
         }
 
         try
-        {   
+        {
             // Si el id es 0, es un nuevo usuario
             if (inputModel.Id == 0)
             {
                 inputModel.Usuario_alta = usuario;
                 await _serviceUsuario.Create(inputModel);
 
-                
+
             }
             // Si no, es una actualización
             else
@@ -298,8 +332,6 @@
         await CargarUsuarios();
     }
 
-    
-
     // Método unificado para cambiar estado (Baja / Reincorporar)
     private async Task CambiarEstado(DtoUsuario item, string estado)
     {
@@ -319,15 +351,25 @@
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
         }
     }
+
+    // --- Historial ---
+    private async Task VerHistorial(DtoUsuario item)
+    {
+        mostrarModalHistorial = true;
+        cargandoLogs = true;        
+
+        try
+        {
+            historial = await _serviceUsuario.GetHistorial(item.Id);           
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            mostrarModalHistorial = false;
+        }
+        finally
+        {
+            cargandoLogs = false;
+        }
+    }
 }
-
-
-<style>
-    .text-guinda {
-        color: #9D2449;
-    }
-
-    .bg-guinda {
-        background-color: #9D2449;
-    }
-</style>
