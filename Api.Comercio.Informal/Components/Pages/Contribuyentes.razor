@@ -67,6 +67,10 @@ else
                     {
                         @if (mostrarActivos)
                         {
+                            @* --- NUEVO BOTÓN QR --- *@
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Imprimir Código QR" @onclick="() => AbrirQr(context)">
+                                <i class="bi bi-qr-code fs-6"></i>
+                            </button>
                             <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
                                 <i class="bi bi-pencil-square fs-6"></i>
                             </button>
@@ -184,6 +188,10 @@ else
                 Logs="historial"
                 Cargando="cargandoLogs" />
 
+<ModalQr @bind-Mostrar="mostrarModalQr"
+         Matricula="@qrMatricula"
+         NombreContribuyente="@qrNombre" />
+
 @code {
     // --- Datos ---
     private IQueryable<Padron>? listado;
@@ -211,6 +219,11 @@ else
     private bool mostrarModalHistorial = false;
     private bool cargandoLogs = false;
     private List<DtoHistorial>? historial;
+
+    // --- Variables para QR ---
+    private bool mostrarModalQr = false;
+    private string qrMatricula = "";
+    private string qrNombre = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -426,5 +439,14 @@ else
         {
             cargandoLogs = false;
         }
+    }
+
+    // --- QR Modal ---
+    private void AbrirQr(Padron item)
+    {
+        qrMatricula = item.Matricula;
+        // Concatenamos el nombre para que salga bonito en la impresión
+        qrNombre = $"{item.Nombre} {item.A_paterno} {item.A_materno}";
+        mostrarModalQr = true;
     }
 }
