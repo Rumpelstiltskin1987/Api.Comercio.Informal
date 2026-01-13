@@ -1,6 +1,7 @@
 ﻿@page "/conceptos"
 @page "/auditoria/conceptos"
 @using Api.Comercio.Informal.Components.Layout
+@using Api.Comercio.Informal.Helpers
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Entities.DTO
 @inject IJSRuntime JSRuntime
@@ -221,29 +222,38 @@ else
             return;
         }
 
-        if (concepto.Id_concepto == 0)
+        try
         {
-            await _conceptoService.Create(
-                concepto.Descripcion, usuario
-            );
-        }
-        else
-        {
-            await _conceptoService.Update(
-                concepto.Id_concepto, concepto.Descripcion, concepto.Estado,
-                usuario
-            );
-        }
+            if (concepto.Id_concepto == 0)
+            {
+                await _conceptoService.Create(
+                    concepto.Descripcion, usuario
+                );
+            }
+            else
+            {
+                await _conceptoService.Update(
+                    concepto.Id_concepto, concepto.Descripcion, concepto.Estado,
+                    usuario
+                );
+            }
 
-        mostrarModal = false;        
+            mostrarModal = false;
 
-        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "¡Éxito!",
+                text = "La información se guardó correctamente.",
+                icon = "success",
+                confirmButtonColor = "#9D2449"
+            });
+        }
+        catch (Exception ex)
         {
-            title = "¡Éxito!",
-            text = "La información se guardó correctamente.",
-            icon = "success",
-            confirmButtonColor = "#9D2449"
-        });
+            string mensajeUsuario = SqliteErrorHelper.ObtenerMensajeAmigable(ex);
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {mensajeUsuario}", "error");
+            return;
+        }        
 
         await CargarDatos();
     }

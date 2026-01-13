@@ -19,7 +19,7 @@
 }
 else
 {
-    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Padron de Vendedores</h3>
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Padron de Contribuyentes</h3>
 }
 
 <hr />
@@ -142,7 +142,7 @@ else
             }
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Gremio Asignado</label>
-                <select class="form-select" @bind="registro.Id_gremio">
+                <select class="form-select" @bind="GremioProxy">
                     <option value="0">-- Seleccione un gremio --</option>
                     @if (gremios != null)
                     {
@@ -155,7 +155,7 @@ else
             </div>
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Tipo Vendedor</label>
-                <select class="form-select" @bind="registro.Tipo_vendedor">
+                <select class="form-select" @bind="registro.Tipo_vendedor" disabled="@bloquearTipoVendedor">
                     <option value="0">-- Seleccione un tipo --</option>
                     @if (tipos != null)
                     {
@@ -199,6 +199,7 @@ else
     private class TipoOpcion { public string Id { get; set; } public string Descripcion { get; set; } }
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
+    private bool bloquearTipoVendedor = false;
     private List<TipoOpcion> tipos = new()
     {
         new TipoOpcion { Id = "P", Descripcion = "Padron" },
@@ -281,7 +282,7 @@ else
     {
         soloLectura = false;
         registro = new();
-        tituloModal = "REGISTRO DE NUEVO VENDEDOR";
+        tituloModal = "REGISTRO DE NUEVO CONTRIBUYENTE";
         mostrarModal = true;
     }
 
@@ -313,7 +314,7 @@ else
     {
         soloLectura = true;
         registro = item;
-        tituloModal = "DETALLES DEL VENDEDOR";
+        tituloModal = "DETALLES DEL CONTRIBUYENTE";
         mostrarModal = true;
     }
 
@@ -417,6 +418,48 @@ else
         catch (Exception ex)
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al actualizar el estado: {ex.Message}", "error");
+        }
+    }
+
+    // Esta propiedad actúa como puente
+    private int GremioProxy
+    {
+        get => registro.Id_gremio;
+        set
+        {
+            // 1. Asignamos el valor al modelo real
+            registro.Id_gremio = value;
+
+            // 2. Ejecutamos la lógica de validación aquí mismo
+            ValidarReglasNegocio(value);
+        }
+    }
+
+    private void ValidarReglasNegocio(int idGremio)
+    {
+        // Buscamos el gremio seleccionado
+        var gremioObj = gremios?.FirstOrDefault(g => g.Id_gremio == idGremio);
+
+        if (gremioObj != null && gremioObj.Descripcion.ToUpper().Contains("EVENTUAL"))
+        {
+            // --- CASO EVENTUALES ---
+            if (tipos != null)
+            {
+                var tipoEventual = tipos.FirstOrDefault(t =>
+                    t.Descripcion != null &&
+                    t.Descripcion.ToUpper().Contains("EVENTUAL"));
+
+                if (tipoEventual != null)
+                {
+                    registro.Tipo_vendedor = tipoEventual.Id;
+                    bloquearTipoVendedor = true;
+                }
+            }
+        }
+        else
+        {
+            // --- CUALQUIER OTRO CASO ---
+            bloquearTipoVendedor = false;
         }
     }
 
