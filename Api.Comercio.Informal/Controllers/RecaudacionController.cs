@@ -3,6 +3,7 @@ using Api.Entities;
 using Api.Entities.DTO;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -10,9 +11,9 @@ namespace Api.Comercio.Informal.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RecaudacionController(ILogger<RecaudacionController> logger, MySQLiteContext context) : ControllerBase
+    public class RecaudacionController(ILogger<RecaudacionController> logger, MySQLiteContext context, UserManager<Usuario> userManager) : ControllerBase
     {
-        private readonly BusinessRecaudacion _recaudacion = new(context);
+        private readonly BusinessRecaudacion _recaudacion = new(context, userManager);
         private readonly ILogger<RecaudacionController> _logger = logger;
 
         [Route("GetAll")]
@@ -59,7 +60,7 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("GetByFolio")]
         [HttpPost]
-        public async Task<IActionResult> GetByFolio([FromBody] DtoBusquedaFolio request) 
+        public async Task<IActionResult> GetByFolio([FromBody] DtoBusquedaFolio request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Folio))
             {
@@ -130,6 +131,25 @@ namespace Api.Comercio.Informal.Controllers
                 return StatusCode(500, ex.Message);
             }
             return Ok(new { mensaje = "Recaudación registrada correctamente" }); ;
+        }
+
+        [Route("CancelationRequest")]
+        [HttpPost]
+        public async Task<IActionResult> CancelationRequest([FromBody] DtoCrearSolicitud request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                await _recaudacion.AddSolicitud(request);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            return Ok(new { mensaje = "Solicitud de cancelación registrada correctamente" });
         }
     }
 }

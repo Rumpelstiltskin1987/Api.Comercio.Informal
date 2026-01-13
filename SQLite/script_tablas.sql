@@ -31,12 +31,12 @@ CREATE TABLE CobradorLog (
 	FOREIGN KEY (Id_cobrador) REFERENCES Cobrador(Id_cobrador)
 );
 
-DROP TABLE IF EXISTS ConceptoLog;
+
 DROP TABLE IF EXISTS Concepto;
 
 CREATE TABLE Concepto (
 	Id_concepto INTEGER PRIMARY KEY AUTOINCREMENT,
-	Descripcion TEXT NOT NULL,
+	Descripcion TEXT NOT NULL UNIQUE,
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Usuario_alta TEXT NOT NULL,
 	Fecha_alta TEXT NOT NULL,
@@ -44,9 +44,11 @@ CREATE TABLE Concepto (
 	Fecha_modificacion TEXT
 );
 
+DROP TABLE IF EXISTS ConceptoLog;
+
 CREATE TABLE ConceptoLog (
 	Id_movimiento INTEGER NOT NULL,
-	Id_concepto INTEGER NOT NULL ,
+	Id_concepto INTEGER NOT NULL,
 	Descripcion TEXT NOT NULL,
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
@@ -70,6 +72,7 @@ CREATE TABLE Tarifa (
     Fecha_modificacion TEXT,
     FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
     FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
+	CONSTRAINT UQ_Tarifa_Concepto_Gremio UNIQUE (Id_concepto, Id_gremio)
 );
 
 DROP TABLE IF EXISTS TarifaLog;
@@ -179,13 +182,13 @@ DROP TABLE IF EXISTS Padron;
 CREATE TABLE Padron (
 	Id_padron INTEGER PRIMARY KEY AUTOINCREMENT,	
 	Nombre TEXT NOT NULL,
-	A_paterno TEXT,
-	A_materno TEXT,
-	Curp TEXT,
+	A_paterno TEXT NOT NULL,
+	A_materno TEXT NOT NULL,
+	Curp TEXT NOT NULL,
 	Direccion TEXT,
 	Telefono TEXT,
 	Email TEXT,
-	Matricula TEXT,
+	Matricula TEXT NOT NULL UNIQUE,
 	Matricula_anterior TEXT,
 	Id_gremio INTEGER,
     Tipo_Vendedor TEXT NOT NULL CHECK(Tipo_Vendedor IN ('P', 'E')), --P=Padron, E=Eventual    
@@ -203,9 +206,9 @@ CREATE TABLE PadronLog (
 	Id_movimiento INTEGER NOT NULL,
 	Id_padron INTEGER NOT NULL,	
 	Nombre TEXT NOT NULL,
-	A_paterno TEXT,
-	A_materno TEXT,
-	Curp TEXT,
+	A_paterno TEXT NOT NULL,
+	A_materno TEXT NOT NULL,
+	Curp TEXT NOT NULL,
 	Direccion TEXT,
 	Telefono TEXT,
 	Email TEXT,
@@ -218,6 +221,7 @@ CREATE TABLE PadronLog (
 	Usuario_modificacion TEXT,
 	Fecha_modificacion TEXT,    
 	PRIMARY KEY (Id_movimiento, Id_padron)
+	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron)
 );
 
 DROP TABLE IF EXISTS UsuarioLog;
@@ -247,7 +251,7 @@ CREATE TABLE Recaudacion (
 	Id_padron INTEGER NOT NULL,
 	Id_concepto INTEGER NOT NULL,
 	Monto REAL NOT NULL,
-	Id INTEGER NOT NULL,
+	Id_cobrador INTEGER NOT NULL,
 	Fecha_cobro TEXT NOT NULL,
     Folio_Recibo TEXT NOT NULL UNIQUE,
     Estado TEXT NOT NULL DEFAULT 'A' CHECK(Estado IN ('A', 'C')), -- A=Activo, C=Cancelado
@@ -255,7 +259,22 @@ CREATE TABLE Recaudacion (
     Longitud REAL,	
 	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron),
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
-	FOREIGN KEY (Id) REFERENCES AspNetUsers(Id)
+	FOREIGN KEY (Id_cobrador) REFERENCES AspNetUsers(Id)
+);
+
+DROP TABLE IF EXISTS SolicitudCancelacion;
+
+CREATE TABLE SolicitudCancelacion(
+	Id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
+	Id_recaudacion INTEGER NOT NULL UNIQUE,
+	Id_usuario_solicita INTEGER NOT NULL,
+	Fecha_solicitud TEXT NOT NULL,
+	Motivo_solicitud TEXT NOT NULL,
+	Estado_Solicitud TEXT NOT NULL CHECK (Estado_solicitud IN ('P','A','R')),
+	Id_usuario_responde INTEGER,
+	Fecha_respuesta TEXT,
+	Motivo_respuesta TEXT ,	
+	FOREIGN KEY (Id_usuario_solicita) REFERENCES AspNetUsers(Id)
 );
 
 

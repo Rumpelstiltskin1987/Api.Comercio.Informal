@@ -1,6 +1,8 @@
 ﻿using Api.Data.Access;
 using Api.Entities;
+using Api.Entities.DTO;
 using Api.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,15 +14,21 @@ namespace Api.Business
 {
     public class BusinessRecaudacion : IRecaudacion
     {
+        private readonly UserManager<Usuario> _userManager;
         private readonly MySQLiteContext _context;
         private readonly DataRecaudacion _recaudacion;
         private readonly DataFolio _folio;
+        private readonly DataSolicitudCancelacion _solicitudCancelacion;
+        private readonly DataUsuario _usuario;
 
-        public BusinessRecaudacion(MySQLiteContext context)
+        public BusinessRecaudacion(MySQLiteContext context, UserManager<Usuario> userManager)
         {
             _context = context;
+            _userManager = userManager;
             _recaudacion = new(_context);
             _folio = new(_context);
+            _solicitudCancelacion = new(_context);
+            _usuario = new(_userManager, _context);
         }
 
         public async Task<IEnumerable<Recaudacion>> GetAll()
@@ -45,7 +53,7 @@ namespace Api.Business
             // Filtro por Cobrador
             if (idCobrador.HasValue && idCobrador > 0)
             {
-                query = query.Where(c => c.Id == idCobrador.Value);
+                query = query.Where(c => c.Id_cobrador == idCobrador.Value);
             }
 
             // Filtro por Concepto (Si es null o 0, lo ignora y trae todos)
@@ -90,7 +98,7 @@ namespace Api.Business
                 Id_padron = id_padron,
                 Id_concepto = id_concepto,
                 Monto = monto,
-                Id = id_cobrador,
+                Id_cobrador = id_cobrador,
                 Fecha_cobro = DateTime.Now,
                 Folio_Recibo = folioRecibo,
                 Latitud = latitud,
@@ -127,6 +135,33 @@ namespace Api.Business
         Task IRecaudacion.Delete(int id)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task AddSolicitud(DtoCrearSolicitud solicitud)
+        {
+            // Validar que la recaudación exista antes de agregar la solicitud de cancelación
+            _ = await _recaudacion.GetById(solicitud.IdRecaudacion) ?? throw new Exception("La recaudación asociada no existe.");
+            _ = await _usuario.GetById(solicitud.IdUsuarioSolicita.ToString()) ?? throw new Exception("El usuario solicitante no existe.");
+            SolicitudCancelacion nuevaSolicitud = new()
+            {
+                Id_recaudacion = solicitud.IdRecaudacion,
+                Id_usuario_solicita = solicitud.IdUsuarioSolicita,               
+                Fecha_solicitud = DateTime.Now,
+                Motivo_solicitud = solicitud.MotivoSolicitud,
+                Estado_solicitud = "P" // P = Pendiente
+            };
+
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                await _solicitudCancelacion.AddSolicitud(nuevaSolicitud);
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 }

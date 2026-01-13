@@ -72,9 +72,9 @@ namespace Api.Data.Access
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener el folio: " + ex.InnerException.Message);
+                    throw new Exception("Data Access: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener el folio: " + ex.Message);
+                throw new Exception("Data Access: " + ex.Message);
             }
 
             return cobro;

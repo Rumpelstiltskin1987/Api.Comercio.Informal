@@ -1,0 +1,36 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+@HostAddress = https://localhost:7011
+
+POST {{HostAddress}}/api/recaudacion/Create
+Content-Type: application/json
+
+{
+  "idPadron": 1,
+  "idGremio": 1,
+  "idConcepto": 1,
+  "idCobrador": 3,  
+  "latitud": 18.4437236,
+  "longitud": -96.3657014,
+  "monto": 90.0
+}
+
+###
+
+POST {{HostAddress}}/api/recaudacion/GetByFolio
+Content-Type: application/json
+
+{
+  "folio": "UGO26000001"
+}
+
+
+
+###
+
+POST {{HostAddress}}/api/recaudacion/CancelationRequest
+Content-Type: application/json
+{
+  "idRecaudacion": 1,
+  "idUsuarioSolicita": 4,
+  "motivoSolicitud": "Pago realizado por error"
+}

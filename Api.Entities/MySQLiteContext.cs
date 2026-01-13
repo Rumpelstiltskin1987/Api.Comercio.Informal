@@ -34,6 +34,7 @@ namespace Api.Entities
         public DbSet<TarifaLog> TarifaLog { get; set; } 
         public DbSet<Usuario> Usuario { get; set; }
         public DbSet<UsuarioLog> UsuarioLog { get; set; }
+        public DbSet<SolicitudCancelacion> SolicitudCancelacion { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -211,7 +212,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_padron).IsRequired();
                 entity.Property(e => e.Id_concepto).IsRequired();
                 entity.Property(e => e.Monto).IsRequired();
-                entity.Property(e => e.Id).IsRequired();
+                entity.Property(e => e.Id_cobrador).IsRequired();
                 entity.Property(e => e.Fecha_cobro).IsRequired();
                 entity.Property(e => e.Folio_Recibo).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
@@ -283,6 +284,19 @@ namespace Api.Entities
                 entity.Property(e => e.Usuario_modificacion).HasMaxLength(50);
                 entity.Property(e => e.Fecha_modificacion).IsRequired();
                 
+            });
+
+            modelBuilder.Entity<SolicitudCancelacion>(entity =>
+            {
+                entity.HasKey(e => e.Id_solicitud);
+                entity.Property(e => e.Id_recaudacion).IsRequired();
+                entity.Property(e => e.Id_usuario_solicita).IsRequired();
+                entity.Property(e => e.Fecha_solicitud).IsRequired();
+                entity.Property(e => e.Motivo_solicitud).IsRequired();
+                entity.Property(e => e.Estado_solicitud).IsRequired();
+                entity.Property(e => e.Id_usuario_responde);
+                entity.Property(e => e.Fecha_respuesta);
+                entity.Property(e => e.Motivo_respuesta);
             });
         }
     }

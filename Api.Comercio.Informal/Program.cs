@@ -139,6 +139,7 @@ builder.Services.AddScoped<Api.Business.BusinessRecaudacion>();
 builder.Services.AddScoped<Api.Business.BusinessTarifa>();
 builder.Services.AddScoped<Api.Business.BusinessUsuario>();
 builder.Services.AddScoped<Api.Business.BusinessRol>();
+builder.Services.AddScoped<Api.Business.BusinessSolicitudCancelacion>();
 
 #endregion
 
