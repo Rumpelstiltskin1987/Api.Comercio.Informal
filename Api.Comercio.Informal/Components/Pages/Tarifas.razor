@@ -58,8 +58,8 @@ else
                     {
                         @* BOTÓN SOLO PARA AUDITORÍA *@
                         <button class="btn btn-sm btn-link p-0 text-decoration-none"
-                        title="Ver Historial de Cambios"
-                        @onclick="() => VerHistorial(context)">
+                                title="Ver Historial de Cambios"
+                                @onclick="() => VerHistorial(context)">
                             <i class="bi bi-clock-history fs-5"></i>
                         </button>
                     }
@@ -78,9 +78,9 @@ else
                             </button>
                         }
 
-                        @* <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
-                    </button> *@
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
+                        </button>
 
                         @if (mostrarActivos)
                         {

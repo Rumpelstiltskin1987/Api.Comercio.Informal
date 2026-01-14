@@ -41,7 +41,7 @@ else
             }
         </button>
     }
-    
+
 </div>
 
 <div class="card shadow-sm border-0">
@@ -55,8 +55,8 @@ else
                     {
                         @* BOTÓN SOLO PARA AUDITORÍA *@
                         <button class="btn btn-sm btn-link p-0 text-decoration-none"
-                        title="Ver Historial de Cambios"
-                        @onclick="() => VerHistorial(context)">
+                                title="Ver Historial de Cambios"
+                                @onclick="() => VerHistorial(context)">
                             <i class="bi bi-clock-history fs-5"></i>
                         </button>
                     }
@@ -75,9 +75,9 @@ else
                             </button>
                         }
 
-                        @* <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
-                    </button> *@
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
+                        </button>
 
                         @if (mostrarActivos)
                         {
@@ -253,7 +253,7 @@ else
             string mensajeUsuario = SqliteErrorHelper.ObtenerMensajeAmigable(ex);
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {mensajeUsuario}", "error");
             return;
-        }        
+        }
 
         await CargarDatos();
     }
