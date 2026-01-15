@@ -16,11 +16,11 @@ Content-Type: application/json
 
 ###
 
-POST {{HostAddress}}/api/recaudacion/GetByFolio
+POST {{HostAddress}}/api/recaudacion/GetFolioDetail
 Content-Type: application/json
 
 {
-  "folio": "UGO26000001"
+  "folio": "EVT26000102"
 }
 
 

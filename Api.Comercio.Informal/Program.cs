@@ -267,7 +267,7 @@ using (var scope = app.Services.CreateScope())
                 Direccion = "-",
                 Estado = "A",
                 Usuario_alta = "System",
-                Fecha_alta = DateTime.Now
+                Fecha_alta = DateTime.UtcNow
             };
 
             context.Lider.Add(liderEventual);
@@ -304,10 +304,7 @@ using (var scope = app.Services.CreateScope())
                 Descripcion = "EVENTUALES",
                 Id_lider = liderEventual.Id_lider,
                 Estado = "A",
-                Usuario_alta = "System",
-                Fecha_alta = DateTime.Now,
-                Usuario_modificacion = "System",
-                Fecha_modificacion = DateTime.Now
+                Usuario_alta = "System"
             };
 
             context.Gremio.Add(gremioEventual);

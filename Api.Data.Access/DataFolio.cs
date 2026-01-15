@@ -48,6 +48,28 @@ namespace Api.Data.Access
             return folio;
         }
 
+        public async Task<Folio> GetByGremioId(int id)
+        {
+            Folio folio;
+
+            try
+            {
+                folio = await context.Folio
+                    .Where(f => f.Id_gremio == id)
+                    .FirstOrDefaultAsync()
+                    ?? throw new Exception("Folio no encontrado");
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el folio: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el folio: " + ex.Message);
+            }
+
+            return folio;
+        }
+
         public async Task<IEnumerable<Folio>> Search(IQueryable<Folio> query)
         {
             try

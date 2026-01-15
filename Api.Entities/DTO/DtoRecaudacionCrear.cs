@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Api.Entities.DTO
 {
-    public class DtoRecaudacion
+    public class DtoRecaudacionCrear
     {
         [Required(ErrorMessage = "El IdPadron es obligatorio")]
         public int IdPadron { get; set; }
@@ -27,6 +27,7 @@ namespace Api.Entities.DTO
 
         public double? Latitud { get; set; }
         public double? Longitud { get; set; }
-
+        [Required(ErrorMessage = "La fecha de cobro es obligatoria")]
+        public DateTime Fecha_cobro { get; set; }
     }
 }

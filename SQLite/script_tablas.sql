@@ -1,3 +1,4 @@
+/*
 DROP TABLE IF EXISTS CobradorLog;
 DROP TABLE IF EXISTS Cobrador;
 
@@ -30,7 +31,7 @@ CREATE TABLE CobradorLog (
 	PRIMARY KEY (Id_movimiento, Id_cobrador),
 	FOREIGN KEY (Id_cobrador) REFERENCES Cobrador(Id_cobrador)
 );
-
+*/
 
 DROP TABLE IF EXISTS Concepto;
 
@@ -99,7 +100,8 @@ CREATE TABLE Folio (
     Descripcion TEXT NOT NULL,
     Prefijo TEXT NOT NULL UNIQUE, 
     Siguiente_folio INTEGER NOT NULL DEFAULT 1 CHECK(Siguiente_Folio > 0),
-    Anio_vigente INTEGER NOT NULL,    
+    Anio_vigente INTEGER NOT NULL,
+	Cantidad_lote INTEGER,
     FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
 );
 
@@ -256,7 +258,8 @@ CREATE TABLE Recaudacion (
     Folio_Recibo TEXT NOT NULL UNIQUE,
     Estado TEXT NOT NULL DEFAULT 'A' CHECK(Estado IN ('A', 'C')), -- A=Activo, C=Cancelado
     Latitud REAL,
-    Longitud REAL,	
+    Longitud REAL,
+	Fecha_alta TEXT NOT NULL,
 	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron),
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
 	FOREIGN KEY (Id_cobrador) REFERENCES AspNetUsers(Id)

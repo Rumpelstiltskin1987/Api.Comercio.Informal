@@ -40,3 +40,33 @@ Content-Type: application/json
 POST {{HostAddress}}/api/padron/Create
 Content-Type: application/json
 {"aMaterno":"fnffj","aPaterno":"xnxjxfj","curp":"fkffj","direccion":"fjfj","email":"xkxj","idGremio":1,"nombre":"djfjfj","telefono":"xkxjx","tipo":"E","usuario":"MDELFIN"}
+
+### 4. Buscar contribuyente existente
+
+POST {{HostAddress}}/api/padron/Search
+Content-Type: application/json
+{
+  "nombre": "",
+  "aPaterno": "",
+  "aMaterno": "",
+  "curp": "",
+  "matricula": "E2600001",
+  "idGremio": "",
+  "tipo": "",
+  "estado": ""
+}
+
+### Consultar por matricula
+
+GET {{HostAddress}}/api/padron/GetByMatricula?matricula=E2600001
+Accpet: application/json
+
+### Sincronizar  catálogo en la app android primeva vez 
+
+Get {{HostAddress}}/api/padron/Sincronizar
+Accept: application/json
+
+### Sincronizar  catálogo en la app android con fecha de última sincronización
+
+Get {{HostAddress}}/api/padron/Sincronizar?fechaUltimaSincronizacion=1900-01-01T00:00:00
+Accept: application/json

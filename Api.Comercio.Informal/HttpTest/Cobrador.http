@@ -32,7 +32,7 @@ Content-Type: application/json
 
 ### 5. Actualizar un cobrador existente
 # Asegúrate de que el ID (primer parámetro) exista.
-POST {{HostAddress}}/api/Cobrador/Update?id=1&nombre=Juan Actualizado&aPaterno=Perez&aMaterno=Lopez&telefono=999888777&email=nuevo.email@test.com&status=Activo&usuario=AdminEditor
+POST {{HostAddress}}/api/Cobrador/Update?id=1&nombre=Juan&aPaterno=Perez&aMaterno=Lopez&telefono=999888777&email=nuevo.email@test.com&status=Activo&usuario=AdminEditor
 Content-Type: application/json
 
 ###

@@ -46,6 +46,34 @@ namespace Api.Business
             return await _recaudacion.GetByFolio(folio);
         }
 
+        public async Task<DtoRecaudacionDetalle> GetFolioDetail(string folio)
+        {
+            DtoRecaudacionDetalle detalle;
+            try
+            {
+                var recaudacion = await _recaudacion.GetByFolio(folio);
+
+                detalle = new()
+                {
+                    Id = recaudacion.Id_recaudacion,
+                    FolioRecibo = recaudacion.Folio_Recibo,
+                    NombreContribuyente = $"{recaudacion.Padron?.Nombre} {recaudacion.Padron?.A_paterno} {recaudacion.Padron?.A_materno}".Trim(),
+                    MatriculaContribuyente = recaudacion.Padron?.Matricula ?? string.Empty,
+                    GremioContribuyente = recaudacion.Padron?.Gremio?.Descripcion ?? string.Empty,
+                    Concepto = recaudacion.Concepto?.Descripcion ?? string.Empty,
+                    Monto = recaudacion.Monto,
+                    FechaCobro = recaudacion.Fecha_cobro,
+                    NombreCobrador = $"{recaudacion.Cobrador?.Nombre} {recaudacion.Cobrador?.A_paterno} {recaudacion.Cobrador?.A_paterno}".Trim(),
+                    Estado = recaudacion.Estado,
+                };
+                return detalle;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<Recaudacion>> Search(int? idCobrador, int? idConcepto, DateTime? fechaInicio, DateTime? fechaFin)
         {
             var query = _context.Recaudacion.AsQueryable();
@@ -137,7 +165,7 @@ namespace Api.Business
             throw new NotImplementedException();
         }
 
-        public async Task AddSolicitud(DtoCrearSolicitud solicitud)
+        public async Task AddSolicitudCancelacion(DtoCrearSolicitud solicitud)
         {
             // Validar que la recaudación exista antes de agregar la solicitud de cancelación
             _ = await _recaudacion.GetById(solicitud.IdRecaudacion) ?? throw new Exception("La recaudación asociada no existe.");

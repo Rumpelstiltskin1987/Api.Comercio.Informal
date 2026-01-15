@@ -193,5 +193,30 @@ namespace Api.Business
                 throw;
             }
         }
+
+        public async Task<IEnumerable<DtoTarifa>> Sincronizar(DateTime? fModificacion)
+        {
+            IEnumerable<Tarifa> listaDb;
+            IEnumerable<DtoTarifa> lista;
+
+            if (fModificacion == null)
+            {
+                listaDb = await _tarifa.GetAll();
+            }
+            else
+            {
+                listaDb = await _tarifa.Sincronizar(fModificacion);
+            }
+
+            lista = listaDb.Select(p => new DtoTarifa
+            {
+                IdTarifa = p.Id_tarifa,
+                IdConcepto = p.Id_concepto,
+                IdGremio = p.Id_gremio,
+                Monto = p.Monto
+            });
+
+            return lista;
+        }
     }
 }

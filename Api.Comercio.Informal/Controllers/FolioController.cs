@@ -1,15 +1,17 @@
 ﻿using Api.Business;
 using Api.Entities;
+using Api.Entities.DTO;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Comercio.Informal.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FolioController(ILogger<FolioController> logger, MySQLiteContext context) : ControllerBase
+    public class FolioController(ILogger<FolioController> logger, MySQLiteContext context, UserManager<Usuario> userManager) : ControllerBase
     {
-        private readonly BusinessFolio _folio = new(context);
+        private readonly BusinessFolio _folio = new(userManager, context);
         private readonly ILogger<FolioController> _logger = logger;
 
         [Route("GetAll")]
@@ -57,7 +59,7 @@ namespace Api.Comercio.Informal.Controllers
         [Route("Create")]
         [HttpPost]
         public async Task<IActionResult> Create(int id_gremio, string descripcion, string prefijo)
-        {
+        {            
             try
             {
                 await _folio.Create(id_gremio, descripcion, prefijo);
@@ -106,6 +108,31 @@ namespace Api.Comercio.Informal.Controllers
             {
                 if (ex.Message.Contains("Folio no encontrada"))
                     return StatusCode(500, "El folio que intenta eliminar no existe en la base de datos");
+
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [Route("SolicitarLote")]
+        [HttpGet]
+        public async Task<IActionResult> GetLotes(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest("Id incorrecto.");
+            }
+
+            List<DtoLoteFolio> folios;
+
+            try
+            {
+                folios = await _folio.SolicitarLotes(id);
+                return Ok(folios);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Folio no encontrada"))
+                    return StatusCode(500, "Ocurrió un error al asignar los lotes.");
 
                 return StatusCode(500, ex.Message);
             }

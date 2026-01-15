@@ -52,6 +52,27 @@ namespace Api.Data.Access
             return contribuyente;
         }
 
+        public async Task<Padron> GetByMatricula(string matricula)
+        {
+            Padron contribuyente;
+
+            try
+            {
+                contribuyente = await context.Padron
+                    .Include(x => x.Gremio)
+                    .FirstOrDefaultAsync(x => x.Matricula == matricula) ?? throw new Exception("Contribuyente no encontrado");
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el afiliado: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el afiliado: " + ex.Message);
+            }
+
+            return contribuyente;
+        }
+
         public async Task<IEnumerable<Padron>> Search(IQueryable<Padron> query)
         {
             try
@@ -113,6 +134,28 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al eliminar la afiliado: " + ex.Message);
             }
-        }        
+        }
+
+        public async Task<IEnumerable<Padron>> Sincronizar(DateTime? fModificacion)
+        {
+            IEnumerable<Padron> lista;
+
+            try
+            {
+                lista = await context.Padron
+                    .Where(p => p.Fecha_modificacion >= fModificacion)
+                    .Include(p => p.Gremio)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el padron: " + ex.Message);
+            }
+
+            return lista;
+        }
     }
 }

@@ -35,6 +35,7 @@ namespace Api.Entities
         public DbSet<Usuario> Usuario { get; set; }
         public DbSet<UsuarioLog> UsuarioLog { get; set; }
         public DbSet<SolicitudCancelacion> SolicitudCancelacion { get; set; }
+        public DbSet<LoteFolio> LoteFolio { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -103,6 +104,7 @@ namespace Api.Entities
                 entity.Property(e => e.Prefijo).IsRequired();
                 entity.Property(e => e.Siguiente_folio).IsRequired();
                 entity.Property(e => e.Anio_vigente).IsRequired();
+                entity.Property(e => e.Cantidad_lote);
             });
 
             modelBuilder.Entity<Gremio>(entity =>
@@ -297,6 +299,19 @@ namespace Api.Entities
                 entity.Property(e => e.Id_usuario_responde);
                 entity.Property(e => e.Fecha_respuesta);
                 entity.Property(e => e.Motivo_respuesta);
+            });
+
+            modelBuilder.Entity<LoteFolio>(entity =>
+            {
+                entity.HasKey(e => e.Id_lote);
+                entity.Property(e => e.Id_usuario).IsRequired();
+                entity.Property(e => e.Id_gremio).IsRequired();
+                entity.Property(e => e.Rango_inicial).IsRequired();
+                entity.Property(e => e.Rango_final).IsRequired();
+                entity.Property(e => e.Ultimo_usado).IsRequired();
+                entity.Property(e => e.Anio).IsRequired();
+                entity.Property(e => e.Estado);
+                entity.Property(e => e.Fecha_asignacion);
             });
         }
     }

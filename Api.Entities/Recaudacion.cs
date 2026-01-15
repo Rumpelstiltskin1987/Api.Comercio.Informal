@@ -20,10 +20,13 @@ namespace Api.Entities
         [ForeignKey("Cobrador")]
         public int Id_cobrador { get; set; }
         public virtual Usuario? Cobrador { get; set; }  
-        public DateTime Fecha_cobro { get; set; } = DateTime.Now;
+        public DateTime Fecha_cobro { get; set; }
         public string Folio_Recibo { get; set; }
         public string Estado { get; set; } = "A"; // A: Activo, C: Cancelado
         public double? Latitud { get; set; }
         public double? Longitud { get; set; }
+        public DateTime Fecha_Alta {  get; set; } = DateTime.UtcNow;   
+
+
     }
 }

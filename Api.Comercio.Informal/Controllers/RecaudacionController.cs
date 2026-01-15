@@ -58,9 +58,9 @@ namespace Api.Comercio.Informal.Controllers
             return Ok(cobro);
         }
 
-        [Route("GetByFolio")]
+        [Route("GetFolioDetail")]
         [HttpPost]
-        public async Task<IActionResult> GetByFolio([FromBody] DtoBusquedaFolio request)
+        public async Task<IActionResult> GetFolioDetail([FromBody] DtoBusquedaFolio request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Folio))
             {
@@ -69,7 +69,7 @@ namespace Api.Comercio.Informal.Controllers
 
             try
             {
-                var cobro = await _recaudacion.GetByFolio(request.Folio);
+                var cobro = await _recaudacion.GetFolioDetail(request.Folio);
 
                 if (cobro == null)
                 {
@@ -107,7 +107,7 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] DtoRecaudacion request)
+        public async Task<IActionResult> Create([FromBody] DtoRecaudacionCrear request)
         {
             if (!ModelState.IsValid)
             {
@@ -143,7 +143,7 @@ namespace Api.Comercio.Informal.Controllers
             }
             try
             {
-                await _recaudacion.AddSolicitud(request);
+                await _recaudacion.AddSolicitudCancelacion(request);
             }
             catch (Exception ex)
             {

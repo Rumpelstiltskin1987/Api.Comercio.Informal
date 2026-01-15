@@ -1,0 +1,13 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+# Configuración de variables
+@HostAddress = https://localhost:7011
+
+### Sincronizar  catálogo en la app android primeva vez 
+
+Get {{HostAddress}}/api/concepto/Sincronizar
+Accept: application/json
+
+### Sincronizar  catálogo en la app android con fecha de última sincronización
+
+Get {{HostAddress}}/api/concepto/Sincronizar?fechaUltimaSincronizacion=1900-01-01T00:00:00
+Accept: application/json

@@ -17,5 +17,6 @@ namespace Api.Entities
         public string? Prefijo { get; set; }
         public int Siguiente_folio { get; set; } = 1;
         public int Anio_vigente { get; set; } = DateTime.Now.Year;
+        public int Cantidad_lote { get; set; } = 50;    
     }
 }

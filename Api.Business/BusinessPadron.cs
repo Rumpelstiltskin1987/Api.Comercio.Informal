@@ -4,6 +4,7 @@ using Api.Entities.DTO;
 using Api.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,6 +37,34 @@ namespace Api.Business
         public async Task<Padron> GetById(int id)
         {
             return await _dataPadron.GetById(id);
+        }
+
+        public async Task<DtoContribuyente> GetByMatricula(string matricula)
+        {
+            Padron contribuyenteDb;
+            DtoContribuyente contribuyente;
+            try
+            {
+                contribuyenteDb = await _dataPadron.GetByMatricula(matricula);
+
+                contribuyente = new() { 
+                    IdContribuyente = contribuyenteDb.Id_padron,
+                    Nombre = contribuyenteDb.Nombre,
+                    APaterno = contribuyenteDb.A_paterno,
+                    AMaterno = contribuyenteDb.A_materno,
+                    Curp = contribuyenteDb.Curp,
+                    Matricula = contribuyenteDb.Matricula,
+                    Tipo = contribuyenteDb.Tipo_vendedor,
+                    IdGremio = contribuyenteDb?.Gremio?.Id_gremio ?? 0,
+                    Gremio = contribuyenteDb?.Gremio?.Descripcion ?? string.Empty,
+                };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return contribuyente;
         }
 
         public async Task<IEnumerable<Padron>> Search(string? nombre, string? aPaterno, string? aMaterno,
@@ -81,7 +110,7 @@ namespace Api.Business
             if (!string.IsNullOrEmpty(estado))
             {
                 query = query.Where(c => c.Estado == estado);
-            }            
+            }
 
             return await _dataPadron.Search(query);
         }
@@ -272,6 +301,35 @@ namespace Api.Business
             {                
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<DtoContribuyente>> Sincronizar(DateTime? fModificacion)
+        {
+            IEnumerable<Padron> listaDb;
+            IEnumerable<DtoContribuyente> lista;
+
+            if (fModificacion == null)
+            {
+                listaDb = await _dataPadron.GetAll();
+            }
+            else
+            {
+                listaDb = await _dataPadron.Sincronizar(fModificacion);
+            }            
+            
+            lista = listaDb.Select(p => new DtoContribuyente
+            {
+                IdContribuyente = p.Id_padron,
+                Matricula = p.Matricula,
+                Nombre = p.Nombre,
+                APaterno = p.A_paterno,
+                AMaterno = p.A_materno,
+                Curp = p.Curp,
+                Tipo = p.Tipo_vendedor,
+                IdGremio = p.Gremio?.Id_gremio ?? 0,
+                Gremio = p.Gremio?.Descripcion ?? string.Empty 
+            });
+            return lista;
         }
     }
 }

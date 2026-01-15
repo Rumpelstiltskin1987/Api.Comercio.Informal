@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Api.Business;
+﻿using Api.Business;
 using Api.Entities;
+using Api.Entities.DTO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Comercio.Informal.Controllers
 {
@@ -121,6 +122,24 @@ namespace Api.Comercio.Informal.Controllers
                     return StatusCode(500, "La tarifa que intenta eliminar no existe en la base de datos");
                 return StatusCode(500, ex.Message);
             }
+        }
+
+
+        [Route("Sincronizar")]
+        [HttpGet]
+        public async Task<IActionResult> SincronizarCatalogo(DateTime? fechaUltimaSincronizacion)
+        {
+            IEnumerable<DtoTarifa> lista;
+
+            try
+            {
+                lista = await _tarifa.Sincronizar(fechaUltimaSincronizacion);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            return Ok(lista);
         }
     }
 }

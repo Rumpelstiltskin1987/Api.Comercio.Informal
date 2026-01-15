@@ -124,6 +124,27 @@ namespace Api.Data.Access
             }
 
             return result;
-        }        
+        }
+
+        public async Task<IEnumerable<Gremio>> Sincronizar(DateTime? fModificacion)
+        {
+            IEnumerable<Gremio> lista;
+
+            try
+            {
+                lista = await context.Gremio
+                    .Where(p => p.Fecha_modificacion >= fModificacion)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el padron: " + ex.Message);
+            }
+
+            return lista;
+        }
     }
 }

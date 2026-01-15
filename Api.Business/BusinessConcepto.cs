@@ -38,8 +38,7 @@ namespace Api.Business
             Concepto concepto = new()
             {
                 Descripcion = descripcion,
-                Usuario_alta = usuario,
-                Fecha_alta = DateTime.Now
+                Usuario_alta = usuario
             };
 
             using var transaction = _context.Database.BeginTransaction();
@@ -151,6 +150,29 @@ namespace Api.Business
                 // Es buena práctica loguear el error antes de lanzarlo, si tienes un logger
                 throw new Exception("Error al obtener el historial", ex);
             }
+        }
+
+        public async Task<IEnumerable<DtoConcepto>> Sincronizar(DateTime? fModificacion)
+        {
+            IEnumerable<Concepto> listaDb;
+            IEnumerable<DtoConcepto> lista;
+
+            if (fModificacion == null)
+            {
+                listaDb = await _concepto.GetAll();
+            }
+            else
+            {
+                listaDb = await _concepto.Sincronizar(fModificacion);
+            }
+
+            lista = listaDb.Select(p => new DtoConcepto
+            {
+                IdConcepto = p.Id_concepto,
+                Descripcion = p.Descripcion
+            });
+
+            return lista;
         }
     }
 }

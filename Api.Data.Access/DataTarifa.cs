@@ -107,5 +107,26 @@ namespace Api.Data.Access
                 throw new Exception("Error al eliminar la tarifa: " + ex.Message);
             }
         }
+
+        public async Task<IEnumerable<Tarifa>> Sincronizar(DateTime? fModificacion)
+        {
+            IEnumerable<Tarifa> lista;
+
+            try
+            {
+                lista = await context.Tarifa
+                    .Where(p => p.Fecha_modificacion >= fModificacion)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el padron: " + ex.Message);
+            }
+
+            return lista;
+        }
     }
 }

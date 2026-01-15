@@ -62,12 +62,11 @@ namespace Api.Business
 
         public async Task Create(string descripcion, int id_lider, string usuario)
         {
-            Gremio gremio = new Gremio
+            Gremio gremio = new()
             {
                 Descripcion = descripcion,
                 Id_lider = id_lider,
-                Usuario_alta = usuario,
-                Fecha_alta = DateTime.Now
+                Usuario_alta = usuario
             };
 
             using var transaction = _context.Database.BeginTransaction();
@@ -84,8 +83,8 @@ namespace Api.Business
                     Lider = $"{lider.Nombre} {lider.A_paterno} {lider.A_materno}",
                     Estado = gremio.Estado,
                     Tipo_movimiento = "A",
-                    Usuario_modificacion = gremio.Usuario_modificacion,
-                    Fecha_modificacion = gremio.Fecha_modificacion
+                    Usuario_modificacion = gremio.Usuario_alta,
+                    Fecha_modificacion = gremio.Fecha_alta
                 };
 
                 await _gremioLog.AddLog(log);
@@ -211,9 +210,31 @@ namespace Api.Business
             }
             catch (Exception ex)
             {
-                // Es buena práctica loguear el error antes de lanzarlo, si tienes un logger
                 throw new Exception("Error al obtener el historial", ex);
             }
+        }
+
+        public async Task<IEnumerable<DtoGremio>> Sincronizar(DateTime? fModificacion)
+        {
+            IEnumerable<Gremio> listaDb;
+            IEnumerable<DtoGremio> lista;
+
+            if (fModificacion == null)
+            {
+                listaDb = await _gremio.GetAll();
+            }
+            else
+            {
+                listaDb = await _gremio.Sincronizar(fModificacion);
+            }
+                        
+            lista = listaDb.Select(p => new DtoGremio
+            {
+                IdGremio = p.Id_gremio,
+                Descripcion = p.Descripcion ?? string.Empty,
+            });
+
+            return lista;
         }
     }
 }

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Api.Business;
+﻿using Api.Business;
 using Api.Entities;
+using Api.Entities.DTO;
+using Api.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Comercio.Informal.Controllers
 {
@@ -111,6 +113,23 @@ namespace Api.Comercio.Informal.Controllers
 
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        [Route("Sincronizar")]
+        [HttpGet]
+        public async Task<IActionResult> SincronizarCatalogo(DateTime? fechaUltimaSincronizacion)
+        {
+            IEnumerable<DtoGremio> lista;
+
+            try
+            {
+                lista = await _gremio.Sincronizar(fechaUltimaSincronizacion);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            return Ok(lista);
         }
     }
 }
