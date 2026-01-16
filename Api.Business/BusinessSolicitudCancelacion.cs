@@ -127,7 +127,7 @@ namespace Api.Business
             solicitudExistente.Estado_solicitud = solicitud.Estado_solicitud;            
             solicitudExistente.Motivo_respuesta = respuesta.Motivo_respuesta;
             solicitudExistente.Id_usuario_responde = respuesta.Id_usuario_responde;
-            solicitudExistente.Fecha_respuesta = DateTime.Now;
+            solicitudExistente.Fecha_respuesta = DateTime.UtcNow;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try {

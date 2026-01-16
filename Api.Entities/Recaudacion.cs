@@ -25,8 +25,8 @@ namespace Api.Entities
         public string Estado { get; set; } = "A"; // A: Activo, C: Cancelado
         public double? Latitud { get; set; }
         public double? Longitud { get; set; }
-        public DateTime Fecha_Alta {  get; set; } = DateTime.UtcNow;   
-
+        public DateTime Fecha_Alta { get; set; } = DateTime.UtcNow;        
+        public DateTime Fecha_Modificacion {  get; set; }
 
     }
 }

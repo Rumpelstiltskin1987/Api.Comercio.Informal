@@ -117,7 +117,7 @@ namespace Api.Business
             gremio.Id_lider = id_lider;
             gremio.Estado = status;
             gremio.Usuario_modificacion = usuario;
-            gremio.Fecha_modificacion = DateTime.Now;
+            gremio.Fecha_modificacion = DateTime.UtcNow;
 
             using var transaction = _context.Database.BeginTransaction();
             try

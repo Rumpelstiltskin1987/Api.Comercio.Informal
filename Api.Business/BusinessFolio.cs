@@ -109,7 +109,6 @@ namespace Api.Business
             var gremios = (await _gremio.GetAll()).ToList();
 
             // Iteramos para reservar folios para cada gremio
-
             foreach (var g in gremios)
             {
                 // Obtener el folio del gremio para tener los datos disponibles
@@ -164,7 +163,7 @@ namespace Api.Business
                             Rango_inicial = inicio,
                             Rango_final = fin,
                             Ultimo_usado = inicio - 1, // Aún no ha usado ninguno
-                            Anio = DateTime.Now.Year
+                            Anio = folio.Anio_vigente
                         };
 
                         // Generamos el lote (Modelo Dto que es el que se devolverá como respuesta)

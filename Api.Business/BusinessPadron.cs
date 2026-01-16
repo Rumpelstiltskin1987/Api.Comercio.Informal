@@ -157,8 +157,7 @@ namespace Api.Business
                     Id_gremio = id_gremio,
                     Tipo_vendedor = tipo,
                     Estado = "A",
-                    Usuario_alta = usuario,
-                    Fecha_alta = DateTime.Now
+                    Usuario_alta = usuario
                 };
                 await _dataPadron.Create(contribuyente);
 
@@ -212,7 +211,7 @@ namespace Api.Business
             padron.Id_gremio = id_gremio;
             padron.Estado = status;
             padron.Usuario_modificacion = usuario;
-            padron.Fecha_modificacion = DateTime.Now;
+            padron.Fecha_modificacion = DateTime.UtcNow;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try

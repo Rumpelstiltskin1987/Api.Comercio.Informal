@@ -18,8 +18,8 @@ namespace Api.Entities
         public virtual Gremio? Gremio { get; set; }
         public decimal Monto { get; set; }
         public string Estado { get; set; } = "A"; // A: Activo, I: Inactivo
-        public string Usuario_alta { get; set; }
-        public DateTime Fecha_alta { get; set; } = DateTime.Now;
+        public required string Usuario_alta { get; set; }
+        public DateTime Fecha_alta { get; set; } = DateTime.UtcNow;
         public string? Usuario_modificacion { get; set; }
         public DateTime? Fecha_modificacion { get; set; }
     }

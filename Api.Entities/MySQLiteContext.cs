@@ -220,8 +220,10 @@ namespace Api.Entities
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Latitud);
                 entity.Property(e => e.Longitud);
+                entity.Property(e => e.Fecha_Alta).IsRequired();
+                entity.Property(e => e.Fecha_Modificacion);
             });
-
+                
             modelBuilder.Entity<Tarifa>(entity =>
             {
                 entity.HasKey(e => e.Id_tarifa);

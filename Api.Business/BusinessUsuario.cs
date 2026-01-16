@@ -107,7 +107,7 @@ namespace Api.Business
             usuarioExistente.PhoneNumber = inputmodel.PhoneNumber;
             usuarioExistente.Estado = inputmodel.Estado;
             usuarioExistente.Usuario_modificacion = inputmodel.Usuario_modificacion;
-            usuarioExistente.Fecha_modificacion = DateTime.Now;
+            usuarioExistente.Fecha_modificacion = DateTime.UtcNow;
 
             using var transaction = _context.Database.BeginTransaction();
             try

@@ -109,7 +109,7 @@ namespace Api.Business
             tarifa.Monto = monto ?? 0;
             tarifa.Estado = estado;
             tarifa.Usuario_modificacion = usuario;
-            tarifa.Fecha_modificacion = DateTime.Now;
+            tarifa.Fecha_modificacion = DateTime.UtcNow;
 
             using var transaction = _context.Database.BeginTransaction();
             try

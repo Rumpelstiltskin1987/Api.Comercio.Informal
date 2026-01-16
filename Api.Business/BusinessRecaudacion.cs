@@ -4,6 +4,7 @@ using Api.Entities.DTO;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,7 +107,7 @@ namespace Api.Business
         }
 
         public async Task Create(int id_padron, int id_gremio, int id_concepto, decimal monto,
-            int id_cobrador, double? latitud, double? longitud)
+            int id_cobrador, double? latitud, double? longitud, DateTime fechaCobro)
         {
 
             var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);
@@ -127,10 +128,11 @@ namespace Api.Business
                 Id_concepto = id_concepto,
                 Monto = monto,
                 Id_cobrador = id_cobrador,
-                Fecha_cobro = DateTime.Now,
+                Fecha_cobro = fechaCobro,
                 Folio_Recibo = folioRecibo,
                 Latitud = latitud,
-                Longitud = longitud
+                Longitud = longitud,
+                Fecha_Alta = DateTime.UtcNow
             };
 
             using var transaction = _context.Database.BeginTransaction();
@@ -174,7 +176,7 @@ namespace Api.Business
             {
                 Id_recaudacion = solicitud.IdRecaudacion,
                 Id_usuario_solicita = solicitud.IdUsuarioSolicita,               
-                Fecha_solicitud = DateTime.Now,
+                Fecha_solicitud = DateTime.UtcNow,
                 Motivo_solicitud = solicitud.MotivoSolicitud,
                 Estado_solicitud = "P" // P = Pendiente
             };

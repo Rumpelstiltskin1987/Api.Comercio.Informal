@@ -155,7 +155,7 @@ else
     private string tituloModal = "";
 
     // Inicialización segura
-    private Tarifa tarifa = new();
+    private Tarifa? tarifa;
 
     // Variables para historial
     private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
@@ -223,7 +223,10 @@ else
     private void AbrirModalCrear()
     {
         soloLectura = false;
-        tarifa = new();
+        tarifa = new()
+        {            
+            Usuario_alta = usuario
+        };
         tituloModal = "REGISTRO DE NUEVA TARIFA";
         mostrarModal = true;
     }

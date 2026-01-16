@@ -213,7 +213,19 @@ else
     private string tituloModal = "";
 
     // Inicialización segura
-    private Padron registro = new();
+    private Padron registro = new()
+    {
+        Id_padron = 0,
+        Nombre = string.Empty,
+        A_paterno = string.Empty,
+        A_materno = string.Empty,
+        Curp = string.Empty,
+        Direccion = string.Empty,
+        Telefono = string.Empty,
+        Email = string.Empty,
+        Matricula = string.Empty,
+        Estado = string.Empty
+    };
 
     // Variables para historial
     private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
@@ -281,7 +293,6 @@ else
     private void AbrirModalCrear()
     {
         soloLectura = false;
-        registro = new();
         tituloModal = "REGISTRO DE NUEVO CONTRIBUYENTE";
         mostrarModal = true;
     }

@@ -20,8 +20,8 @@ namespace Api.Entities
         [ForeignKey("UsuarioSolicita")]
         public int Id_usuario_solicita { get; set; }
         public virtual Usuario? UsuarioSolicita { get; set; }
-        public DateTime Fecha_solicitud { get; set; } = DateTime.Now;
-        public string Motivo_solicitud { get; set; }
+        public DateTime Fecha_solicitud { get; set; } = DateTime.UtcNow;
+        public required string Motivo_solicitud { get; set; }
 
         // Estado del trámite: "P = PENDIENTE", "A= APROBADO", "R = RECHAZADO"
         public string Estado_solicitud { get; set; } = "P";

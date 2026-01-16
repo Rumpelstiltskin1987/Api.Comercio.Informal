@@ -73,7 +73,7 @@ namespace Api.Business
             concepto.Descripcion = descripcion;
             concepto.Estado = estado;
             concepto.Usuario_modificacion = usuario;
-            concepto.Fecha_modificacion = DateTime.Now;
+            concepto.Fecha_modificacion = DateTime.UtcNow;
 
             using var transaction = _context.Database.BeginTransaction();
             try 

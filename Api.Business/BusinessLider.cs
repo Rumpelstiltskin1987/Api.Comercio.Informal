@@ -66,7 +66,7 @@ namespace Api.Business
                     Estado = lider.Estado,
                     Tipo_movimiento = "A",
                     Usuario_modificacion = usuario,
-                    Fecha_modificacion = DateTime.Now
+                    Fecha_modificacion = DateTime.UtcNow
                 };
 
                 await _liderLog.AddLog(log);
@@ -92,7 +92,7 @@ namespace Api.Business
             lider.Direccion = direccion;
             lider.Estado = estado;
             lider.Usuario_modificacion = usuario;
-            lider.Fecha_modificacion = DateTime.Now;            
+            lider.Fecha_modificacion = DateTime.UtcNow;            
             
             using var transaction = _context.Database.BeginTransaction();
             try
@@ -113,7 +113,7 @@ namespace Api.Business
                     Estado = lider.Estado,
                     Tipo_movimiento = "M",
                     Usuario_modificacion = usuario,
-                    Fecha_modificacion = DateTime.Now
+                    Fecha_modificacion = DateTime.UtcNow
                 };
 
                 await _liderLog.AddLog(log);
@@ -153,7 +153,7 @@ namespace Api.Business
             {
                 Fecha = log.Fecha_modificacion,
                 Usuario = log.Usuario_modificacion,
-                Movimiento = log.Tipo_movimiento.ToUpper() switch
+                Movimiento = log.Tipo_movimiento switch
                 {
                     "A" => "Alta",
                     "M" => "Modificación",
