@@ -15,4 +15,5 @@ DELETE FROM Lider;
 DELETE FROM UsuarioLog;
 DELETE FROM AspNetUsers;
 DELETE FROM AspNetRoles;
+DELETE FROM LoteFolio;
 DELETE FROM sqlite_sequence;

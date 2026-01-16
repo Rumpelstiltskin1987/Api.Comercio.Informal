@@ -213,7 +213,7 @@ namespace Api.Entities
                 entity.HasKey(e => e.Id_recaudacion);
                 entity.Property(e => e.Id_padron).IsRequired();
                 entity.Property(e => e.Id_concepto).IsRequired();
-                entity.Property(e => e.Monto).IsRequired();
+                entity.Property(e => e.Monto).IsRequired().HasConversion<string>();
                 entity.Property(e => e.Id_cobrador).IsRequired();
                 entity.Property(e => e.Fecha_cobro).IsRequired();
                 entity.Property(e => e.Folio_Recibo).IsRequired();
@@ -229,7 +229,7 @@ namespace Api.Entities
                 entity.HasKey(e => e.Id_tarifa);
                 entity.Property(e => e.Id_concepto).IsRequired();
                 entity.Property(e => e.Id_gremio).IsRequired();
-                entity.Property(e => e.Monto).IsRequired();
+                entity.Property(e => e.Monto).IsRequired().HasConversion<string>();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
@@ -244,7 +244,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_tarifa).IsRequired();
                 entity.Property(e => e.Concepto).IsRequired();
                 entity.Property(e => e.Gremio).IsRequired();
-                entity.Property(e => e.Monto).IsRequired();
+                entity.Property(e => e.Monto).IsRequired().HasConversion<string>();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();

@@ -123,7 +123,8 @@ namespace Api.Comercio.Informal.Controllers
                     request.Monto,
                     request.IdCobrador,
                     request.Latitud,
-                    request.Longitud
+                    request.Longitud,
+                    request.Fecha_cobro
                 );
             }
             catch (Exception ex)
