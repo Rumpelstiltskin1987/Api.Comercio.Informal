@@ -14,8 +14,8 @@ Content-Type: application/json
   "telefono": "2741112233",
   "email": "ricardo.lopez@ejemplo.com",
   "idGremio": 1,
-  "tipo": "P",
-  "usuario": "admin_sistemas"
+  "tipo": "E",
+  "usuario": "PRUEBA"
 }
 
 ### 2. Prueba de Validación (Error intencional: CURP corta y falta Nombre)

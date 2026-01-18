@@ -220,7 +220,7 @@ CREATE TABLE UsuarioLog (
 	PRIMARY KEY("Id_movimiento","Id"),
 	FOREIGN KEY("Id") REFERENCES "AspNetUsers"("Id")
 );
-
+drop table Recaudacion;
 CREATE TABLE Recaudacion (
 	Id_recaudacion INTEGER PRIMARY KEY AUTOINCREMENT,
 	Id_padron INTEGER NOT NULL,
@@ -233,6 +233,7 @@ CREATE TABLE Recaudacion (
     Latitud REAL,
     Longitud REAL,
 	Fecha_alta TEXT NOT NULL,
+	Fecha_modificacion TEXT NOT NULL,
 	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron),
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
 	FOREIGN KEY (Id_cobrador) REFERENCES AspNetUsers(Id),
@@ -250,6 +251,19 @@ CREATE TABLE SolicitudCancelacion(
 	Fecha_respuesta TEXT,
 	Motivo_respuesta TEXT ,	
 	FOREIGN KEY (Id_usuario_solicita) REFERENCES AspNetUsers(Id)
+);
+
+CREATE TABLE LoteFolio (
+    Id_lote INTEGER PRIMARY KEY AUTOINCREMENT,
+    Id_usuario INTEGER NOT NULL,
+    Id_gremio INTEGER NOT NULL,
+    Rango_inicial INTEGER NOT NULL, -- Ej: 1
+    Rango_final INTEGER NOT NULL,   -- Ej: 50
+    Ultimo_usado INTEGER NOT NULL,  -- Para saber por cuál va
+    Anio INTEGER NOT NULL,
+    Estado TEXT DEFAULT 'ACTIVO',   -- ACTIVO, AGOTADO
+    Fecha_asignacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+	Fecha_modificacion DATETIME
 );
 
 

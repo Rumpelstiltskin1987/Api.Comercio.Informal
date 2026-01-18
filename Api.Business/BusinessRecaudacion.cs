@@ -19,6 +19,7 @@ namespace Api.Business
         private readonly MySQLiteContext _context;
         private readonly DataRecaudacion _recaudacion;
         private readonly DataFolio _folio;
+        private readonly DataLoteFolio _lote;
         private readonly DataSolicitudCancelacion _solicitudCancelacion;
         private readonly DataUsuario _usuario;
 
@@ -28,6 +29,7 @@ namespace Api.Business
             _userManager = userManager;
             _recaudacion = new(_context);
             _folio = new(_context);
+            _lote = new(_context);
             _solicitudCancelacion = new(_context);
             _usuario = new(_userManager, _context);
         }
@@ -85,13 +87,13 @@ namespace Api.Business
                 query = query.Where(c => c.Id_cobrador == idCobrador.Value);
             }
 
-            // Filtro por Concepto (Si es null o 0, lo ignora y trae todos)
+            // Filtro por Concepto
             if (idConcepto.HasValue && idConcepto > 0)
             {
                 query = query.Where(c => c.Id_concepto == idConcepto.Value);
             }
 
-            // Filtro por Fechas (Corrigiendo el error de sintaxis y lógica)
+            // Filtro por Fechas
             if (fechaInicio.HasValue && fechaFin.HasValue)
             {
                 // Ajustamos la fecha fin para incluir todo el día hasta las 23:59:59
@@ -106,47 +108,75 @@ namespace Api.Business
             return await _recaudacion.Search(query);
         }
 
-        public async Task Create(int id_padron, int id_gremio, int id_concepto, decimal monto,
-            int id_cobrador, double? latitud, double? longitud, DateTime fechaCobro)
+        public async Task Create(DtoRecaudacionCrear cobroRequest)
         {
 
-            var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);
-            var listaFolios = await _folio.Search(queryFolio);
-            var folioEncontrado = listaFolios.FirstOrDefault() ?? throw new Exception("No se encontró configuración de folios para el gremio especificado.");
+            //var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);
+            //var listaFolios = await _folio.Search(queryFolio);
+            //var folioEncontrado = listaFolios.FirstOrDefault() ?? throw new Exception("No se encontró configuración de folios para el gremio especificado.");
 
-            if (folioEncontrado.Anio_vigente != DateTime.Now.Year)
-            {
-                folioEncontrado.Anio_vigente = DateTime.Now.Year;
-                folioEncontrado.Siguiente_folio = 1;
-            }
+            //if (folioEncontrado.Anio_vigente != DateTime.Now.Year)
+            //{
+            //    folioEncontrado.Anio_vigente = DateTime.Now.Year;
+            //    folioEncontrado.Siguiente_folio = 1;
+            //}
+            // folioEncontrado.Siguiente_folio += 1;
+            // await _folio.Update(folioEncontrado);
 
-            string folioRecibo = $"{folioEncontrado.Prefijo}{folioEncontrado.Anio_vigente % 100}{folioEncontrado.Siguiente_folio:D6}";
+            //string folioRecibo = $"{folioEncontrado.Prefijo}{folioEncontrado.Anio_vigente % 100}{folioEncontrado.Siguiente_folio:D6}";
+
+            var query = _context.LoteFolio.AsQueryable().Where(lf => lf.Id_usuario == cobroRequest.IdCobrador && lf.Id_gremio == cobroRequest.IdGremio);
+            var listaLotes = await _lote.Search(query);
+            var lote = listaLotes.FirstOrDefault();
+
 
             Recaudacion cobro = new()
             {
-                Id_padron = id_padron,
-                Id_concepto = id_concepto,
-                Monto = monto,
-                Id_cobrador = id_cobrador,
-                Fecha_cobro = fechaCobro,
-                Folio_Recibo = folioRecibo,
-                Latitud = latitud,
-                Longitud = longitud,
+                Id_padron = cobroRequest.IdPadron,
+                Id_concepto = cobroRequest.IdConcepto,
+                Monto = cobroRequest.Monto,
+                Id_cobrador = cobroRequest.IdCobrador,
+                Fecha_cobro = cobroRequest.FechaCobro,
+                Folio_Recibo = cobroRequest.FolioRecibo,
+                Latitud = cobroRequest.Latitud,
+                Longitud = cobroRequest.Longitud,
                 Fecha_Alta = DateTime.UtcNow
             };
 
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                if (folioEncontrado.Siguiente_folio == 1)
+                // Validar que el folio no sea nulo y tenga la longitud mínima necesaria (5 + 6 = 11 caracteres)
+                if (!string.IsNullOrEmpty(cobroRequest.FolioRecibo) && cobroRequest.FolioRecibo.Length >= 11)
                 {
-                    await _folio.Update(folioEncontrado);
-                }
+                    // Validamos que lote no sea null
+                    if (lote == null)
+                        throw new Exception("Ocurrió un error al buscar el lote de folio cobrado en la base de datos.");
 
-                folioEncontrado.Siguiente_folio += 1;
+                    // Extraemos la cadena
+                    string parteNumerica = cobroRequest.FolioRecibo.Substring(5, 6);
+
+                    // Intentamos convertir de forma segura (TryParse)
+                    if (int.TryParse(parteNumerica, out int numeroFolio))
+                    {
+                        lote.Ultimo_usado = numeroFolio;
+                        lote.Fecha_modificacion = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        // Manejar el error: La parte extraída no eran números
+                        throw new Exception($"El folio '{cobroRequest.FolioRecibo}' no contiene un número válido en la posición esperada.");
+                    }
+                }
+                else
+                {
+                    // Manejar el error: El folio es muy corto o nulo
+                    throw new Exception("El formato del Folio Recibo es inválido o demasiado corto.");
+                }                
 
                 await _recaudacion.Create(cobro);
-                await _folio.Update(folioEncontrado);
+                await _lote.Update(lote);
+                
 
                 transaction.Commit();
             }

@@ -117,12 +117,11 @@ namespace Api.Business
                 // Verificar si el usuario ya tiene un lote ACTIVO y con folios disponibles
                 var query = _context.LoteFolio.AsQueryable()
                     .Where(l => l.Id_usuario == idUsuario
-                    && l.Id_gremio == g.Id_lider
+                    && l.Id_gremio == g.Id_gremio
                     && l.Estado == "ACTIVO");
 
                 var loteActivo = _loteFolio.Search(query)
                     .Result.FirstOrDefault();
-
 
                 // Si aún tiene folios, le devolvemos el mismo lote
                 if (loteActivo != null)
@@ -130,6 +129,7 @@ namespace Api.Business
                     // Generamos el lote (Modelo Dto que es el que se devolverá como respuesta)
                     DtoLoteFolio lote = new()
                     {
+                        IdUsuario = idUsuario,
                         IdGremio = loteActivo.Id_gremio,
                         Prefijo = folio.Prefijo ?? string.Empty, 
                         Anio = folio.Anio_vigente,
@@ -169,6 +169,7 @@ namespace Api.Business
                         // Generamos el lote (Modelo Dto que es el que se devolverá como respuesta)
                         DtoLoteFolio loteDto = new()
                         {
+                            IdUsuario = idUsuario,
                             IdGremio = nuevoLote.Id_gremio,
                             Prefijo = folio.Prefijo ?? string.Empty,
                             Anio = folio.Anio_vigente,

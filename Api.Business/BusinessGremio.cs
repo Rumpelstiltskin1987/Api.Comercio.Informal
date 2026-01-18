@@ -214,18 +214,18 @@ namespace Api.Business
             }
         }
 
-        public async Task<IEnumerable<DtoGremio>> Sincronizar(DateTime? fModificacion)
+        public async Task<IEnumerable<DtoGremio>> Sincronizar(DateTime? fSincronizacion)
         {
             IEnumerable<Gremio> listaDb;
             IEnumerable<DtoGremio> lista;
 
-            if (fModificacion == null)
+            if (fSincronizacion == null)
             {
                 listaDb = await _gremio.GetAll();
             }
             else
             {
-                listaDb = await _gremio.Sincronizar(fModificacion);
+                listaDb = await _gremio.Sincronizar(fSincronizacion);
             }
                         
             lista = listaDb.Select(p => new DtoGremio

@@ -116,16 +116,7 @@ namespace Api.Comercio.Informal.Controllers
 
             try
             {
-                await _recaudacion.Create(
-                    request.IdPadron,
-                    request.IdGremio,
-                    request.IdConcepto,
-                    request.Monto,
-                    request.IdCobrador,
-                    request.Latitud,
-                    request.Longitud,
-                    request.Fecha_cobro
-                );
+                await _recaudacion.Create(request);
             }
             catch (Exception ex)
             {

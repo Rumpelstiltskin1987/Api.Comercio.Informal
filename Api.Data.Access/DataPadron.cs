@@ -136,14 +136,14 @@ namespace Api.Data.Access
             }
         }
 
-        public async Task<IEnumerable<Padron>> Sincronizar(DateTime? fModificacion)
+        public async Task<IEnumerable<Padron>> Sincronizar(DateTime? fSincronizacion)
         {
             IEnumerable<Padron> lista;
 
             try
             {
                 lista = await context.Padron
-                    .Where(p => p.Fecha_modificacion >= fModificacion)
+                    .Where(p => p.Fecha_modificacion >= fSincronizacion || p.Fecha_alta >= fSincronizacion)
                     .Include(p => p.Gremio)
                     .ToListAsync();
             }

@@ -3,5 +3,5 @@
 @HostAddress = https://localhost:7011
 
 ### Solicitud de lotes
-POST {{HostAddress}}/api/Folio/SolicitarLote?id=4
+Get {{HostAddress}}/api/Folio/SolicitarLote?id=4
 Accept: application/json

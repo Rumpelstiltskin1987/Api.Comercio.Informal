@@ -108,14 +108,14 @@ namespace Api.Data.Access
             }
         }
 
-        public async Task<IEnumerable<Tarifa>> Sincronizar(DateTime? fModificacion)
+        public async Task<IEnumerable<Tarifa>> Sincronizar(DateTime? fSincronizacion)
         {
             IEnumerable<Tarifa> lista;
 
             try
             {
                 lista = await context.Tarifa
-                    .Where(p => p.Fecha_modificacion >= fModificacion)
+                    .Where(p => p.Fecha_modificacion >= fSincronizacion || p.Fecha_alta >= fSincronizacion)
                     .ToListAsync();
             }
             catch (Exception ex)

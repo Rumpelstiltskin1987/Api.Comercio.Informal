@@ -194,18 +194,18 @@ namespace Api.Business
             }
         }
 
-        public async Task<IEnumerable<DtoTarifa>> Sincronizar(DateTime? fModificacion)
+        public async Task<IEnumerable<DtoTarifa>> Sincronizar(DateTime? fSincronizacion)
         {
             IEnumerable<Tarifa> listaDb;
             IEnumerable<DtoTarifa> lista;
 
-            if (fModificacion == null)
+            if (fSincronizacion == null)
             {
                 listaDb = await _tarifa.GetAll();
             }
             else
             {
-                listaDb = await _tarifa.Sincronizar(fModificacion);
+                listaDb = await _tarifa.Sincronizar(fSincronizacion);
             }
 
             lista = listaDb.Select(p => new DtoTarifa

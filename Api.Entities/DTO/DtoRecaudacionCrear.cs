@@ -17,6 +17,8 @@ namespace Api.Entities.DTO
 
         [Required(ErrorMessage = "El IdConcepto es obligatorio")]
         public int IdConcepto { get; set; }
+        [Required(ErrorMessage = "El Folio de cobro es obligatorio")]
+        public required string FolioRecibo { get; set; }
 
         [Required(ErrorMessage = "El IdGremio es obligatorio")]
         [Range(0.01, 999999, ErrorMessage = "El Monto debe ser mayor a 0")]
@@ -28,6 +30,6 @@ namespace Api.Entities.DTO
         public double? Latitud { get; set; }
         public double? Longitud { get; set; }
         [Required(ErrorMessage = "La fecha de cobro es obligatoria")]
-        public DateTime Fecha_cobro { get; set; }
+        public DateTime FechaCobro { get; set; }
     }
 }
