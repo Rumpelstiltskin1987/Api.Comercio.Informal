@@ -45,114 +45,49 @@
                 </div>
 
                 @* BOTÓN GENERAR *@
-                <div style="width: auto; margin-bottom:7px">
+                <div class="d-flex gap-2 pb-1">
                     <button class="btn official-btn-primary btn-lg" @onclick="GenerarCorte" disabled="@cargando">
-                        @if (cargando)
-                        {
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        }
-                        else
-                        {
-                            <span><i class="bi bi-search me-2"></i> Consultar</span>
-                        }
+                        <span><i class="bi bi-search me-2"></i> Consultar</span>
                     </button>
+                    @if (mostrarReporte && pdfBase64 != null)
+                    {
+                        <button class="btn official-btn-outline-secondary" @onclick="DescargarPDF">
+                            <i class="bi bi-file-pdf me-2"></i> Descargar
+                        </button>
+
+                        @* <button class="btn official-btn-outline-secondary" onclick="window.print()">
+                            <i class="bi bi-printer me-2"></i> Imprimir
+                        </button> *@
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@if (mostrarReporte && recaudacion != null && recaudacion.Any())
+@* VISOR DE PDF *@
+@if (mostrarReporte && pdfBase64 != null)
 {
-    <div class="reporte-wrapper mt-3">
-        <div class="hoja-reporte">
-
-            @* BARRA DE ACCIONES *@
-            <div class="d-flex justify-content-end mb-3 no-print gap-2">
-                @* Botón IMPRIMIR (Navegador) *@
-                <button class="btn btn-outline-secondary btn-sm" @onclick="Imprimir">
-                    <i class="bi bi-printer me-2"></i> Vista Previa
-                </button>
-
-                @* Botón PDF (QuestPDF) *@
-                <button class="btn btn-danger btn-sm" @onclick="DescargarPDF">
-                    <i class="bi bi-file-earmark-pdf-fill me-2"></i> Descargar PDF Oficial
-                </button>
-            </div>
-
-            @* VISTA PREVIA HTML (Lo que se ve en pantalla) *@
-            <div class="text-center">
-                <h5 class="text-uppercase fw-bold mb-0">H. Ayuntamiento Constitucional de Tierra Blanca, Veracruz.</h5>
-                <h6 class="fw-light mb-0">Tesorería Municipal - Dirección de Comercio</h6>
-                <hr class="separador-institucional" />
-                <h3 class="mt-2 fw-bold text-uppercase">Corte de Caja General</h3>
-
-                <div class="row mt-4 mb-4 small text-muted text-uppercase border-bottom pb-3">
-                    <div class="col-6 text-start">
-                        <p class="mb-1"><strong>Cobrador:</strong> <span class="text-dark">@NombreCobradorSeleccionado()</span></p>
-                    </div>
-                    <div class="col-6 text-end">
-                        <p class="mb-1"><strong>Periodo:</strong> @fechaInicio.ToString("dd/MM/yyyy") - @fechaFin.ToString("dd/MM/yyyy")</p>
-                    </div>
-                </div>
-
-                <table class="table table-sm table-striped text-start small">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Folio</th>
-                            <th>Contribuyente</th>
-                            <th class="text-end">Importe</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in recaudacion)
-                        {
-                            <tr>
-                                <td>@item.Fecha_cobro.ToString("dd/MM/yyyy")</td>
-                                <td>@item.Folio_Recibo</td>
-                                <td>@item.Padron.Telefono</td>
-                                <td class="text-end">@item.Monto.ToString("C2")</td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr class="fw-bold fs-6">
-                            <td colspan="3" class="text-end">TOTAL RECAUDADO:</td>
-                            <td class="text-end">@recaudacion.Sum(x => x.Monto).ToString("C2")</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
-}
-else if (mostrarReporte && (recaudacion == null || !recaudacion.Any()))
-{
-    <div class="alert alert-warning text-center">
-        No se encontraron registros para el rango de fechas y cobrador seleccionados.
+    <div class="pdf-viewer-container shadow-lg animate__animated animate__zoomIn">
+        <iframe src="data:application/pdf;base64,@pdfBase64" width="100%" height="800px" style="border: none; border-radius: 8px;"></iframe>
     </div>
 }
 
 @code {
-    // TUS VARIABLES
+    private IEnumerable<DtoUsuario> cobradores = new List<DtoUsuario>();
+    private List<Recaudacion> recaudacion = new();
     private DateTime fechaInicio = DateTime.Today;
     private DateTime fechaFin = DateTime.Today;
     private int idCobradorSeleccionado = 0;
     private bool cargando = false;
     private bool mostrarReporte = false;
-
-    // LISTAS
-    private IEnumerable<DtoUsuario> cobradores = new List<DtoUsuario>();
-    private List<Recaudacion> recaudacion = new(); 
+    private string? pdfBase64 = null;    
 
     protected override async Task OnInitializedAsync()
     {
-        // Configurar licencia Community de QuestPDF (Obligatorio)
         QuestPDF.Settings.License = LicenseType.Community;
         await CargarCobradores();
     }
-
 
     private async Task CargarCobradores()
     {
@@ -169,40 +104,14 @@ else if (mostrarReporte && (recaudacion == null || !recaudacion.Any()))
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
-        }
-    }
-
-    private async Task GenerarCorte()
-    {
-        if (idCobradorSeleccionado <= 0)
-        {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Seleccione un cobrador", "warning");
-            return;
-        }
-
-        cargando = true;
-        mostrarReporte = false;
-        try
-        {
-            // LLAMADA A TU SERVICIO REAL
-            recaudacion = (await _recaudacionService.Search(idCobradorSeleccionado, null, fechaInicio, fechaFin)).ToList();
-            mostrarReporte = true;
-        }
-        catch (Exception ex)
-        {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
-        }
-        finally
-        {
-            cargando = false;
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", "No se pudo cargar la lista de cobradores: " + ex.Message, "error");
         }
     }
 
     private string NombreCobradorSeleccionado()
     {
         var cob = cobradores.FirstOrDefault(c => c.Id == idCobradorSeleccionado);
-        return cob != null ? $"{cob.Nombre} {cob.A_paterno}" : "Desconocido";
+        return cob != null ? $"{cob.Nombre} {cob.A_paterno} {cob.A_materno}".Trim() : "Todos los cobradores";
     }
 
     private async Task Imprimir()
@@ -210,95 +119,135 @@ else if (mostrarReporte && (recaudacion == null || !recaudacion.Any()))
         await JSRuntime.InvokeVoidAsync("print");
     }
 
-    // --- LÓGICA DE GENERACIÓN DE PDF (QUESTPDF) ---
-    private async Task DescargarPDF()
+    private async Task GenerarCorte()
     {
+        if (idCobradorSeleccionado <= 0) { /* Swal Alert */ return; }
+
+        cargando = true;
+        mostrarReporte = false;
+        pdfBase64 = null;
+
         try
         {
-            // 1. Crear el documento
-            var documento = Document.Create(container =>
+            var resultado = await _recaudacionService.Search(idCobradorSeleccionado, null, fechaInicio, fechaFin);
+            recaudacion = resultado.ToList();
+
+            if (recaudacion.Any())
             {
-                container.Page(page =>
+                // Generamos el PDF automáticamente para el visor
+                byte[] pdfBytes = CrearDocumentoPDF();
+                pdfBase64 = Convert.ToBase64String(pdfBytes);
+                mostrarReporte = true;
+            }
+        }
+        catch (Exception ex) { /* Log error */ }
+        finally { cargando = false; }
+    }
+
+    // Factorizamos la lógica de QuestPDF en un método que devuelva byte[]
+    private byte[] CrearDocumentoPDF()
+    {
+        QuestPDF.Settings.License = LicenseType.Community;
+
+        return Document.Create(container =>
+        {
+            container.Page(page =>
                 {
                     page.Size(PageSizes.Letter);
-                    page.Margin(2, Unit.Centimetre);
+                    page.Margin(1, Unit.Centimetre);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(10));
+                    // Corrección de Fuente: Usamos una cadena de texto para evitar errores de definición
+                    page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Helvetica"));
 
-                    // ENCABEZADO
-                    page.Header().Row(row =>
+                    page.Header().Column(col =>
                     {
-                        row.RelativeItem().Column(col =>
-                        {
-                            col.Item().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(14);
-                            col.Item().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
-                            col.Item().Text($"Corte de Caja: {NombreCobradorSeleccionado()}").FontSize(12).SemiBold().FontColor(Colors.Grey.Darken2);
-                            col.Item().Text($"Periodo: {fechaInicio:dd/MM/yyyy} al {fechaFin:dd/MM/yyyy}");
-                        });
+                        col.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
+                        col.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
+                        col.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
+                        col.Item().PaddingVertical(5).LineHorizontal(1).LineColor("#9D2449");
 
-                        // Si tienes un logo en wwwroot/img/logo.png, descomenta esto:
-                        // row.ConstantItem(60).Image("wwwroot/img/escudo_armas.jpg");
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeItem().Column(c =>
+                            {
+                                c.Item().Text("REPORTE: CORTE DE CAJA GENERAL").Bold();
+                                c.Item().Text($"COBRADOR: {NombreCobradorSeleccionado()}");
+                            });
+                            row.RelativeItem().AlignRight().Column(c =>
+                            {
+                                c.Item().Text($"FECHA EMISIÓN: {DateTime.Now:dd/MM/yyyy HH:mm}");
+                                c.Item().Text($"PERIODO: {fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}");
+                            });
+                        });
                     });
 
-                    // CONTENIDO
-                    page.Content().PaddingVertical(1, Unit.Centimetre).Table(table =>
+                    page.Content().PaddingVertical(10).Table(table =>
                     {
-                        // Definir columnas
                         table.ColumnsDefinition(columns =>
                         {
-                            columns.ConstantColumn(80); // Fecha
-                            columns.ConstantColumn(60); // Folio
-                            columns.RelativeColumn();   // Contribuyente (se expande)
-                            columns.ConstantColumn(80); // Importe
+                            columns.ConstantColumn(70);
+                            columns.ConstantColumn(70);
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.ConstantColumn(80);
                         });
 
-                        // Encabezados de tabla
                         table.Header(header =>
                         {
-                            header.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(2).Text("FECHA").Bold();
-                            header.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(2).Text("FOLIO").Bold();
-                            header.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(2).Text("CONTRIBUYENTE").Bold();
-                            header.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(2).AlignRight().Text("IMPORTE").Bold();
+                            // Aplicación de estilos corregida
+                            header.Cell().Element(ApplyHeaderStyle).Text("FECHA");
+                            header.Cell().Element(ApplyHeaderStyle).Text("FOLIO");
+                            header.Cell().Element(ApplyHeaderStyle).Text("CONTRIBUYENTE");
+                            header.Cell().Element(ApplyHeaderStyle).Text("CONCEPTO");
+                            header.Cell().Element(ApplyHeaderStyle).AlignRight().Text("IMPORTE");
                         });
 
-                        // Filas de datos
                         foreach (var item in recaudacion)
                         {
-                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(2).Text(item.Fecha_cobro.ToString("dd/MM/yyyy"));
-                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(2).Text(item.Folio_Recibo.ToString());
-                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(2).Text(item.Padron.Nombre);
-                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(2).AlignRight().Text(item.Monto.ToString("C2"));
+                            table.Cell().Element(ApplyCellStyle).Text(item.Fecha_cobro.ToString("dd/MM/yyyy"));
+                            table.Cell().Element(ApplyCellStyle).Text(item.Folio_Recibo?.ToString() ?? "");
+                            table.Cell().Element(ApplyCellStyle).Text(item.Padron != null 
+                                ? $"{item.Padron.Nombre} {item.Padron.A_paterno} {item.Padron.A_materno}"
+                                : "");
+                            table.Cell().Element(ApplyCellStyle).Text(item.Concepto?.Descripcion ?? "");
+                            table.Cell().Element(ApplyCellStyle).AlignRight().Text(item.Monto.ToString("C2"));
                         }
 
-                        // Total
                         table.Footer(footer =>
                         {
-                            footer.Cell().ColumnSpan(3).Padding(5).AlignRight().Text("TOTAL RECAUDADO:").Bold();
-                            footer.Cell().Padding(5).AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2")).Bold().FontSize(11);
+                            footer.Cell().ColumnSpan(4).Padding(5).AlignRight().Text("TOTAL RECAUDADO:").Bold();
+                            footer.Cell().AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2")).Bold().FontSize(10).FontColor("#9D2449");
                         });
                     });
 
-                    // PIE DE PÁGINA
                     page.Footer().AlignCenter().Text(x =>
                     {
                         x.Span("Página ");
                         x.CurrentPageNumber();
+                        x.Span(" de ");
+                        x.TotalPages();
                     });
                 });
-            });
+        }).GeneratePdf();
+    }
 
-            // 2. Generar bytes
-            var pdfBytes = documento.GeneratePdf();
+    private async Task DescargarPDF()
+    {
+        if (string.IsNullOrEmpty(pdfBase64)) return;
 
-            // 3. Enviar al navegador
-            using var stream = new MemoryStream(pdfBytes);
-            using var streamRef = new DotNetStreamReference(stream);
-            await JSRuntime.InvokeVoidAsync("downloadFileFromStream", $"Corte_{fechaInicio:yyyyMMdd}.pdf", streamRef);
+        using var stream = new MemoryStream(Convert.FromBase64String(pdfBase64));
+        using var streamRef = new DotNetStreamReference(stream);
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", $"Corte_{DateTime.Now:yyyyMMdd}.pdf", streamRef);
+    }
 
-        }
-        catch (Exception ex)
-        {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error al generar PDF", ex.Message, "error");
-        }
+    // CORRECCIÓN DE ESTILOS: Ahora retornan el contenedor para permitir el encadenamiento (.)
+    private IContainer ApplyHeaderStyle(IContainer container)
+    {
+        return container.BorderBottom(1).PaddingVertical(5).DefaultTextStyle(x => x.Bold());
+    }
+
+    private IContainer ApplyCellStyle(IContainer container)
+    {
+        return container.BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).PaddingVertical(3);
     }
 }
