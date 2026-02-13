@@ -66,7 +66,7 @@ namespace Api.Business
                     Concepto = recaudacion.Concepto?.Descripcion ?? string.Empty,
                     Monto = recaudacion.Monto,
                     FechaCobro = recaudacion.Fecha_cobro,
-                    NombreCobrador = $"{recaudacion.Cobrador?.Nombre} {recaudacion.Cobrador?.A_paterno} {recaudacion.Cobrador?.A_paterno}".Trim(),
+                    NombreCobrador = recaudacion.Cobrador?.UserName ?? "DESCONOCIDO",
                     Estado = recaudacion.Estado,
                 };
                 return detalle;

@@ -354,6 +354,55 @@ using (var scope = app.Services.CreateScope())
 
 #endregion
 
+#region Crear contadores para matriculas del padron
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<MySQLiteContext>();
+
+        // 1. Definimos el año actual una sola vez
+        int anioActual = DateTime.Now.Year;
+
+        // 2. Lista de tipos que necesitamos validar/crear
+        string[] tiposRequeridos = ["E", "P"];
+
+        foreach (var tipo in tiposRequeridos)
+        {
+            // 3. LA CLAVE: Buscamos por Tipo Y por Año al mismo tiempo
+            bool existeRegistro = await context.MatriculaContador
+                .AnyAsync(c => c.Tipo_vendedor == tipo && c.Anio == anioActual);
+
+            if (!existeRegistro)
+            {
+                MatriculaContador nuevoContador = new()
+                {
+                    Tipo_vendedor = tipo,
+                    Anio = anioActual,
+                    Siguiente_numero = 1
+                };
+
+                context.MatriculaContador.Add(nuevoContador);
+                // Guardamos dentro del loop o al final, depende de tu preferencia. 
+                // Hacerlo aquí asegura que si uno falla, se intente el otro.
+            }
+        }
+
+        // Guardamos todos los cambios de golpe
+        await context.SaveChangesAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Error al inicializar los contadores anuales.");
+    }
+}
+
+#endregion
+
 #region Cierrar sesion
 
 app.MapPost("Account/Logout", async (

@@ -47,7 +47,8 @@ namespace Api.Business
             {
                 contribuyenteDb = await _dataPadron.GetByMatricula(matricula);
 
-                contribuyente = new() { 
+                contribuyente = new()
+                {
                     IdContribuyente = contribuyenteDb.Id_padron,
                     Nombre = contribuyenteDb.Nombre,
                     APaterno = contribuyenteDb.A_paterno,
@@ -119,7 +120,7 @@ namespace Api.Business
             string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario)
         {
             MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
-            string matricula;            
+            string matricula;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -133,19 +134,18 @@ namespace Api.Business
                         Siguiente_numero = 1
                     };
                     matricula = tipo + (DateTime.Now.Year % 100) + matriculaContador.Siguiente_numero.ToString("D5");
+                    matriculaContador.Siguiente_numero += 1;
                     await _dataMatriculaContador.Create(matriculaContador);
-
-
                 }
                 else
-                {
-                    matriculaContador.Siguiente_numero += 1;
+                {                    
                     matricula = tipo + DateTime.Now.Year % 100 + matriculaContador.Siguiente_numero.ToString("D5");
+                    matriculaContador.Siguiente_numero += 1;
                     await _dataMatriculaContador.Update(matriculaContador);
                 }
 
                 Padron contribuyente = new()
-                {                    
+                {
                     Nombre = nombre,
                     A_paterno = a_paterno,
                     A_materno = a_materno,
@@ -166,7 +166,7 @@ namespace Api.Business
                 PadronLog padronLog = new()
                 {
                     Id_movimiento = 1,
-                    Id_padron = contribuyente.Id_padron,                    
+                    Id_padron = contribuyente.Id_padron,
                     Nombre = contribuyente.Nombre,
                     A_paterno = contribuyente.A_paterno,
                     A_materno = contribuyente.A_materno,
@@ -176,7 +176,7 @@ namespace Api.Business
                     Email = contribuyente.Email,
                     Matricula = contribuyente.Matricula,
                     Matricula_anterior = contribuyente.Matricula_anterior,
-                    Gremio = gremio.Descripcion,                    
+                    Gremio = gremio.Descripcion,
                     Tipo_vendedor = contribuyente.Tipo_vendedor,
                     Estado = contribuyente.Estado,
                     Tipo_movimiento = "A",
@@ -194,13 +194,28 @@ namespace Api.Business
             }
         }
 
-        public async Task Update(int id, string nombre, string a_paterno, string a_materno, string curp, 
-            string direccion, string telefono, string? email, string matricula, string? matricula_anterior, 
-            int id_gremio, string status, string usuario)
+        public async Task Update(int id, string nombre, string a_paterno, string a_materno, string curp,
+            string direccion, string telefono, string? email, string matricula, string? matricula_anterior,
+            int id_gremio, string tipo, string status, string usuario)
         {
             Padron padron = await _dataPadron.GetById(id);
+            MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
+            string matriculaActual = padron.Matricula;
+            string tipoActual = padron.Tipo_vendedor;
+            string matriculaNueva;
 
-            padron.Matricula = matricula;
+            if (tipoActual != tipo)
+            {
+                matriculaNueva = tipo + DateTime.Now.Year % 100 + matriculaContador.Siguiente_numero.ToString("D5");
+                padron.Matricula = matriculaNueva;
+                padron.Matricula_anterior = matriculaActual;
+            }
+            else
+            {
+                padron.Matricula = matricula;
+            }
+
+
             padron.Nombre = nombre;
             padron.A_paterno = a_paterno;
             padron.A_materno = a_materno;
@@ -209,6 +224,7 @@ namespace Api.Business
             padron.Telefono = telefono;
             padron.Email = email;
             padron.Id_gremio = id_gremio;
+            padron.Tipo_vendedor = tipo;
             padron.Estado = status;
             padron.Usuario_modificacion = usuario;
             padron.Fecha_modificacion = DateTime.UtcNow;
@@ -234,6 +250,7 @@ namespace Api.Business
                     Email = padron.Email,
                     Gremio = gremio.Descripcion,
                     Estado = padron.Estado,
+                    Tipo_vendedor = padron.Tipo_vendedor,
                     Tipo_movimiento = "M",
                     Usuario_modificacion = padron.Usuario_modificacion,
                     Fecha_modificacion = padron.Fecha_modificacion
@@ -252,7 +269,7 @@ namespace Api.Business
         public async Task Delete(int id)
         {
             _ = await _dataPadron.GetById(id);
-            
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -277,7 +294,7 @@ namespace Api.Business
                 var historial = logs.Select(log => new DtoHistorial
                 {
                     Fecha = log.Fecha_modificacion,
-                    Usuario = log.Usuario_modificacion,
+                    Usuario = log.Usuario_modificacion ?? string.Empty,
                     Movimiento = log.Tipo_movimiento.ToUpper() switch
                     {
                         "A" => "Alta",
@@ -297,7 +314,7 @@ namespace Api.Business
                 return historial;
             }
             catch (Exception)
-            {                
+            {
                 throw;
             }
         }
@@ -314,8 +331,8 @@ namespace Api.Business
             else
             {
                 listaDb = await _dataPadron.Sincronizar(fSincronizacion);
-            }            
-            
+            }
+
             lista = listaDb.Select(p => new DtoContribuyente
             {
                 IdContribuyente = p.Id_padron,
@@ -326,7 +343,7 @@ namespace Api.Business
                 Curp = p.Curp,
                 Tipo = p.Tipo_vendedor,
                 IdGremio = p.Gremio?.Id_gremio ?? 0,
-                Gremio = p.Gremio?.Descripcion ?? string.Empty 
+                Gremio = p.Gremio?.Descripcion ?? string.Empty
             });
             return lista;
         }

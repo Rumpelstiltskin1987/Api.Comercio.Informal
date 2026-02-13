@@ -89,11 +89,12 @@ CREATE TABLE Folio (
     Id_folio_serie INTEGER PRIMARY KEY AUTOINCREMENT,
     Id_gremio INTEGER, 
     Descripcion TEXT NOT NULL,
-    Prefijo TEXT NOT NULL UNIQUE, 
+    Prefijo TEXT NOT NULL, 
     Siguiente_folio INTEGER NOT NULL DEFAULT 1 CHECK(Siguiente_Folio > 0),
     Anio_vigente INTEGER NOT NULL,
 	Cantidad_lote INTEGER,
-    FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
+    FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio),
+	CONSTRAINT UQ_Gremio_Anio UNIQUE (Id_gremio, Anio_vigente)
 );
 
 CREATE TABLE MatriculaContador (

@@ -384,7 +384,7 @@ else
                     registro.Id_padron, registro.Nombre, registro.A_paterno,
                     registro.A_materno, registro.Curp, registro.Direccion, registro.Telefono,
                     registro.Email, registro.Matricula, registro.Matricula_anterior, registro.Id_gremio,
-                    registro.Estado, usuario
+                    registro.Tipo_vendedor, registro.Estado, usuario
                 );
             }
 
@@ -417,7 +417,7 @@ else
                 item.Id_padron, item.Nombre, item.A_paterno,
                 item.A_materno, item.Curp, item.Direccion, item.Telefono,
                 item.Email, item.Matricula, item.Matricula_anterior, item.Id_gremio,
-                nuevoEstado, usuario
+                item.Tipo_vendedor, nuevoEstado, usuario
             );
 
             await CargarDatos();

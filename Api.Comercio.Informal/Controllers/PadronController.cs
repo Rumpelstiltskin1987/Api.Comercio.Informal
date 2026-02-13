@@ -132,13 +132,13 @@ namespace Api.Comercio.Informal.Controllers
         [HttpPost]
         public async Task<IActionResult> Update(int id, string nombre, string a_paterno, string a_materno, string curp,
             string direccion, string telefono, string email, string matricula, string matricula_anterior, int id_gremio,
-            string status, string usuario)
+            string tipo, string status, string usuario)
         {
             try
             {
                 await _padron.Update(id, nombre, a_paterno, a_materno, curp,
                     direccion, telefono, email, matricula, matricula_anterior,
-                    id_gremio, status, usuario);
+                    id_gremio, tipo, status, usuario);
                 return Ok("Contribuyente actualizado correctamente");
             }
             catch (Exception ex)
