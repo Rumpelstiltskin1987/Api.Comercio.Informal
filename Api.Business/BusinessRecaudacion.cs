@@ -100,7 +100,7 @@ namespace Api.Business
                 query = query.Where(c => c.Fecha_cobro >= fechaInicio.Value && c.Fecha_cobro <= fechaFin);
             }
 
-            query = query.OrderByDescending(c => c.Fecha_cobro);
+            query = query.OrderBy(c => c.Fecha_cobro);
 
             return await _recaudacion.Search(query);
         }

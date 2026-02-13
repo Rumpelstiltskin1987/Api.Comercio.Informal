@@ -3,6 +3,7 @@
 @using Api.Entities
 @using Api.Entities.DTO
 @using Api.Business
+@using Api.Comercio.Informal.Helpers
 @using QuestPDF.Fluent
 @using QuestPDF.Helpers
 @using QuestPDF.Infrastructure
@@ -219,7 +220,7 @@
                         });
                         row.RelativeItem().AlignRight().Column(c =>
                         {
-                            c.Item().Text($"FECHA EMISIÓN: {DateTime.Now:dd/MM/yyyy HH:mm}");
+                            c.Item().Text($"FECHA EMISIÓN: {DateTime.UtcNow.ToLocalString()}");
                             c.Item().Text($"PERIODO: {fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}");
                         });
                     });
@@ -233,8 +234,8 @@
                     {
                         table.ColumnsDefinition(columns =>
                         {
-                            columns.ConstantColumn(70);
-                            columns.ConstantColumn(70);
+                            columns.ConstantColumn(90);
+                            columns.ConstantColumn(90);
                             columns.RelativeColumn();
                             columns.RelativeColumn();
                             columns.ConstantColumn(80);
@@ -251,7 +252,7 @@
 
                         foreach (var item in recaudacion)
                         {
-                            table.Cell().Element(ApplyCellStyle).Text(item.Fecha_cobro.ToString("dd/MM/yyyy"));
+                            table.Cell().Element(ApplyCellStyle).Text(item.Fecha_cobro.ToLocalString("dd/MM/yyyy HH:mm"));
                             table.Cell().Element(ApplyCellStyle).Text(item.Folio_Recibo?.ToString() ?? "");
                             table.Cell().Element(ApplyCellStyle).Text(item.Padron != null
                                 ? $"{item.Padron.Nombre} {item.Padron.A_paterno} {item.Padron.A_materno}"
