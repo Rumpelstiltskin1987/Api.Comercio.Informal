@@ -47,7 +47,7 @@
 
                 @* BOTÓN GENERAR *@
                 <div class="d-flex gap-2 pb-1">
-                    <button class="btn official-btn-primary btn-lg" @onclick="GenerarCorte" disabled="@cargando">
+                    <button class="btn official-btn-primary" @onclick="GenerarCorte" disabled="@cargando">
                         <span><i class="bi bi-search me-2"></i> Consultar</span>
                     </button>
                     @if (mostrarReporte && pdfBase64 != null)
@@ -160,63 +160,60 @@
     {
         QuestPDF.Settings.License = LicenseType.Community;
 
-        // Obtener la ruta de la imagen (escudo.png o escudo.jpg)
         string rootPath = HostEnvironment.WebRootPath;
         string imagePath = Path.Combine(rootPath, "img", "escudo.png");
 
         return Document.Create(container =>
         {
             container.Page(page =>
+            {
+                page.Size(PageSizes.Letter);
+                page.Margin(1, Unit.Centimetre);
+                page.PageColor(Colors.White);
+                page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Helvetica"));
+
+                // 1. ENCABEZADO (Header)
+                page.Header().Column(col =>
                 {
-                    page.Size(PageSizes.Letter);
-                    page.Margin(1, Unit.Centimetre);
-                    page.PageColor(Colors.White);
-                    // Corrección de Fuente: Usamos una cadena de texto para evitar errores de definición
-                    page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Helvetica"));
-
-                    page.Header().Column(col =>
+                    col.Item().Row(row =>
                     {
-                        // col.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
-                        // col.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
-                        // col.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
-
-                        // FILA DEL LOGOTIPO Y TÍTULOS
-                        col.Item().Row(row =>
+                        if (File.Exists(imagePath))
                         {
-                            // Espacio para el logotipo
-                            if (File.Exists(imagePath))
-                            {
-                                row.ConstantItem(50).Image(imagePath);
-                            }
+                            row.ConstantItem(50).Image(imagePath);
+                        }
 
-                            row.RelativeItem().Column(titles =>
-                            {
-                                titles.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
-                                titles.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
-                                titles.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
-                            });
-
-                            // Espacio vacío a la derecha para equilibrar el logo si se desea
-                            row.ConstantItem(50);
-                        });
-                        col.Item().PaddingVertical(5).LineHorizontal(1).LineColor("#9D2449");
-
-                        col.Item().Row(row =>
+                        row.RelativeItem().Column(titles =>
                         {
-                            row.RelativeItem().Column(c =>
-                            {
-                                c.Item().Text("REPORTE: CORTE DE CAJA GENERAL").Bold();
-                                c.Item().Text($"COBRADOR: {NombreCobradorSeleccionado()}");
-                            });
-                            row.RelativeItem().AlignRight().Column(c =>
-                            {
-                                c.Item().Text($"FECHA EMISIÓN: {DateTime.Now:dd/MM/yyyy HH:mm}");
-                                c.Item().Text($"PERIODO: {fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}");
-                            });
+                            titles.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
+                            titles.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
+                            titles.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
                         });
+
+                        row.ConstantItem(50);
                     });
 
-                    page.Content().PaddingVertical(10).Table(table =>
+                    col.Item().PaddingVertical(5).LineHorizontal(1).LineColor("#9D2449");
+
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("REPORTE: CORTE DE CAJA GENERAL").Bold();
+                            c.Item().Text($"COBRADOR: {NombreCobradorSeleccionado()}");
+                        });
+                        row.RelativeItem().AlignRight().Column(c =>
+                        {
+                            c.Item().Text($"FECHA EMISIÓN: {DateTime.Now:dd/MM/yyyy HH:mm}");
+                            c.Item().Text($"PERIODO: {fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}");
+                        });
+                    });
+                });
+
+                // 2. CUERPO ÚNICO (Content) - Aquí agrupamos Tabla y Firma
+                page.Content().PaddingVertical(10).Column(mainCol =>
+                {
+                    // Elemento 1: La Tabla
+                    mainCol.Item().Table(table =>
                     {
                         table.ColumnsDefinition(columns =>
                         {
@@ -229,7 +226,6 @@
 
                         table.Header(header =>
                         {
-                            // Aplicación de estilos corregida
                             header.Cell().Element(ApplyHeaderStyle).Text("FECHA");
                             header.Cell().Element(ApplyHeaderStyle).Text("FOLIO");
                             header.Cell().Element(ApplyHeaderStyle).Text("CONTRIBUYENTE");
@@ -241,28 +237,47 @@
                         {
                             table.Cell().Element(ApplyCellStyle).Text(item.Fecha_cobro.ToString("dd/MM/yyyy"));
                             table.Cell().Element(ApplyCellStyle).Text(item.Folio_Recibo?.ToString() ?? "");
-                            table.Cell().Element(ApplyCellStyle).Text(item.Padron != null 
+                            table.Cell().Element(ApplyCellStyle).Text(item.Padron != null
                                 ? $"{item.Padron.Nombre} {item.Padron.A_paterno} {item.Padron.A_materno}"
                                 : "");
                             table.Cell().Element(ApplyCellStyle).Text(item.Concepto?.Descripcion ?? "");
                             table.Cell().Element(ApplyCellStyle).AlignRight().Text(item.Monto.ToString("C2"));
                         }
 
-                        table.Footer(footer =>
-                        {
-                            footer.Cell().ColumnSpan(4).Padding(5).AlignRight().Text("TOTAL RECAUDADO:").Bold();
-                            footer.Cell().AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2")).Bold().FontSize(10).FontColor("#9D2449");
-                        });                        
+                        // table.Footer(footer =>
+                        // {
+                        //     footer.Cell().ColumnSpan(4).Padding(5).AlignRight().Text("TOTAL RECAUDADO:").Bold();
+                        //     footer.Cell().AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2")).Bold().FontSize(10).FontColor("#9D2449");
+                        // });
                     });
 
-                    page.Footer().AlignCenter().Text(x =>
+                    // Elementi 2: EL TOTAL ÚNICO 
+                    mainCol.Item().PaddingTop(5).AlignRight().Row(row =>
                     {
-                        x.Span("Página ");
-                        x.CurrentPageNumber();
-                        x.Span(" de ");
-                        x.TotalPages();
+                        row.Spacing(10);
+                        row.RelativeItem().AlignRight().Text("TOTAL RECAUDADO:").Bold();
+                        row.ConstantItem(80).AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2"))
+                           .Bold().FontSize(10).FontColor("#9D2449");
+                    });
+
+                    // Elemento 3: Área de Firma 
+                    mainCol.Item().PaddingTop(100).AlignCenter().Column(sigCol =>
+                    {
+                        sigCol.Item().Width(200).LineHorizontal(0.5f).LineColor(Colors.Black);
+                        sigCol.Item().PaddingTop(5).AlignCenter().Text("FIRMA DEL CAJERO").Bold();
+                        sigCol.Item().AlignCenter().Text(NombreCobradorSeleccionado()).FontSize(9);
                     });
                 });
+
+                // 3. PIE DE PÁGINA (Footer)
+                page.Footer().AlignCenter().Text(x =>
+                {
+                    x.Span("Página ");
+                    x.CurrentPageNumber();
+                    x.Span(" de ");
+                    x.TotalPages();
+                });
+            });
         }).GeneratePdf();
     }
 
