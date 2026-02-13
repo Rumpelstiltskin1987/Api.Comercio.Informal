@@ -134,7 +134,23 @@
 
         try
         {
-            var resultado = await _recaudacionService.Search(idCobradorSeleccionado, null, fechaInicio, fechaFin);
+            // 1. Identificamos la zona horaria de México
+            var zonaMexico = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+
+            // 2. Definimos el inicio del día local (00:00:00) y lo pasamos a UTC
+            // Forzamos que la propiedad Kind sea 'Unspecified' usando DateTime.SpecifyKind
+            // Esto le dice a .NET: "No asumas que esta es la hora del servidor, trátala como una hora neutra"
+            //DateTime inicioLocal = fechaInicio.Date;
+            DateTime inicioLocal = DateTime.SpecifyKind(fechaInicio.Date, DateTimeKind.Unspecified);
+            DateTime inicioUtc = TimeZoneInfo.ConvertTimeToUtc(inicioLocal, zonaMexico);
+
+            // 3. Definimos el fin del día local (23:59:59) y lo pasamos a UTC
+            //DateTime finLocal = fechaFin.Date.AddDays(1).AddTicks(-1);
+            DateTime finLocal = DateTime.SpecifyKind(fechaFin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Unspecified);
+            DateTime finUtc = TimeZoneInfo.ConvertTimeToUtc(finLocal, zonaMexico);
+
+
+            var resultado = await _recaudacionService.Search(idCobradorSeleccionado, null, inicioUtc, finUtc);
             recaudacion = resultado.ToList();
 
             if (recaudacion.Any())

@@ -96,11 +96,8 @@ namespace Api.Business
             // Filtro por Fechas
             if (fechaInicio.HasValue && fechaFin.HasValue)
             {
-                // Ajustamos la fecha fin para incluir todo el día hasta las 23:59:59
-                DateTime fechaFinAjustada = fechaFin.Value.Date.AddDays(1).AddTicks(-1);
-
                 // Usamos operadores estándar >= y <= porque '.between' no existe en C# LINQ
-                query = query.Where(c => c.Fecha_cobro >= fechaInicio.Value && c.Fecha_cobro <= fechaFinAjustada);
+                query = query.Where(c => c.Fecha_cobro >= fechaInicio.Value && c.Fecha_cobro <= fechaFin);
             }
 
             query = query.OrderByDescending(c => c.Fecha_cobro);
