@@ -7,6 +7,7 @@
 @using QuestPDF.Helpers
 @using QuestPDF.Infrastructure
 @inject IJSRuntime JSRuntime
+@inject IWebHostEnvironment HostEnvironment
 @inject BusinessRecaudacion _recaudacionService
 @inject BusinessUsuario _usuarioService
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
@@ -121,7 +122,11 @@
 
     private async Task GenerarCorte()
     {
-        if (idCobradorSeleccionado <= 0) { /* Swal Alert */ return; }
+        if (idCobradorSeleccionado <= 0) 
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un cobrador.", "warning");
+            return; 
+        }
 
         cargando = true;
         mostrarReporte = false;
@@ -140,14 +145,24 @@
                 mostrarReporte = true;
             }
         }
-        catch (Exception ex) { /* Log error */ }
-        finally { cargando = false; }
+        catch (Exception ex) 
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", "Ocurrió un erro al generar el PDF: " + ex.Message, "error"); 
+        }
+        finally 
+        {
+            cargando = false; 
+        }
     }
 
     // Factorizamos la lógica de QuestPDF en un método que devuelva byte[]
     private byte[] CrearDocumentoPDF()
     {
         QuestPDF.Settings.License = LicenseType.Community;
+
+        // Obtener la ruta de la imagen (escudo.png o escudo.jpg)
+        string rootPath = HostEnvironment.WebRootPath;
+        string imagePath = Path.Combine(rootPath, "img", "escudo.png");
 
         return Document.Create(container =>
         {
@@ -161,9 +176,29 @@
 
                     page.Header().Column(col =>
                     {
-                        col.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
-                        col.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
-                        col.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
+                        // col.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
+                        // col.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
+                        // col.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
+
+                        // FILA DEL LOGOTIPO Y TÍTULOS
+                        col.Item().Row(row =>
+                        {
+                            // Espacio para el logotipo
+                            if (File.Exists(imagePath))
+                            {
+                                row.ConstantItem(50).Image(imagePath);
+                            }
+
+                            row.RelativeItem().Column(titles =>
+                            {
+                                titles.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
+                                titles.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
+                                titles.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
+                            });
+
+                            // Espacio vacío a la derecha para equilibrar el logo si se desea
+                            row.ConstantItem(50);
+                        });
                         col.Item().PaddingVertical(5).LineHorizontal(1).LineColor("#9D2449");
 
                         col.Item().Row(row =>
@@ -217,7 +252,7 @@
                         {
                             footer.Cell().ColumnSpan(4).Padding(5).AlignRight().Text("TOTAL RECAUDADO:").Bold();
                             footer.Cell().AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2")).Bold().FontSize(10).FontColor("#9D2449");
-                        });
+                        });                        
                     });
 
                     page.Footer().AlignCenter().Text(x =>
@@ -248,6 +283,7 @@
 
     private IContainer ApplyCellStyle(IContainer container)
     {
-        return container.BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).PaddingVertical(3);
+        //return container.BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).PaddingVertical(3);
+        return container.PaddingVertical(3);
     }
 }
