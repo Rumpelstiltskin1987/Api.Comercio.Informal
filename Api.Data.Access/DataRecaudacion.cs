@@ -87,6 +87,7 @@ namespace Api.Data.Access
                 return await query
                     .Include(x => x.Cobrador)
                     .Include(x => x.Padron)
+                    .Include(x => x.Padron.Gremio)
                     .Include(x=> x.Concepto)
                     .ToListAsync();
             }

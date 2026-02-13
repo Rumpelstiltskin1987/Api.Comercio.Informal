@@ -15,37 +15,62 @@
 @* <hr /> *@
 
 <div class="d-flex justify-content-between mb-4 align-items-center flex-wrap gap-3" style="padding: 2px">
-    <div class="d-flex align-items-center gap-3">
-        <label class="h5 mb-0 text-nowrap">Recaudación del día:</label>
-        @* Filtro de Fecha para controlar qué recaudación se ve *@
-        <input type="date" class="form-control" @bind="fechaFiltro" @bind:after="AplicarFiltro" style="max-width: 180px;" />
+    <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: flex-end; gap: 1rem; width: auto; ">       
+
+        @* FECHAS *@
+        <div style="width: auto; min-width: 160px; padding-bottom:12px; padding-top:12px">
+            <label class="form-label fw-bold small text-uppercase mb-1">Fecha Inicio</label>
+            <input type="date" class="form-control" @bind="fechaInicio" />
+        </div>
+
+        <div style="width: auto; min-width: 160px; padding-bottom:12px; padding-top:12px">
+            <label class="form-label fw-bold small text-uppercase mb-1">Fecha Fin</label>
+            <input type="date" class="form-control" @bind="fechaFin" />
+        </div>
+
+        @* BOTÓN GENERAR *@
+        <div class="d-flex gap-2 pb-1">
+            <button class="btn official-btn-primary" @onclick="CargarDatos">
+                <span><i class="bi bi-search me-2"></i> Consultar</span>
+            </button>            
+        </div>
+
+        @if (listado != null && listado.Any())
+        {
+            <div class="ms-4 p-2 px-4 shadow-sm"
+                 style="display: flex; flex-direction: column; justify-content: center;">
+                <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.75rem;">Total General Recaudado</span>
+                <span class="fs-3 fw-bold" style="color: #9D2449;">
+                    @listado.Sum(x => x.Monto).ToString("C2")
+                </span>
+            </div>
+        }
     </div>
 </div>
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        <QuickGrid Items="@listado" Class="table mb-0 official-grid grid-recaudacion">
-            <PropertyColumn Property="@(c => c.Padron.Nombre)" Sortable="true" Title="Contrubuyente" />
-            <PropertyColumn Property="@(c => c.Padron.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid grid-recaudacion">
+            <TemplateColumn Title="Contribuyente" SortBy="@(GridSort<Recaudacion>.ByAscending(c => c.Padron.Nombre))">
+                @($"{context.Padron?.Nombre} {context.Padron?.A_paterno} {context.Padron?.A_materno}")
+            </TemplateColumn>
+            <PropertyColumn Property="@(c => c.Padron != null && c.Padron.Gremio != null ? c.Padron.Gremio.Descripcion : "SIN GREMIO")" 
+                Sortable="true" Title="Gremio" />
             <PropertyColumn Property="@(c => c.Concepto.Descripcion)" Sortable="true" Title="Concepto" />
             <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" Format="C" />
             <PropertyColumn Property="@(c => c.Folio_Recibo)" Sortable="true" Title="Folio" />
         </QuickGrid>
-    </div>
+        <div class="paginator-container p-2 border-top bg-light">
+            <PaginadorEsp State="@paginationState" />
+        </div>
+    </div>    
 </div>
 
 @code {
-    // --- Variables de Estado ---
-    private IQueryable<Recaudacion>? listado;
-    // Variable para almacenar TODOS los datos traídos del servicio (cache simple)
-    private IEnumerable<Recaudacion>? todosLosRegistros;
-
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
-    private DateTime fechaFiltro = DateTime.Today; // Por defecto hoy
-
-    // Definición de ordenamientos personalizados para TemplateColumns
-    GridSort<Recaudacion> sortFecha = GridSort<Recaudacion>.ByDescending(x => x.Fecha_cobro);
-    GridSort<Recaudacion> sortMonto = GridSort<Recaudacion>.ByDescending(x => x.Monto);
+    private IQueryable<Recaudacion>? listado;
+    private DateTime fechaInicio = DateTime.Today;
+    private DateTime fechaFin = DateTime.Today;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,23 +86,27 @@
 
     private async Task CargarDatos()
     {
-        // 1. Obtenemos todo desde la capa de negocio
-        todosLosRegistros = await _recaudacionService.GetAll();
-
-        // 2. Aplicamos el filtro inicial
-        AplicarFiltro();
-    }
-
-    private void AplicarFiltro()
-    {
-        if (todosLosRegistros != null)
+        try
         {
-            // Filtramos en memoria por la fecha seleccionada (comparando solo la parte de Fecha, ignorando hora)
-            var filtrados = todosLosRegistros
-                .Where(x => x.Fecha_cobro.Date == fechaFiltro.Date);
+            // 1. Identificamos la zona horaria de México
+            var zonaMexico = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
 
-            // Convertimos a IQueryable para el QuickGrid
-            listado = filtrados.AsQueryable();
+            // 2. Definimos el inicio del día local (00:00:00) y lo pasamos a UTC
+            // Forzamos que la propiedad Kind sea 'Unspecified' usando DateTime.SpecifyKind
+            // Esto le dice a .NET: "No asumas que esta es la hora del servidor, trátala como una hora neutra"
+            DateTime inicioLocal = DateTime.SpecifyKind(fechaInicio.Date, DateTimeKind.Unspecified);
+            DateTime inicioUtc = TimeZoneInfo.ConvertTimeToUtc(inicioLocal, zonaMexico);
+
+            // 3. Definimos el fin del día local (23:59:59) y lo pasamos a UTC
+            DateTime finLocal = DateTime.SpecifyKind(fechaFin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Unspecified);
+            DateTime finUtc = TimeZoneInfo.ConvertTimeToUtc(finLocal, zonaMexico);
+
+            var resultado = await _recaudacionService.Search(null, null, inicioUtc, finUtc);
+            listado = resultado.ToList().AsQueryable();           
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", "Ocurrió un error al obtener los cobros: " + ex.Message, "error");
         }
     }
 }
