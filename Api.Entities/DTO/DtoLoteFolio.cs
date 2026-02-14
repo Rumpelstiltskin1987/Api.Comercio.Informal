@@ -8,6 +8,7 @@ namespace Api.Entities.DTO
 {
     public class DtoLoteFolio
     {
+        public int IdLote { get; set; }
         public int IdUsuario { get; set; }
         public int IdGremio { get; set; }
         public required string Prefijo { get; set; }

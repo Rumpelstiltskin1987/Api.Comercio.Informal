@@ -118,7 +118,8 @@ namespace Api.Business
                 var query = _context.LoteFolio.AsQueryable()
                     .Where(l => l.Id_usuario == idUsuario
                     && l.Id_gremio == g.Id_gremio
-                    && l.Estado == "ACTIVO");
+                    && l.Estado == "ACTIVO")
+                    .OrderBy(l => l.Id_lote);
 
                 var loteActivo = _loteFolio.Search(query)
                     .Result.FirstOrDefault();
@@ -129,6 +130,7 @@ namespace Api.Business
                     // Generamos el lote (Modelo Dto que es el que se devolverá como respuesta)
                     DtoLoteFolio lote = new()
                     {
+                        IdLote = loteActivo.Id_lote,
                         IdUsuario = idUsuario,
                         IdGremio = loteActivo.Id_gremio,
                         Prefijo = folio.Prefijo ?? string.Empty, 

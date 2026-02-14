@@ -107,25 +107,40 @@ namespace Api.Business
 
         public async Task Create(DtoRecaudacionCrear cobroRequest)
         {
+            // 1. PASO CRÍTICO: Extraer el número del folio ANTES de buscar el lote
+            // Esto es necesario para saber a qué rango pertenece este cobro.
+            if (string.IsNullOrEmpty(cobroRequest.FolioRecibo) || cobroRequest.FolioRecibo.Length < 11)
+            {
+                throw new Exception("El formato del Folio Recibo es inválido o demasiado corto.");
+            }
 
-            //var queryFolio = _context.Folio.AsQueryable().Where(f => f.Id_gremio == id_gremio);
-            //var listaFolios = await _folio.Search(queryFolio);
-            //var folioEncontrado = listaFolios.FirstOrDefault() ?? throw new Exception("No se encontró configuración de folios para el gremio especificado.");
+            string parteNumerica = cobroRequest.FolioRecibo.Substring(5, 6);
 
-            //if (folioEncontrado.Anio_vigente != DateTime.Now.Year)
-            //{
-            //    folioEncontrado.Anio_vigente = DateTime.Now.Year;
-            //    folioEncontrado.Siguiente_folio = 1;
-            //}
-            // folioEncontrado.Siguiente_folio += 1;
-            // await _folio.Update(folioEncontrado);
+            if (!int.TryParse(parteNumerica, out int numeroFolioActual))
+            {
+                throw new Exception($"El folio '{cobroRequest.FolioRecibo}' no contiene un número válido.");
+            }
 
-            //string folioRecibo = $"{folioEncontrado.Prefijo}{folioEncontrado.Anio_vigente % 100}{folioEncontrado.Siguiente_folio:D6}";
+            // 2. BÚSQUEDA CORREGIDA: Filtramos por Usuario, Gremio Y Rango Numérico
+            // Buscamos el lote donde el folio actual esté entre el Inicial y el Final
+            var query = _context.LoteFolio.AsQueryable()
+                .Where(lf => lf.Id_usuario == cobroRequest.IdCobrador
+                          && lf.Id_gremio == cobroRequest.IdGremio
+                          && lf.Rango_inicial <= numeroFolioActual   
+                          && lf.Rango_final >= numeroFolioActual
+                          && lf.Estado == "ACTIVO"); 
 
-            var query = _context.LoteFolio.AsQueryable().Where(lf => lf.Id_usuario == cobroRequest.IdCobrador && lf.Id_gremio == cobroRequest.IdGremio);
             var listaLotes = await _lote.Search(query);
+
+            // Ahora FirstOrDefault traerá el lote CORRECTO, no el primero que encuentre
             var lote = listaLotes.FirstOrDefault();
 
+            if (lote == null)
+            {
+                throw new Exception($"No se encontró un lote asignado que cubra el folio {numeroFolioActual} para este cobrador.");
+            }
+
+            // --- A partir de aquí, la lógica de negocio ---
 
             Recaudacion cobro = new()
             {
@@ -143,37 +158,21 @@ namespace Api.Business
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                // Validar que el folio no sea nulo y tenga la longitud mínima necesaria (5 + 6 = 11 caracteres)
-                if (!string.IsNullOrEmpty(cobroRequest.FolioRecibo) && cobroRequest.FolioRecibo.Length >= 11)
+                // Actualizamos el último usado
+                // Validamos para no retroceder el contador si por error llega un folio viejo
+                if (numeroFolioActual > lote.Ultimo_usado)
                 {
-                    // Validamos que lote no sea null
-                    if (lote == null)
-                        throw new Exception("Ocurrió un error al buscar el lote de folio cobrado en la base de datos.");
+                    lote.Ultimo_usado = numeroFolioActual;
+                    lote.Fecha_modificacion = DateTime.UtcNow;
 
-                    // Extraemos la cadena
-                    string parteNumerica = cobroRequest.FolioRecibo.Substring(5, 6);
-
-                    // Intentamos convertir de forma segura (TryParse)
-                    if (int.TryParse(parteNumerica, out int numeroFolio))
+                    if (lote.Ultimo_usado == lote.Rango_final)
                     {
-                        lote.Ultimo_usado = numeroFolio;
-                        lote.Fecha_modificacion = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        // Manejar el error: La parte extraída no eran números
-                        throw new Exception($"El folio '{cobroRequest.FolioRecibo}' no contiene un número válido en la posición esperada.");
+                        lote.Estado = "AGOTADO";
                     }
                 }
-                else
-                {
-                    // Manejar el error: El folio es muy corto o nulo
-                    throw new Exception("El formato del Folio Recibo es inválido o demasiado corto.");
-                }                
 
                 await _recaudacion.Create(cobro);
                 await _lote.Update(lote);
-                
 
                 transaction.Commit();
             }
@@ -202,7 +201,7 @@ namespace Api.Business
             SolicitudCancelacion nuevaSolicitud = new()
             {
                 Id_recaudacion = solicitud.IdRecaudacion,
-                Id_usuario_solicita = solicitud.IdUsuarioSolicita,               
+                Id_usuario_solicita = solicitud.IdUsuarioSolicita,
                 Fecha_solicitud = DateTime.UtcNow,
                 Motivo_solicitud = solicitud.MotivoSolicitud,
                 Estado_solicitud = "P" // P = Pendiente
