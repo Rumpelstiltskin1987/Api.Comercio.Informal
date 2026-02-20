@@ -1,6 +1,7 @@
 ﻿@* Este archivo no puede llamarse Folio porque causaría conflicto con la clase Api.Entities.Folio *@
 @page "/folio"
 @using Api.Entities
+@using Api.Entities.DTO
 @using Api.Business
 @inject BusinessRecaudacion _recaudacionService
 @inject IJSRuntime JSRuntime
@@ -42,7 +43,7 @@
         <div class="card shadow border-0 animate-fade-in card-folio-detalle">
             <div class="card-header bg-dark text-white text-uppercase py-3" style="padding-left:15px">
                 <div class="d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-info-circle me-2"></i> Detalles del Recibo: @cobro.Folio_Recibo</span>
+                    <span><i class="bi bi-info-circle me-2"></i> Detalles del Recibo: @cobro.FolioRecibo</span>
                     <span class="badge @(cobro.Estado == "A" ? "bg-success" : "bg-danger")">
                         @(cobro.Estado == "A" ? "ACTIVO" : "CANCELADO")
                     </span>
@@ -59,11 +60,11 @@
                                     <h6 class="text-guinda fw-bold text-uppercase mb-3">Información del Contribuyente</h6>
                                     <div class="mb-2">
                                         <label class="lbl-info">Nombre Completo:</label>
-                                        <p class="val-info">@(cobro.Padron != null ? $"{cobro.Padron.Nombre} {cobro.Padron.A_paterno} {cobro.Padron.A_materno}" : "No disponible")</p>
+                                        <p class="val-info">@(cobro.NombreContribuyente)</p>
                                     </div>
                                     <div class="mb-2">
                                         <label class="lbl-info">CURP:</label>
-                                        <p class="val-info">@(cobro.Padron?.Curp ?? "N/A")</p>
+                                        <p class="val-info">@(cobro.CurpContribuyente)</p>
                                     </div>
                                 </div>
                             </td>
@@ -76,7 +77,7 @@
                                     <div class="row">
                                         <div class="col-6 mb-2">
                                             <label class="lbl-info">Concepto:</label>
-                                            <p class="val-info">@(cobro.Concepto?.Descripcion ?? "General")</p>
+                                            <p class="val-info">@(cobro.Concepto)</p>
                                         </div>
                                         <div class="col-6 mb-2">
                                             <label class="lbl-info">Monto Cobrado:</label>
@@ -84,11 +85,11 @@
                                         </div>
                                         <div class="col-6 mb-2">
                                             <label class="lbl-info">Fecha y Hora de Cobro:</label>
-                                            <p class="val-info">@cobro.Fecha_cobro.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                                            <p class="val-info">@((cobro.FechaCobro.HasValue ? cobro.FechaCobro.Value.ToString("dd/MM/yyyy HH:mm:ss tt") : ""))</p>
                                         </div>
                                         <div class="col-6 mb-2">
                                             <label class="lbl-info">Cobrador:</label>
-                                            <p class="val-info">@(cobro.Cobrador != null ? $"{cobro.Cobrador.Nombre} {cobro.Cobrador.A_paterno} {cobro.Cobrador.A_materno}" : "No disponible")</p>
+                                            <p class="val-info">@(cobro.NombreCobrador)</p>
                                         </div>
                                     </div>
                                 </div>
@@ -140,7 +141,7 @@ else if (busquedaRealizada && !cargando)
 
 @code {
     private string folioBusqueda = "";
-    private Recaudacion? cobro;
+    private DtoRecaudacionDetalle? cobro;
     private bool cargando = false;
     private bool busquedaRealizada = false;
 
@@ -159,7 +160,7 @@ else if (busquedaRealizada && !cargando)
         try
         {
             // Mandamos el parámetro capturado
-            cobro = await _recaudacionService.GetByFolio(folioBusqueda.Trim());
+            cobro = await _recaudacionService.GetFolioDetail(folioBusqueda.Trim());
             busquedaRealizada = true;
 
             if (cobro == null)

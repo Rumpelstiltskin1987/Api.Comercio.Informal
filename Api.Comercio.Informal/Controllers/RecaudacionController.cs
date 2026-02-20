@@ -90,7 +90,7 @@ namespace Api.Comercio.Informal.Controllers
         {
             try
             {
-                var afiliados = await _recaudacion.Search(idCobrador, idConcepto, fechaInicio, fechaFin);
+                var afiliados = await _recaudacion.Search(idCobrador, idConcepto, fechaInicio, fechaFin, null);
 
                 if (!afiliados.Any())
                 {

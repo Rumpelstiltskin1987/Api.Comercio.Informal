@@ -151,7 +151,7 @@
             DateTime finUtc = TimeZoneInfo.ConvertTimeToUtc(finLocal, zonaMexico);
 
 
-            var resultado = await _recaudacionService.Search(idCobradorSeleccionado, null, inicioUtc, finUtc);
+            var resultado = await _recaudacionService.Search(idCobradorSeleccionado, null, inicioUtc, finUtc, "A");
             recaudacion = resultado.ToList();
 
             if (recaudacion.Any())

@@ -1,6 +1,7 @@
 ﻿using Api.Data.Access;
 using Api.Entities;
 using Api.Entities.DTO;
+using Api.Entities.Helpers;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -61,13 +62,16 @@ namespace Api.Business
                     Id = recaudacion.Id_recaudacion,
                     FolioRecibo = recaudacion.Folio_Recibo,
                     NombreContribuyente = $"{recaudacion.Padron?.Nombre} {recaudacion.Padron?.A_paterno} {recaudacion.Padron?.A_materno}".Trim(),
+                    CurpContribuyente = recaudacion.Padron?.Curp ?? string.Empty,
                     MatriculaContribuyente = recaudacion.Padron?.Matricula ?? string.Empty,
                     GremioContribuyente = recaudacion.Padron?.Gremio?.Descripcion ?? string.Empty,
                     Concepto = recaudacion.Concepto?.Descripcion ?? string.Empty,
                     Monto = recaudacion.Monto,
-                    FechaCobro = recaudacion.Fecha_cobro,
+                    FechaCobro = recaudacion.Fecha_cobro != default ? recaudacion.Fecha_cobro.ToLocal() : null,
                     NombreCobrador = recaudacion.Cobrador?.UserName ?? "DESCONOCIDO",
                     Estado = recaudacion.Estado,
+                    Latitud = recaudacion.Latitud,
+                    Longitud = recaudacion.Longitud
                 };
                 return detalle;
             }
@@ -77,7 +81,8 @@ namespace Api.Business
             }
         }
 
-        public async Task<IEnumerable<Recaudacion>> Search(int? idCobrador, int? idConcepto, DateTime? fechaInicio, DateTime? fechaFin)
+        public async Task<IEnumerable<Recaudacion>> Search(int? idCobrador, int? idConcepto, DateTime? fechaInicio, 
+            DateTime? fechaFin, string? estado)
         {
             var query = _context.Recaudacion.AsQueryable();
 
@@ -98,6 +103,11 @@ namespace Api.Business
             {
                 // Usamos operadores estándar >= y <= porque '.between' no existe en C# LINQ
                 query = query.Where(c => c.Fecha_cobro >= fechaInicio.Value && c.Fecha_cobro <= fechaFin);
+            }
+
+            if (!string.IsNullOrEmpty(estado))
+            {
+                query = query.Where(c => c.Estado == estado);
             }
 
             query = query.OrderBy(c => c.Fecha_cobro);
@@ -198,6 +208,17 @@ namespace Api.Business
             // Validar que la recaudación exista antes de agregar la solicitud de cancelación
             _ = await _recaudacion.GetById(solicitud.IdRecaudacion) ?? throw new Exception("La recaudación asociada no existe.");
             _ = await _usuario.GetById(solicitud.IdUsuarioSolicita.ToString()) ?? throw new Exception("El usuario solicitante no existe.");
+
+            // 1. Validar regla de negocio usando AnyAsync para máximo rendimiento
+            bool existePendiente = await _context.SolicitudCancelacion
+                .AnyAsync(s => s.Id_recaudacion == solicitud.IdRecaudacion
+                            && s.Estado_solicitud == "P");
+
+            if (existePendiente)
+            {
+                throw new Exception("Actualmente ya existe una solicitud de cancelación en revisión para este folio. Debe esperar a que sea resuelta.");
+            }
+
             SolicitudCancelacion nuevaSolicitud = new()
             {
                 Id_recaudacion = solicitud.IdRecaudacion,

@@ -101,7 +101,7 @@
             DateTime finLocal = DateTime.SpecifyKind(fechaFin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Unspecified);
             DateTime finUtc = TimeZoneInfo.ConvertTimeToUtc(finLocal, zonaMexico);
 
-            var resultado = await _recaudacionService.Search(null, null, inicioUtc, finUtc);
+            var resultado = await _recaudacionService.Search(null, null, inicioUtc, finUtc, "A");
             listado = resultado.ToList().AsQueryable();           
         }
         catch (Exception ex)
