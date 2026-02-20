@@ -74,6 +74,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(solicitud).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear la solicitud de cancelación: " + ex.InnerException.Message);
                 throw new Exception("Error al crear la solicitud de cancelación: " + ex.Message);
@@ -89,6 +90,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(solicitud).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar la solicitud de cancelación: " + ex.InnerException.Message);
                 throw new Exception("Error al actualizar la solicitud de cancelación: " + ex.Message);

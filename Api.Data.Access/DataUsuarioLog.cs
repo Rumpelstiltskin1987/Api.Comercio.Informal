@@ -21,6 +21,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(log).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el log: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el log: " + ex.Message);

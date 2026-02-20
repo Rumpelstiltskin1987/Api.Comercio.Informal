@@ -72,6 +72,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(lote).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Data Access: " + ex.InnerException.Message);
                 throw new Exception("Data Access: " + ex.Message);
@@ -87,6 +88,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(lote).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar el LoteFolio: " + ex.InnerException.Message);
 

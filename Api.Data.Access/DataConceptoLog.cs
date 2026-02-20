@@ -19,6 +19,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(conceptoLog).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el log del concepto: " + ex.InnerException.Message);
 

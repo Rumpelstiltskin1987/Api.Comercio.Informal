@@ -109,6 +109,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(recaudacion).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al registrar la recaudación: " + ex.InnerException.Message);
                 throw new Exception("Error al registrar la recaudación: " + ex.Message);
@@ -124,6 +125,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(recaudacion).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar la recaudación: " + ex.InnerException.Message);
 

@@ -303,6 +303,7 @@ using (var scope = app.Services.CreateScope())
             {
                 Descripcion = "EVENTUALES",
                 Id_lider = liderEventual.Id_lider,
+                Prefijo = "EVT",
                 Estado = "A",
                 Usuario_alta = "System"
             };
@@ -316,6 +317,7 @@ using (var scope = app.Services.CreateScope())
                 Id_gremio = gremioEventual.Id_gremio,
                 Descripcion = gremioEventual.Descripcion,
                 Lider = $"{liderEventual.Nombre} {liderEventual.A_paterno} {liderEventual.A_materno}",
+                Prefijo = gremioEventual.Prefijo,
                 Estado = gremioEventual.Estado,
                 Tipo_movimiento = "A",
                 Usuario_modificacion = gremioEventual.Usuario_alta,

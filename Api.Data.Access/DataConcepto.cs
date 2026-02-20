@@ -67,6 +67,7 @@ namespace Api.Data.Access
             }
             catch (Exception)
             {
+                context.Entry(Concepto).State = EntityState.Detached;
                 throw;
             }
         }
@@ -80,6 +81,7 @@ namespace Api.Data.Access
             }
             catch (Exception )
             {
+                context.Entry(Concepto).State = EntityState.Detached;
                 throw;
             }
         }

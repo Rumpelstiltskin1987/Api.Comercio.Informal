@@ -14,7 +14,7 @@ namespace Api.Interfaces
         public Task<Folio> GetById(int id);
         public Task Create(int id_gremio, string descripcion, string prefijo);
         public Task Update(int id, int id_gremio, string descripcion, string prefijo,
-            int siguiente_folio, int anio_vigente);
+            int siguiente_folio, int anio_vigente, int cantidadLote);
         public Task Delete(int id);
     }
 }

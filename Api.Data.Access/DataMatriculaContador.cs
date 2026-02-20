@@ -96,6 +96,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(matriculaContador).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear la matrícula: " + ex.InnerException.Message);
 
@@ -112,6 +113,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(matriculaContador).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar la matrícula: " + ex.InnerException.Message);
 

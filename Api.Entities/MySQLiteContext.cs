@@ -112,6 +112,7 @@ namespace Api.Entities
                 entity.HasKey(e => e.Id_gremio);
                 entity.Property(e => e.Descripcion).IsRequired();
                 entity.Property(e => e.Id_lider).IsRequired();
+                entity.Property(e => e.Prefijo).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
@@ -126,6 +127,7 @@ namespace Api.Entities
                 entity.Property(e => e.Id_gremio).IsRequired();
                 entity.Property(e => e.Descripcion).IsRequired();
                 entity.Property(e => e.Lider).IsRequired();
+                entity.Property(e => e.Prefijo).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();

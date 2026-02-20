@@ -75,6 +75,7 @@ namespace Api.Data.Access
             }
             catch (Exception)
             {
+                context.Entry(tarifa).State = EntityState.Detached;
                 throw;
             }
         }
@@ -88,6 +89,7 @@ namespace Api.Data.Access
             }
             catch (Exception)
             {
+                context.Entry(tarifa).State = EntityState.Detached;
                 throw;
             }
         }

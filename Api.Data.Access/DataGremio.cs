@@ -76,6 +76,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(gremio).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el gremio: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el gremio: " + ex.Message);
@@ -96,6 +97,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(gremio).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar el gremio: " + ex.InnerException.Message);
 
