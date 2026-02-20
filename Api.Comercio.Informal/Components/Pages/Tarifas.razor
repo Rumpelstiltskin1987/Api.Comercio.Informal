@@ -128,9 +128,20 @@ else
                     }
                 </select>
             </div>
-            <div class="col-md-6">
+            @* <div class="col-md-6">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Monto</label>
                 <input type="number" step="1" min="0" class="form-control" @bind="tarifa.Monto" />
+            </div> *@
+            <div class="col-md-6">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Monto</label>
+                <input type="text"
+                       inputmode="decimal"
+                       class="form-control"
+                       @bind="tarifa.Monto"
+                       oninput="var v = this.value.replace(/[^0-9.]/g, '');
+                    var p = v.split('.');
+                    var res = p.shift() + (p.length ? '.' + p.join('').slice(0, 2) : '');
+                    if (this.value !== res) this.value = res;" />
             </div>
         </div>
     </fieldset>

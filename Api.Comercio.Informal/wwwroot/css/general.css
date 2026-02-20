@@ -149,14 +149,18 @@
 
 /* 1. Definición de anchos de columnas (Total = 100%) */
 .grid-gremios th:nth-child(1) {
-    width: 40%;
+    width: 35;
 }
 /* Descripción */
 .grid-gremios th:nth-child(2) {
-    width: 40%;
+    width: 35;
 }
 /* Líder */
 .grid-gremios th:nth-child(3) {
+    width: 35;
+}
+/* Prefijo */
+.grid-gremios th:nth-child(4) {
     width: 20%;
 }
 /* Gestión */

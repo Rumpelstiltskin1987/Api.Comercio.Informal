@@ -100,7 +100,7 @@ else
     <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Descripción</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Descripción</label>
                 <input class="form-control" @bind="concepto.Descripcion" />
             </div>
         </div>
@@ -219,6 +219,7 @@ else
     {
         if (string.IsNullOrWhiteSpace(concepto.Descripcion))
         {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
 

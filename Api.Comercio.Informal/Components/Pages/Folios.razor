@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Api.Entities
 @using Api.Business
+@inject IJSRuntime JSRuntime
 @inject BusinessFolio _folioService
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
 @attribute [Authorize(Roles = "Superadmin , Supervisor")]
@@ -43,12 +44,23 @@
         {
             <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
                 <PropertyColumn Property="@(c => c.Gremio.Descripcion)" Sortable="true" Title="Gremio" />
-                <PropertyColumn Property="@(c => c.Prefijo)" Sortable="true" Title="Prefijo" />
                 <PropertyColumn Property="@(c => c.Siguiente_folio)" Sortable="true" Title="Consecutivo" />
-                <PropertyColumn Property="@(c => c.Anio_vigente)" Sortable="true" Title="Año Vigente" />
                 <TemplateColumn Title="Folio" SortBy="@ordenFolio">
                     @($"{context.Prefijo}{(context.Anio_vigente % 100)}{context.Siguiente_folio:D6}")
                 </TemplateColumn>
+                <PropertyColumn Property="@(c => c.Cantidad_lote)" Sortable="true" Title="CANTIDAD LOTE" />
+                <TemplateColumn Title="Gestión">
+                    @if (mostrarActivos)
+                    {
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                            <i class="bi bi-pencil-square fs-6"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
+                        </button>
+                    }
+                </TemplateColumn>
+
             </QuickGrid>
 
             <div class="paginator-container p-2 border-top bg-light">
@@ -58,11 +70,35 @@
     </div>
 </div>
 
+<SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarFolio" HideSaveButton="@soloLectura">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
+        <div class="row g-3">
+            @if (soloLectura)
+            {
+                <div class="col-12">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Gremio</label>
+                    <input class="form-control" @bind="folio.Gremio.Descripcion" />
+                </div>
+            }
+            <div class="col-12">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Cantidad Lote</label>
+                <input class="form-control" @bind="folio.Cantidad_lote" />
+            </div>
+        </div>
+    </fieldset>
+</SimpleModal>
+
 @code {
     // --- Datos ---
-    private IQueryable<Folio>? listado;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    private IQueryable<Folio>? listado;
+    private Folio? folio;
     private bool mostrarActivos = true;
+    private bool soloLectura = false;
+
+    // --- Modal ---
+    private bool mostrarModal = false;
+    private string tituloModal = "";
 
     private static readonly GridSort<Folio> ordenFolio = GridSort<Folio>
         .ByAscending(x => x.Prefijo)
@@ -106,4 +142,92 @@
             listado = null;
         }
     }
+
+    private void AbrirModalEditar(Folio item)
+    {
+        soloLectura = false;
+        folio = new()
+        {
+            Id_folio_serie = item.Id_folio_serie,
+            Id_gremio = item.Id_gremio,
+            Descripcion = item.Descripcion,
+            Prefijo = item.Prefijo,
+            Siguiente_folio = item.Siguiente_folio,
+            Anio_vigente = item.Anio_vigente,
+            Cantidad_lote = item.Cantidad_lote,
+            Gremio = item.Gremio != null ? new Gremio
+            {
+                Id_gremio = item.Gremio.Id_gremio,
+                Descripcion = item.Gremio.Descripcion,
+                Id_lider = item.Gremio.Id_lider,
+                Prefijo = item.Gremio.Prefijo,
+                Estado = item.Gremio.Estado,
+                Usuario_alta = item.Gremio.Usuario_alta,
+                Fecha_alta = item.Gremio.Fecha_alta
+            } : new Gremio()
+        };
+        tituloModal = "ACTUALIZACIÓN DE DATOS";
+        mostrarModal = true;
+    }
+
+    private void AbrirModalDetalle(Folio item)
+    {
+        soloLectura = true;
+        folio = new()
+        {
+            Id_folio_serie = item.Id_folio_serie,
+            Id_gremio = item.Id_gremio,
+            Descripcion = item.Descripcion,
+            Prefijo = item.Prefijo,
+            Siguiente_folio = item.Siguiente_folio,
+            Anio_vigente = item.Anio_vigente,
+            Cantidad_lote = item.Cantidad_lote,
+            Gremio = item.Gremio != null ? new Gremio
+            {
+                Id_gremio = item.Gremio.Id_gremio,
+                Descripcion = item.Gremio.Descripcion,
+                Id_lider = item.Gremio.Id_lider,
+                Prefijo = item.Gremio.Prefijo,
+                Estado = item.Gremio.Estado,
+                Usuario_alta = item.Gremio.Usuario_alta,
+                Fecha_alta = item.Gremio.Fecha_alta
+            } : new Gremio()
+        };
+        tituloModal = "DETALLES DEL FOLIO";
+        mostrarModal = true;
+    }
+
+    private void CerrarModal() => mostrarModal = false;
+
+    private async Task GuardarFolio()
+    {
+        if (string.IsNullOrWhiteSpace(folio?.Prefijo))
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            return;
+        }
+        try
+        {
+            await _folioService.Update(folio.Id_folio_serie, folio.Gremio.Id_gremio, folio.Descripcion,
+            folio.Prefijo, folio.Siguiente_folio, folio.Anio_vigente, folio.Cantidad_lote);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            return;
+        }
+
+        mostrarModal = false;
+
+        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title = "¡Éxito!",
+            text = "La información se guardó correctamente.",
+            icon = "success",
+            confirmButtonColor = "#9D2449"
+        });
+
+        await CargarDatos();
+    }
+
 }

@@ -302,10 +302,10 @@ namespace Api.Business
                         _ => log.Tipo_movimiento
                     },
                     Detalles = $"Matrícula: {log.Matricula} " +
-                               $"| Nombre: {log.Nombre} {log.A_paterno} {log.A_materno}" +
+                               $"| Nombre: {log.Nombre} {log.A_paterno} {log.A_materno} " +
                                $"| CURP: {log.Curp} " +
                                $"| Dirección: {log.Direccion} " +
-                               $"| Gremio: {log.Gremio}" +
+                               $"| Gremio: {log.Gremio} " +
                                $"| Teléfono: {log.Telefono} " +
                                $"| Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))} " +
                                $"| Email: {log.Email}"

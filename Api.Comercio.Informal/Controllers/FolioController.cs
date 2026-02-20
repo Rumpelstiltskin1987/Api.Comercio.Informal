@@ -74,11 +74,11 @@ namespace Api.Comercio.Informal.Controllers
         [Route("Update")]
         [HttpPost]
         public async Task<IActionResult> Update(int id, int id_gremio, string descripcion, string prefijo,
-            int siguiente_folio, int anio_vigente)
+            int siguiente_folio, int anio_vigente, int cantidadLote)
         {
             try
             {
-                await _folio.Update(id, id_gremio, descripcion, prefijo, siguiente_folio, anio_vigente);
+                await _folio.Update(id, id_gremio, descripcion, prefijo, siguiente_folio, anio_vigente, cantidadLote);
                 return Ok("Folio actualizado correctamente");
             }
             catch (Exception ex)

@@ -161,7 +161,7 @@ namespace Api.Business
                         "M" => "Modificación",
                         _ => log.Tipo_movimiento 
                     },
-                    Detalles = $"Nombre: {log.Nombre} {log.A_paterno} {log.A_materno}" +
+                    Detalles = $"Nombre: {log.Nombre} {log.A_paterno} {log.A_materno} " +
                                $"| Rol: {log.Rol} " +
                                $"| Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))} " +
                                $"| Email: {log.Email}"

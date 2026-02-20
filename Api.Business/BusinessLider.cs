@@ -163,9 +163,9 @@ namespace Api.Business
                     .AppendLine($"Nombre: {log.Nombre} | ")
                     .AppendLine($"A_paterno: {log.A_paterno} | ")
                     .AppendLine($"A_materno: {log.A_materno} | ")
-                    .AppendLine($"Telefono: {log.Telefono} |")
-                    .AppendLine($"Email: {log.Email} |")
-                    .AppendLine($"Direccion: {log.Direccion} |")
+                    .AppendLine($"Telefono: {log.Telefono} | ")
+                    .AppendLine($"Email: {log.Email} | ")
+                    .AppendLine($"Direccion: {log.Direccion} | ")
                     .AppendLine($"Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))}")
                     .ToString()
             }).ToList();

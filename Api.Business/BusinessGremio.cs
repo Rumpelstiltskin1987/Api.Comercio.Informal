@@ -2,6 +2,8 @@
 using Api.Entities;
 using Api.Entities.DTO;
 using Api.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +34,7 @@ namespace Api.Business
             return await _gremio.GetAll();
         }
 
-        
+
         public async Task<Gremio> GetById(int id)
         {
             return await _gremio.GetById(id);
@@ -60,20 +62,49 @@ namespace Api.Business
             return await _gremio.Search(query);
         }
 
-        public async Task Create(string descripcion, int id_lider, string usuario)
+        public async Task Create(string descripcion, int id_lider, string prefijoManual, string usuario)
         {
+            string prefijo = string.Empty;
+            string prefijoCalculado = descripcion.Length >= 3
+                ? descripcion[..3].ToUpper()
+                : descripcion.ToUpper();
+
+            bool existePrefijo = await _context.Gremio
+                .AnyAsync(g => g.Prefijo == prefijoCalculado);
+
+            if (existePrefijo && prefijoManual == null)
+            {                
+                throw new Exception($"El prefijo '{prefijoCalculado}' ya está ocupado por otro gremio. Por favor asigne un prefijo manual diferente.");
+            }
+
+            if (!string.IsNullOrEmpty(prefijoManual))
+            {
+                bool existePrefijoManual = await _context.Gremio
+                    .AnyAsync(g => g.Prefijo == prefijoManual.ToUpper());
+                if (existePrefijoManual)
+                {
+                    throw new Exception($"El prefijo manual '{prefijoManual}' ya está ocupado por otro gremio. Por favor asigne un prefijo manual diferente.");
+                }
+                prefijo = prefijoManual.ToUpper();
+            }
+            else
+            {
+                prefijo = prefijoCalculado;
+            }
+
             Gremio gremio = new()
             {
-                Descripcion = descripcion,
+                Descripcion = descripcion.ToUpper(),
                 Id_lider = id_lider,
-                Usuario_alta = usuario
+                Usuario_alta = usuario,
+                Prefijo = prefijo
             };
 
             using var transaction = _context.Database.BeginTransaction();
             try
             {
                 await _gremio.Create(gremio);
-                var lider =  await _lider.GetById(id_lider);
+                var lider = await _lider.GetById(id_lider);
 
                 GremioLog log = new()
                 {
@@ -81,6 +112,7 @@ namespace Api.Business
                     Id_gremio = gremio.Id_gremio,
                     Descripcion = gremio.Descripcion,
                     Lider = $"{lider.Nombre} {lider.A_paterno} {lider.A_materno}",
+                    Prefijo = gremio.Prefijo,
                     Estado = gremio.Estado,
                     Tipo_movimiento = "A",
                     Usuario_modificacion = gremio.Usuario_alta,
@@ -93,9 +125,7 @@ namespace Api.Business
                 {
                     Id_gremio = gremio.Id_gremio,
                     Descripcion = $"Folio correspondiente al gremio {gremio.Descripcion}",
-                    Prefijo = gremio.Descripcion.Length >= 3
-                    ? gremio.Descripcion[..3].ToUpper()
-                    : gremio.Descripcion.ToUpper()
+                    Prefijo = gremio.Prefijo
                 };
 
                 await _folio.Create(folio);
@@ -227,7 +257,7 @@ namespace Api.Business
             {
                 listaDb = await _gremio.Sincronizar(fSincronizacion);
             }
-                        
+
             lista = listaDb.Select(p => new DtoGremio
             {
                 IdGremio = p.Id_gremio,

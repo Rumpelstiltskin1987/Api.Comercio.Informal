@@ -50,6 +50,7 @@ else
         <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid grid-gremios">
             <PropertyColumn Property="@(c => c.Descripcion)" Sortable="true" Title="Descripción" />
             <PropertyColumn Property="@(c => c.Lider != null ? $"{c.Lider.Nombre} {c.Lider.A_paterno} {c.Lider.A_materno}" : string.Empty)" Sortable="true" Title="Lider" />
+            <PropertyColumn Property="@(c => c.Prefijo)" Title="Prefijo" />
 
             <TemplateColumn Title="Gestión">
                 <div class="d-flex gap-2">
@@ -103,11 +104,11 @@ else
     <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre del Gremio</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre</label>
                 <input class="form-control" @bind="gremio.Descripcion" />
             </div>
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Líder Asignado</label>
                 <select class="form-select" @bind="gremio.Id_lider">
                     <option value="0">-- Seleccione un líder --</option>
                     @if (lideres != null)
@@ -119,6 +120,18 @@ else
                     }
                 </select>
             </div>
+            @if (mostrarInputPrefijo)
+            {
+                <div class="col-12 mt-3">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Prefijo Manual</label>
+                    <input type="text"
+                           class="form-control text-uppercase"
+                           maxlength="3"
+                           placeholder="EJ: UGC"
+                           @bind="gremio.Prefijo" />
+                    <small class="text-danger mt-1 d-block"><i class="bi bi-exclamation-triangle"></i> El prefijo automático ya existe. Asigne un código de 3 letras.</small>
+                </div>
+            }
         </div>
     </fieldset>
 </SimpleModal>
@@ -148,6 +161,8 @@ else
     private bool mostrarModalHistorial = false;
     private bool cargandoLogs = false;
     private List<DtoHistorial>? historial;
+
+    private bool mostrarInputPrefijo = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -205,6 +220,7 @@ else
         gremio = new();
         tituloModal = "REGISTRO DE NUEVO GREMIO";
         mostrarModal = true;
+        mostrarInputPrefijo = false;
     }
 
     private void AbrirModalEditar(Gremio item)
@@ -219,6 +235,7 @@ else
         };
         tituloModal = "ACTUALIZACIÓN DE DATOS";
         mostrarModal = true;
+        mostrarInputPrefijo = false;
     }
 
     private void AbrirModalDetalle(Gremio item)
@@ -235,6 +252,7 @@ else
     {
         if (string.IsNullOrWhiteSpace(gremio.Descripcion) || gremio.Id_lider == 0)
         {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
         try
@@ -242,7 +260,7 @@ else
             if (gremio.Id_gremio == 0)
             {
                 await _gremioService.Create(
-                    gremio.Descripcion, gremio.Id_lider, usuario
+                    gremio.Descripcion, gremio.Id_lider, gremio.Prefijo, usuario
                 );
             }
             else
@@ -254,6 +272,12 @@ else
         }
         catch (Exception ex)
         {
+            if (ex.Message.Contains("ocupado por otro gremio") || ex.Message.Contains("ya está ocupado"))
+            {
+                mostrarInputPrefijo = true;
+                await JSRuntime.InvokeVoidAsync("Swal.fire", "Prefijo Duplicado", ex.Message, "warning");
+                return;
+            }
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
             return;
         }

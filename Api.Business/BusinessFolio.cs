@@ -63,11 +63,11 @@ namespace Api.Business
         }
 
         public async Task Update(int id, int id_gremio, string descripcion, string prefijo,
-            int siguiente_folio, int anio_vigente)
+            int siguiente_folio, int anio_vigente, int cantidadLote)
         {
             Folio folio = await _folio.GetById(id);
 
-            folio.Descripcion = descripcion;
+            folio.Cantidad_lote = cantidadLote;
 
             using var transaction = _context.Database.BeginTransaction();
             try
@@ -169,8 +169,15 @@ namespace Api.Business
                         };
 
                         // Generamos el lote (Modelo Dto que es el que se devolverá como respuesta)
+                        
+                        // Creamos el lote
+                        await _loteFolio.Create(nuevoLote);
+                        // Actualiziamos el folio
+                        await _folio.Update(folio);
+
                         DtoLoteFolio loteDto = new()
                         {
+                            IdLote = nuevoLote.Id_lote,
                             IdUsuario = idUsuario,
                             IdGremio = nuevoLote.Id_gremio,
                             Prefijo = folio.Prefijo ?? string.Empty,
@@ -179,10 +186,7 @@ namespace Api.Business
                             FolioFinal = nuevoLote.Rango_final,
                             UltimoUsado = nuevoLote.Ultimo_usado
                         };
-                        // Creamos el lote
-                        await _loteFolio.Create(nuevoLote);
-                        // Actualiziamos el folio
-                        await _folio.Update(folio);
+
                         transaction.Commit();
                         // Añadimos el lote a la lista
                         listadoLotes.Add(loteDto);

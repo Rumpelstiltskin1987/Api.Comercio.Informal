@@ -58,12 +58,12 @@ namespace Api.Comercio.Informal.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<IActionResult> Create(string descripcion, int id_lider, string usuario)
+        public async Task<IActionResult> Create(string descripcion, int id_lider, string prefijo, string usuario)
         {
             try
             {
 
-                await _gremio.Create(descripcion, id_lider, usuario);
+                await _gremio.Create(descripcion, id_lider, prefijo, usuario);
                 return Ok("Gremio creado correctamente");
             }
             catch (Exception ex)

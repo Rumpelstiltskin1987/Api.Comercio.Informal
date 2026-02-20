@@ -3,7 +3,7 @@
 @using Api.Entities
 @using Api.Entities.DTO
 @using Api.Business
-@using Api.Comercio.Informal.Helpers
+@using Api.Entities.Helpers
 @using QuestPDF.Fluent
 @using QuestPDF.Helpers
 @using QuestPDF.Infrastructure
@@ -260,12 +260,6 @@
                             table.Cell().Element(ApplyCellStyle).Text(item.Concepto?.Descripcion ?? "");
                             table.Cell().Element(ApplyCellStyle).AlignRight().Text(item.Monto.ToString("C2"));
                         }
-
-                        // table.Footer(footer =>
-                        // {
-                        //     footer.Cell().ColumnSpan(4).Padding(5).AlignRight().Text("TOTAL RECAUDADO:").Bold();
-                        //     footer.Cell().AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2")).Bold().FontSize(10).FontColor("#9D2449");
-                        // });
                     });
 
                     // Elementi 2: EL TOTAL ÚNICO 
