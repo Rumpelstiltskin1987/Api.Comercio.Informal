@@ -141,6 +141,13 @@ namespace Api.Business
 
         public async Task Update(int id, string descripcion, int id_lider, string status, string usuario)
         {
+            Folio folio = await _folio.GetByGremioId(id);
+
+            if (folio.Siguiente_folio > 1)
+            {
+                throw new Exception("No se puede modificar el gremio porque ya se han generado folios asociados a él.");
+            }
+
             Gremio gremio = await _gremio.GetById(id);
 
             gremio.Descripcion = descripcion;
@@ -162,6 +169,7 @@ namespace Api.Business
                     Id_gremio = gremio.Id_gremio,
                     Descripcion = gremio.Descripcion,
                     Lider = $"{lider.Nombre} {lider.A_paterno} {lider.A_materno}",
+                    Prefijo = gremio.Prefijo,
                     Estado = gremio.Estado,
                     Tipo_movimiento = "M",
                     Usuario_modificacion = gremio.Usuario_modificacion,
@@ -170,11 +178,11 @@ namespace Api.Business
 
                 await _gremioLog.AddLog(log);
 
-                var query = _context.Folio.AsQueryable();
-                query = query.Where(f => f.Id_gremio == gremio.Id_gremio);
+                //var query = _context.Folio.AsQueryable();
+                //query = query.Where(f => f.Id_gremio == gremio.Id_gremio);
 
-                var folios = await _folio.Search(query);
-                Folio? folio = folios.FirstOrDefault();
+                //var folios = await _folio.Search(query);
+                //Folio? folio = folios.FirstOrDefault();
 
                 if (folio != null)
                 {

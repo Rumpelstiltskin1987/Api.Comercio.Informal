@@ -7,6 +7,7 @@
 @using Api.Entities
 @using Api.Entities.DTO
 @using Api.Comercio.Informal.Components.Layout
+@using System.Text.Json
 @inject IJSRuntime JSRuntime
 @inject UserManager<Api.Entities.Usuario> _userManager
 @inject RoleManager<IdentityRole<int>> _roleManager
@@ -73,6 +74,10 @@ else
                 {
                     @if (mostrarActivos)
                     {
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Resetear Contraseña"
+                                @onclick="() => ConfirmarReseteo(context)">
+                            <i class="bi bi-key-fill fs-6"></i>
+                        </button>
                         <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
                             <i class="bi bi-pencil-square fs-6"></i>
                         </button>
@@ -140,7 +145,7 @@ else
             </div>
 
             @* Solo mostramos contraseña si es un registro NUEVO (Id == 0) *@
-            @if (inputModel.Id == 0)
+            @* @if (inputModel.Id == 0)
             {
                 <div class="col-md-6">
                     <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Contraseña</label>
@@ -149,7 +154,7 @@ else
                         <input type="password" class="form-control" @bind="inputModel.Password" placeholder="Mínimo 6 caracteres" />
                     </div>
                 </div>
-            }
+            } *@
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Rol Asignado</label>
                 <select class="form-select" @bind="inputModel.Rol">
@@ -283,6 +288,8 @@ else
             string.IsNullOrWhiteSpace(inputModel.Nombre) ||
             string.IsNullOrWhiteSpace(inputModel.A_paterno) ||
             string.IsNullOrWhiteSpace(inputModel.A_materno) ||
+            string.IsNullOrWhiteSpace(inputModel.Email) ||
+            string.IsNullOrWhiteSpace(inputModel.PhoneNumber) ||
             string.IsNullOrWhiteSpace(inputModel.Rol))
         {
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
@@ -290,11 +297,11 @@ else
         }
 
         // Validar contraseña para nuevos usuarios
-        if (inputModel.Id == 0 && string.IsNullOrWhiteSpace(inputModel.Password))
-        {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La contraseña es obligatoria para nuevos usuarios.", "warning");
-            return;
-        }
+        // if (inputModel.Id == 0 && string.IsNullOrWhiteSpace(inputModel.Password))
+        // {
+        //     await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La contraseña es obligatoria para nuevos usuarios.", "warning");
+        //     return;
+        // }
 
         try
         {
@@ -370,6 +377,38 @@ else
         finally
         {
             cargandoLogs = false;
+        }
+    }
+
+    // Método para reseteo de password olvidado
+    private async Task ConfirmarReseteo(DtoUsuario item)
+    {
+        var opciones = new
+        {
+            title = "¿Resetear contraseña?",
+            text = $"Se generará una nueva contraseña temporal para {item.Nombre} y se enviará por correo.",
+            icon = "warning",
+            showCancelButton = true,
+            confirmButtonColor = "#ffc107",
+            cancelButtonColor = "#6c757d",
+            confirmButtonText = "Sí, resetear",
+            cancelButtonText = "Cancelar"
+        };
+
+        var resultado = await JSRuntime.InvokeAsync<JsonElement>("Swal.fire", opciones);
+
+        if (resultado.TryGetProperty("isConfirmed", out var isConfirmed) && isConfirmed.GetBoolean())
+        {
+            try
+            {                
+                await _serviceUsuario.ResetearPassword(item.Id.ToString(), usuario);
+
+                await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", "Contraseña reseteada y enviada por correo.", "success");
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
+            }
         }
     }
 }

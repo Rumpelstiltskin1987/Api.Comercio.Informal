@@ -103,10 +103,12 @@ namespace Api.Business
         {
             List<DtoLoteFolio> listadoLotes = [];
             var usuario = _usuario.GetById(idUsuario.ToString()).Result;
-           
+            
+            var queryGremio = _context.Gremio.AsQueryable()
+                .Where(g => g.Estado == "A");
 
             // Traemos la lista de gremios
-            var gremios = (await _gremio.GetAll()).ToList();
+            var gremios = await _gremio.Search(queryGremio);
 
             // Iteramos para reservar folios para cada gremio
             foreach (var g in gremios)
@@ -115,13 +117,13 @@ namespace Api.Business
                 var folio = _folio.GetByGremioId(g.Id_gremio).Result;
 
                 // Verificar si el usuario ya tiene un lote ACTIVO y con folios disponibles
-                var query = _context.LoteFolio.AsQueryable()
+                var queryLote = _context.LoteFolio.AsQueryable()
                     .Where(l => l.Id_usuario == idUsuario
                     && l.Id_gremio == g.Id_gremio
                     && l.Estado == "ACTIVO")
                     .OrderBy(l => l.Id_lote);
 
-                var loteActivo = _loteFolio.Search(query)
+                var loteActivo = _loteFolio.Search(queryLote)
                     .Result.FirstOrDefault();
 
                 // Si aún tiene folios, le devolvemos el mismo lote

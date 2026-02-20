@@ -2,6 +2,7 @@
 using Api.Comercio.Informal.Components;
 using Api.Comercio.Informal.Helpers;
 using Api.Entities;
+using Api.Business.Services;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -140,6 +141,7 @@ builder.Services.AddScoped<Api.Business.BusinessTarifa>();
 builder.Services.AddScoped<Api.Business.BusinessUsuario>();
 builder.Services.AddScoped<Api.Business.BusinessRol>();
 builder.Services.AddScoped<Api.Business.BusinessSolicitudCancelacion>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 #endregion
 
