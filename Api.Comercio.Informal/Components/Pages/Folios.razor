@@ -15,10 +15,6 @@
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
-    @* <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
-        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
-    </button> *@
-
     <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
         @if (mostrarActivos)
         {
@@ -76,12 +72,28 @@
             @if (soloLectura)
             {
                 <div class="col-12">
-                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Gremio</label>
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Gremio</label>
                     <input class="form-control" @bind="folio.Gremio.Descripcion" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Prefijo</label>
+                    <input class="form-control" @bind="folio.Prefijo" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Consecutivo</label>
+                    <input class="form-control" @bind="folio.Siguiente_folio" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Año Vigente</label>
+                    <input class="form-control" @bind="folio.Anio_vigente" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Folio</label>
+                    <input class="form-control" value="@folio.FolioFormateado" readonly />
                 </div>
             }
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Cantidad Lote</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Cantidad Lote</label>
                 <input class="form-control" @bind="folio.Cantidad_lote" />
             </div>
         </div>
@@ -203,31 +215,29 @@
     {
         if (string.IsNullOrWhiteSpace(folio?.Prefijo))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
         try
         {
             await _folioService.Update(folio.Id_folio_serie, folio.Gremio.Id_gremio, folio.Descripcion,
             folio.Prefijo, folio.Siguiente_folio, folio.Anio_vigente, folio.Cantidad_lote);
+
+            mostrarModal = false;
+            await CargarDatos();
+
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "¡Éxito!",
+                text = "La información se guardó correctamente.",
+                icon = "success",
+                confirmButtonColor = "#9D2449"
+            });
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
             return;
         }
-
-        mostrarModal = false;
-
-        await JSRuntime.InvokeVoidAsync("Swal.fire", new
-        {
-            title = "¡Éxito!",
-            text = "La información se guardó correctamente.",
-            icon = "success",
-            confirmButtonColor = "#9D2449"
-        });
-
-        await CargarDatos();
     }
-
 }

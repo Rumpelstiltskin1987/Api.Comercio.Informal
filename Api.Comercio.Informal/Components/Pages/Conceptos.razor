@@ -8,7 +8,7 @@
 @inject BusinessConcepto _conceptoService
 @inject NavigationManager NavManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "Superadmin, Supervisor")]
+@attribute [Authorize(Roles = "Superadmin, Supervisor, IT Manager")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
@@ -145,7 +145,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -169,7 +169,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -219,7 +219,7 @@ else
     {
         if (string.IsNullOrWhiteSpace(concepto.Descripcion))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
 
@@ -240,8 +240,9 @@ else
             }
 
             mostrarModal = false;
+            await CargarDatos();
 
-            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
             {
                 title = "¡Éxito!",
                 text = "La información se guardó correctamente.",
@@ -254,9 +255,7 @@ else
             string mensajeUsuario = SqliteErrorHelper.ObtenerMensajeAmigable(ex);
             await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {mensajeUsuario}", "error");
             return;
-        }
-
-        await CargarDatos();
+        }        
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)
@@ -265,17 +264,16 @@ else
         try
         {
             await _conceptoService.Update(
-            item.Id_concepto, item.Descripcion, estado, usuario
-        );
+            item.Id_concepto, item.Descripcion, estado, usuario);
 
             await CargarDatos();
 
             var accion = estado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
         }
     }
 
@@ -291,7 +289,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
             mostrarModalHistorial = false;
         }
         finally

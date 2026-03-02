@@ -112,11 +112,14 @@ else
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarUsuario" HideSaveButton="@soloLectura">
     <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
-            <div class="col-md-6">
+            @* <div class="col-md-6">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Usuario</label>
                 <input class="form-control" @bind="inputModel.UserName" />
+            </div> *@
+            <div class="col-md-6">
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Usuario</label>
+                <input class="form-control" @bind="inputModel.UserName" disabled="@(inputModel.Id != 0)" />
             </div>
-
             <div class="col-md-6">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre(s)</label>
                 <input class="form-control" @bind="inputModel.Nombre" />
@@ -130,31 +133,19 @@ else
                 <input class="form-control" @bind="inputModel.A_materno" />
             </div>
             <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold">Teléfono</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lbl-required">Teléfono</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
                     <input class="form-control" @bind="inputModel.PhoneNumber" placeholder="10 dígitos" />
                 </div>
             </div>
             <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold">Correo Electrónico</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lbl-required">Correo Electrónico</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
                     <input class="form-control" @bind="inputModel.Email" placeholder="oficial@dominio.gob" />
                 </div>
             </div>
-
-            @* Solo mostramos contraseña si es un registro NUEVO (Id == 0) *@
-            @* @if (inputModel.Id == 0)
-            {
-                <div class="col-md-6">
-                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Contraseña</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
-                        <input type="password" class="form-control" @bind="inputModel.Password" placeholder="Mínimo 6 caracteres" />
-                    </div>
-                </div>
-            } *@
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Rol Asignado</label>
                 <select class="form-select" @bind="inputModel.Rol">
@@ -220,7 +211,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -292,16 +283,9 @@ else
             string.IsNullOrWhiteSpace(inputModel.PhoneNumber) ||
             string.IsNullOrWhiteSpace(inputModel.Rol))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
-
-        // Validar contraseña para nuevos usuarios
-        // if (inputModel.Id == 0 && string.IsNullOrWhiteSpace(inputModel.Password))
-        // {
-        //     await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La contraseña es obligatoria para nuevos usuarios.", "warning");
-        //     return;
-        // }
 
         try
         {
@@ -311,32 +295,40 @@ else
                 inputModel.Usuario_alta = usuario;
                 await _serviceUsuario.Create(inputModel);
 
+                mostrarModal = false;
+                await CargarUsuarios();
 
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
+                {
+                    title = "¡Éxito!",
+                    text = $"Se registró el usuario {inputModel.UserName} con el rol de {inputModel.Rol}.",
+                    icon = "success",
+                    confirmButtonColor = "#9D2449"
+                });
             }
             // Si no, es una actualización
             else
             {
                 inputModel.Usuario_modificacion = usuario;
                 await _serviceUsuario.Update(inputModel);
-            }
+
+                mostrarModal = false;
+                await CargarUsuarios();
+
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
+                {
+                    title = "¡Éxito!",
+                    text = $"Se actualizó el usuario {inputModel.UserName} con el rol de {inputModel.Rol}.",
+                    icon = "success",
+                    confirmButtonColor = "#9D2449"
+                });
+            }            
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
             return;
-        }
-
-        mostrarModal = false;
-
-        await JSRuntime.InvokeVoidAsync("Swal.fire", new
-        {
-            title = "¡Éxito!",
-            text = $"Se registró el usuario {inputModel.UserName} con el rol de {inputModel.Rol}.",
-            icon = "success",
-            confirmButtonColor = "#9D2449"
-        });
-
-        await CargarUsuarios();
+        } 
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)
@@ -351,11 +343,11 @@ else
             await _serviceUsuario.Update(inputModel);
             await CargarUsuarios();
             var accion = estado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
         }
     }
 
@@ -371,7 +363,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
             mostrarModalHistorial = false;
         }
         finally
@@ -403,11 +395,11 @@ else
             {                
                 await _serviceUsuario.ResetearPassword(item.Id.ToString(), usuario);
 
-                await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", "Contraseña reseteada y enviada por correo.", "success");
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", "Contraseña reseteada y enviada por correo.", "success");
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", ex.Message, "error");
             }
         }
     }

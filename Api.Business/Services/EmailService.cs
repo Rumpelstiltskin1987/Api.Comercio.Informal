@@ -36,7 +36,7 @@ namespace Api.Business.Services
             // Plantilla HTML profesional básica
             string cuerpoHtml = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px;'>
-                    <h2 style='color: #198754; text-align: center;'>SIRCIN</h2>
+                    <h2 style='color: #9D2449; text-align: center;'>SISRECOIN</h2>
                     <p>Hola,</p>
                     <p>{(esReseteo ? "Se ha solicitado un reseteo de tu contraseña." : "Tu cuenta ha sido creada exitosamente en el sistema.")}</p>
                     <p>Tus credenciales de acceso son:</p>

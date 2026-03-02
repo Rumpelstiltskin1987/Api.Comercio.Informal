@@ -9,7 +9,7 @@
 @inject BusinessGremio _gremioService
 @inject NavigationManager NavManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "Superadmin, Supervisor")]
+@attribute [Authorize(Roles = "Superadmin, Supervisor, IT Manager")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />
@@ -252,7 +252,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -283,7 +283,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
 
@@ -340,31 +340,31 @@ else
         string.IsNullOrWhiteSpace(registro.Direccion) ||
         string.IsNullOrWhiteSpace(registro.Telefono))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
 
         if (registro.Id_gremio == 0)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un gremio", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un gremio", "warning");
             return;
         }
 
         if (registro.Tipo_vendedor == "0")
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un tipo de vendedor", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un tipo de vendedor", "warning");
             return;
         }
 
         if (registro.Telefono.Length != 10 || !registro.Telefono.All(char.IsDigit))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El número de teléfono debe tener 10 dígitos numéricos", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El número de teléfono debe tener 10 dígitos numéricos", "warning");
             return;
         }
 
         if (registro.Curp.Length != 18)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La CURP debe tener 18 caracteres", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La CURP debe tener 18 caracteres", "warning");
             return;
         }
 
@@ -389,20 +389,19 @@ else
             }
 
             mostrarModal = false;
+            await CargarDatos();
 
-            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
             {
                 title = "¡Éxito!",
                 text = "La información se guardó correctamente.",
                 icon = "success",
                 confirmButtonColor = "#9D2449"
-            });
-
-            await CargarDatos();
+            });            
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -424,11 +423,11 @@ else
 
             // Mensaje dinámico según la acción
             var accion = nuevoEstado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al actualizar el estado: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al actualizar el estado: {ex.Message}", "error");
         }
     }
 
@@ -486,7 +485,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
             mostrarModalHistorial = false;
         }
         finally

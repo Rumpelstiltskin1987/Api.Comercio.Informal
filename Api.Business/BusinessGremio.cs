@@ -145,7 +145,7 @@ namespace Api.Business
 
             if (folio.Siguiente_folio > 1)
             {
-                throw new Exception("No se puede modificar el gremio porque ya se han generado folios asociados a él.");
+                throw new Exception("No se puede modificar el gremio porque ya se han generado lotes de folios asociados a él.");
             }
 
             Gremio gremio = await _gremio.GetById(id);

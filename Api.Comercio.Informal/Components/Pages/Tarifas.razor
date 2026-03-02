@@ -10,7 +10,7 @@
 @inject BusinessGremio _gremioService
 @inject NavigationManager NavManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "Superadmin, Supervisor")]
+@attribute [Authorize(Roles = "Superadmin, Supervisor, IT Manager")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
@@ -104,7 +104,7 @@ else
         <div class="row g-3">
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Concepto Asignado</label>
-                <select class="form-select" @bind="tarifa.Id_concepto">
+                <select class="form-select" @bind="tarifa.Id_concepto" disabled="@(tarifa.Id_tarifa != 0)">
                     <option value="0">-- Seleccione un Concepto --</option>
                     @if (conceptos != null)
                     {
@@ -112,12 +112,12 @@ else
                         {
                             <option value="@concepto.Id_concepto">@(concepto.Descripcion)</option>
                         }
-                    }
-                </select>
+                    }                    
+                </select>                
             </div>
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Gremio Asignado</label>
-                <select class="form-select" @bind="tarifa.Id_gremio">
+                <select class="form-select" @bind="tarifa.Id_gremio" disabled="@(tarifa.Id_tarifa != 0)">
                     <option value="0">-- Seleccione un gremio --</option>
                     @if (gremios != null)
                     {
@@ -128,10 +128,6 @@ else
                     }
                 </select>
             </div>
-            @* <div class="col-md-6">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Monto</label>
-                <input type="number" step="1" min="0" class="form-control" @bind="tarifa.Monto" />
-            </div> *@
             <div class="col-md-6">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Monto</label>
                 <input type="text"
@@ -189,7 +185,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -225,7 +221,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -280,20 +276,20 @@ else
     {
         if (tarifa.Id_concepto <= 0)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Seleccione un concepto", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Seleccione un concepto", "warning");
             return;
         }
 
         if (tarifa.Id_gremio <= 0)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Seleccione un gremio", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Seleccione un gremio", "warning");
             return;
         }
 
 
         if (tarifa.Monto <= 0)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El monto no puede ser cero", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El monto no puede ser cero", "warning");
             return;
         }
 
@@ -313,25 +309,24 @@ else
                     tarifa.Estado, usuario
                 );
             }
+
+            mostrarModal = false;
+            await CargarDatos();
+
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "¡Éxito!",
+                text = "La información se guardó correctamente.",
+                icon = "success",
+                confirmButtonColor = "#9D2449"
+            });
         }
         catch (Exception ex)
         {
             string mensajeUsuario = SqliteErrorHelper.ObtenerMensajeAmigable(ex);
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {mensajeUsuario}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {mensajeUsuario}", "error");
             return;
         }
-
-        mostrarModal = false;
-
-        await JSRuntime.InvokeVoidAsync("Swal.fire", new
-        {
-            title = "¡Éxito!",
-            text = "La información se guardó correctamente.",
-            icon = "success",
-            confirmButtonColor = "#9D2449"
-        });
-
-        await CargarDatos();
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)
@@ -347,11 +342,11 @@ else
             await CargarDatos();
 
             var accion = estado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
         }
     }
 
@@ -367,7 +362,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
             mostrarModalHistorial = false;
         }
         finally

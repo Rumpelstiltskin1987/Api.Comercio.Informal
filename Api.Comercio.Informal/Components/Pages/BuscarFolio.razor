@@ -5,6 +5,8 @@
 @using Api.Business
 @inject BusinessRecaudacion _recaudacionService
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin , Supervisor, Cobrador")]
 @rendermode InteractiveServer
 
 <PageTitle>Búsqueda de Folio</PageTitle>

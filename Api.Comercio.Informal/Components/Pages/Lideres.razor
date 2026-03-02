@@ -9,7 +9,7 @@
 @inject BusinessLider _liderService
 @inject NavigationManager NavManager
 @inject AuthenticationStateProvider GetAuthenticationStateProvider
-@attribute [Authorize(Roles = "Superadmin, Supervisor")]
+@attribute [Authorize(Roles = "Superadmin, Supervisor, IT Manager")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />
@@ -178,7 +178,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -202,7 +202,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -253,44 +253,51 @@ else
         string.IsNullOrWhiteSpace(lider.Direccion) ||
         string.IsNullOrWhiteSpace(lider.Telefono))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
 
         if (lider.Telefono.Length != 10 || !lider.Telefono.All(char.IsDigit))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El número de teléfono debe tener 10 dígitos numéricos", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El número de teléfono debe tener 10 dígitos numéricos", "warning");
             return;
         }
 
-        if (lider.Id_lider == 0)
+        try
         {
-            await _liderService.Create(
-                lider.Nombre, lider.A_paterno, lider.A_materno,
-                lider.Telefono, lider.Email, lider.Direccion,
-                usuario
-            );
+            if (lider.Id_lider == 0)
+            {
+                await _liderService.Create(
+                    lider.Nombre, lider.A_paterno, lider.A_materno,
+                    lider.Telefono, lider.Email, lider.Direccion,
+                    usuario
+                );
+            }
+            else
+            {
+                await _liderService.Update(
+                    lider.Id_lider, lider.Nombre, lider.A_paterno, lider.A_materno,
+                    lider.Telefono, lider.Email, lider.Direccion, lider.Estado,
+                    usuario
+                );
+            }
+
+            mostrarModal = false;
+            await CargarDatos();
+
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "¡Éxito!",
+                text = "La información se guardó correctamente.",
+                icon = "success",
+                confirmButtonColor = "#9D2449"
+            });
         }
-        else
+        catch (Exception ex)
         {
-            await _liderService.Update(
-                lider.Id_lider, lider.Nombre, lider.A_paterno, lider.A_materno,
-                lider.Telefono, lider.Email, lider.Direccion, lider.Estado,
-                usuario
-            );
-        }
-
-        mostrarModal = false;
-
-        await JSRuntime.InvokeVoidAsync("Swal.fire", new
-        {
-            title = "¡Éxito!",
-            text = "La información se guardó correctamente.",
-            icon = "success",
-            confirmButtonColor = "#9D2449"
-        });
-
-        await CargarDatos();
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            return;
+        }   
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)
@@ -304,11 +311,11 @@ else
             );
             await CargarDatos();
             var accion = estado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+            _ =  JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
         }
     }
 
@@ -324,7 +331,7 @@ else
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
             mostrarModalHistorial = false;
         }
         finally

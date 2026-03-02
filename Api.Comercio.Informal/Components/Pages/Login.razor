@@ -62,14 +62,25 @@
 
     public async Task LoginUser()
     {
+        // Obtener el usuario para revisar la bandera
+        var user = await SignInManager.UserManager.FindByNameAsync(Input.UserName);
+
+        // Bloquear usuarios inactivos
+        if (user != null && user.Estado == "I")
+        {
+            // Deslogueamos al usuario inmediatamente por seguridad
+            await SignInManager.SignOutAsync();
+
+            // Mostramos el mensaje de error
+            errorMessage = "Su cuenta ha sido dada de baja. Contacte al administrador.";
+            return; // Detenemos el flujo aquí
+        }
+
         // Validar credenciales
         var result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, isPersistent: true, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
-            // Obtener el usuario para revisar la bandera
-            var user = await SignInManager.UserManager.FindByNameAsync(Input.UserName);
-
             if (user != null && user.EsPasswordTemporal)
             {
                 // Si es temporal, redirigir OBLIGATORIAMENTE a cambiar password

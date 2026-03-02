@@ -516,7 +516,7 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
 /* Contenedor principal que abarca toda la pantalla */
 .login-bg {
     /*background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/img/SISCOIN.png') no-repeat center center fixed;*/
-    background: url('/img/SISCOIN.png') no-repeat center center fixed;
+    background: url('/img/SISRECOIN.png') no-repeat center center fixed;
     background-size: cover;
     height: 100vh;
     width: 100%;

@@ -127,7 +127,7 @@ builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme, o
 
 #endregion
 
-#region Injeccion de la capa de negocios  
+#region Injeccion de dependencias
 
 // Tus Servicios de Negocio (Se reutilizan perfectamente en Blazor)
 //builder.Services.AddScoped<Api.Business.BusinessCobrador>();
@@ -332,7 +332,8 @@ using (var scope = app.Services.CreateScope())
 
         // 3. Crear el folio para el gremio EVENTUALES si no existe
         var folioEventual = await context.Folio
-            .FirstOrDefaultAsync(f => f.Id_gremio == gremioEventual.Id_gremio);
+            .FirstOrDefaultAsync(f => f.Id_gremio == gremioEventual.Id_gremio &&
+            f.Anio_vigente == DateTime.Now.Year);
 
         if (folioEventual == null)
         {
