@@ -137,7 +137,7 @@ else
             {
                 <div class="col-12">
                     <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Matricula Anterior</label>
-                    <input class="form-control lbl-required" @bind="registro.Matricula" />
+                    <input class="form-control lbl-required" @bind="registro.Matricula_anterior" />
                 </div>
             }
             <div class="col-12">
@@ -260,6 +260,13 @@ else
     private async Task CargarDatos()
     {
         var lista = await _padronService.GetAll();
+
+        if (EsModoAuditoria)
+        {
+            // En modo auditoría mostramos todo sin filtrar
+            listado = lista.AsQueryable();
+            return;
+        }
 
         var filtrados = mostrarActivos
             ? lista.Where(c => c.Estado == "A")

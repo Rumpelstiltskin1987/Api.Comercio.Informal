@@ -168,7 +168,7 @@ CREATE TABLE Padron (
 	Nombre TEXT NOT NULL,
 	A_paterno TEXT NOT NULL,
 	A_materno TEXT NOT NULL,
-	Curp TEXT NOT NULL,
+	Curp TEXT NOT NULL UNIQUE,
 	Direccion TEXT,
 	Telefono TEXT,
 	Email TEXT,

@@ -226,6 +226,13 @@ else
 
         var lista = await _serviceUsuario.GetAll();
 
+        if (EsModoAuditoria)
+        {
+            // En modo auditoría mostramos todo sin filtrar
+            listado = lista.AsQueryable();
+            return;
+        }
+
         var filtrados = mostrarActivos
             ? lista.Where(u => u.Estado == "A")
             : lista.Where(u => u.Estado == "I");

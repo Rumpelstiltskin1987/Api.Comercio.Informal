@@ -2,6 +2,7 @@
 using Api.Entities;
 using Api.Entities.DTO;
 using Api.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -121,6 +122,16 @@ namespace Api.Business
         {
             MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
             string matricula;
+            bool curpExiste;
+
+            // Validar si ya existe la CURP en la base de datos
+            curpExiste = await _context.Padron.AnyAsync(c => c.Curp == curp);
+
+            // Detener el proceso si hay duplicado
+            if (curpExiste)
+            {
+                throw new Exception("Ya existe un contribuyente registrado en el padrón con esta CURP.");
+            }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -138,7 +149,7 @@ namespace Api.Business
                     await _dataMatriculaContador.Create(matriculaContador);
                 }
                 else
-                {                    
+                {
                     matricula = tipo + DateTime.Now.Year % 100 + matriculaContador.Siguiente_numero.ToString("D5");
                     matriculaContador.Siguiente_numero += 1;
                     await _dataMatriculaContador.Update(matriculaContador);
@@ -199,40 +210,72 @@ namespace Api.Business
             int id_gremio, string tipo, string status, string usuario)
         {
             Padron padron = await _dataPadron.GetById(id);
-            MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
             string matriculaActual = padron.Matricula;
             string tipoActual = padron.Tipo_vendedor;
-            string matriculaNueva;
+            bool curpExiste;
 
-            if (tipoActual != tipo)
+            // Validar si ya existe la CURP en la base de datos descartando el id actual
+            curpExiste = await _context.Padron.AnyAsync(c => c.Curp == curp && c.Id_padron != id);
+
+            // Detener el proceso si hay duplicado
+            if (curpExiste)
             {
-                matriculaNueva = tipo + DateTime.Now.Year % 100 + matriculaContador.Siguiente_numero.ToString("D5");
-                padron.Matricula = matriculaNueva;
-                padron.Matricula_anterior = matriculaActual;
+                throw new Exception("Ya existe un contribuyente registrado en el padrón con esta CURP.");
             }
-            else
-            {
-                padron.Matricula = matricula;
-            }
-
-
-            padron.Nombre = nombre;
-            padron.A_paterno = a_paterno;
-            padron.A_materno = a_materno;
-            padron.Curp = curp;
-            padron.Direccion = direccion;
-            padron.Telefono = telefono;
-            padron.Email = email;
-            padron.Id_gremio = id_gremio;
-            padron.Tipo_vendedor = tipo;
-            padron.Estado = status;
-            padron.Usuario_modificacion = usuario;
-            padron.Fecha_modificacion = DateTime.UtcNow;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // =========================================================
+                // LÓGICA DE MATRÍCULAS (ENFOQUE: INTERCAMBIO O CREACIÓN)
+                // =========================================================
+                if (tipoActual != tipo)
+                {
+                    // 1. Verificamos si la matrícula anterior ya pertenece al tipo al que quiere cambiar (ej. empieza con 'E' o 'P')
+                    if (!string.IsNullOrEmpty(padron.Matricula_anterior) && padron.Matricula_anterior.StartsWith(tipo))
+                    {
+                        // ESCENARIO A: Hacemos el "Ping-Pong" (Swap)
+                        padron.Matricula = padron.Matricula_anterior;
+                        padron.Matricula_anterior = matriculaActual;
+                    }
+                    else
+                    {
+                        // ESCENARIO B: No tiene historial de este tipo, creamos una nueva
+                        MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
+
+                        // Formateamos el año a 2 dígitos por seguridad (ej. "05" en lugar de "5")
+                        string matriculaNueva = tipo + (DateTime.Now.Year % 100) + matriculaContador.Siguiente_numero.ToString("D5");
+
+                        padron.Matricula = matriculaNueva;
+                        padron.Matricula_anterior = matriculaActual;
+
+                        // Sumamos 1 al contador y lo actualizamos en la BD para que el siguiente no se duplique
+                        matriculaContador.Siguiente_numero++;
+                        await _dataMatriculaContador.Update(matriculaContador);
+                    }
+                }
+                else
+                {
+                    // No hubo cambio de giro, conserva su matrícula actual
+                    padron.Matricula = matricula;
+                }
+                // =========================================================
+
+                padron.Nombre = nombre;
+                padron.A_paterno = a_paterno;
+                padron.A_materno = a_materno;
+                padron.Curp = curp;
+                padron.Direccion = direccion;
+                padron.Telefono = telefono;
+                padron.Email = email;
+                padron.Id_gremio = id_gremio;
+                padron.Tipo_vendedor = tipo;
+                padron.Estado = status;
+                padron.Usuario_modificacion = usuario;
+                padron.Fecha_modificacion = DateTime.UtcNow;
+
                 await _dataPadron.Update(padron);
+
                 int idMovimiento = await _dataPadronLog.GetIdMovement(id) + 1;
                 var gremio = await _gremio.GetById(id_gremio);
 
@@ -241,6 +284,7 @@ namespace Api.Business
                     Id_movimiento = idMovimiento,
                     Id_padron = padron.Id_padron,
                     Matricula = padron.Matricula,
+                    Matricula_anterior = padron.Matricula_anterior,
                     Nombre = padron.Nombre,
                     A_paterno = padron.A_paterno,
                     A_materno = padron.A_materno,
@@ -257,11 +301,12 @@ namespace Api.Business
                 };
 
                 await _dataPadronLog.AddLog(padronLog);
-                transaction.Commit();
+
+                await transaction.CommitAsync(); // Mejor práctica en métodos asíncronos
             }
             catch (Exception)
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync(); // Mejor práctica en métodos asíncronos
                 throw;
             }
         }

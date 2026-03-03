@@ -186,6 +186,14 @@ else
     private async Task CargarDatos()
     {
         var lista = await _gremioService.GetAll();
+
+        if (EsModoAuditoria)
+        {
+            // En modo auditoría mostramos todo sin filtrar
+            listado = lista.AsQueryable();
+            return;
+        }
+
         var filtrados = mostrarActivos
             ? lista.Where(c => c.Estado == "A")
             : lista.Where(c => c.Estado == "I");
