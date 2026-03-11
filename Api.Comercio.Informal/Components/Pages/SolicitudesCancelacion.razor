@@ -24,7 +24,7 @@
         }
         else
         {
-            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+            <span><i class="bi bi-check2-circle me-2"></i> Consultar Pendientes</span>
         }
     </button>
 
@@ -120,7 +120,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -152,7 +152,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -224,7 +224,7 @@
                 // Validación estricta en C# para evitar rechazos en blanco
                 if (string.IsNullOrWhiteSpace(motivoRechazo))
                 {
-                    await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El motivo de rechazo es obligatorio.", "warning");
+                    _ =  JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El motivo de rechazo es obligatorio.", "warning");
                     return; // Detenemos el flujo
                 }
             }
@@ -238,12 +238,12 @@
                 respuestaSolicitud.Motivo_respuesta = motivoRechazo; // Solo se llenará si es un rechazo
 
                 await _cancelacionService.UpdateSolicitud(solicitud, respuestaSolicitud);
-                await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"La solicitud ha sido {accionTexto} correctamente.", "success");
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"La solicitud ha sido {accionTexto} correctamente.", "success");
                 await CargarDatos();
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al procesar la solicitud: {ex.Message}", "error");
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al procesar la solicitud: {ex.Message}", "error");
             }
         }
     }

@@ -302,6 +302,20 @@ else
         soloLectura = false;
         tituloModal = "REGISTRO DE NUEVO CONTRIBUYENTE";
         mostrarModal = true;
+
+        registro = new()
+        {
+            Id_padron = 0,
+            Nombre = string.Empty,
+            A_paterno = string.Empty,
+            A_materno = string.Empty,
+            Curp = string.Empty,
+            Direccion = string.Empty,
+            Telefono = string.Empty,
+            Email = string.Empty,
+            Matricula = string.Empty,
+            Estado = string.Empty
+        };
     }
 
     private void AbrirModalEditar(Padron item)
