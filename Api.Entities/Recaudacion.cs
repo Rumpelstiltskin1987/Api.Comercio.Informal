@@ -19,11 +19,14 @@ namespace Api.Entities
         public decimal Monto { get; set; }
         [ForeignKey("Cobrador")]
         public int Id_cobrador { get; set; }
-        public virtual Cobrador Cobrador { get; set; }  
-        public DateTime Fecha_cobro { get; set; } = DateTime.Now;
+        public virtual Usuario? Cobrador { get; set; }  
+        public DateTime Fecha_cobro { get; set; }
         public string Folio_Recibo { get; set; }
         public string Estado { get; set; } = "A"; // A: Activo, C: Cancelado
         public double? Latitud { get; set; }
         public double? Longitud { get; set; }
+        public DateTime Fecha_Alta { get; set; } = DateTime.UtcNow;        
+        public DateTime Fecha_Modificacion {  get; set; }
+
     }
 }

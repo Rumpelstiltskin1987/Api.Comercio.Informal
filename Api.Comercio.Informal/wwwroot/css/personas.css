@@ -42,7 +42,7 @@
     .official-grid th:nth-child(5) {
         width: 22%;
     }
-    /* Columna Gestión (Alineada a la derecha) */
+    /* Columna Gestión */
     .official-grid th:nth-child(6) {
         width: 10%;
         text-align: left !important;

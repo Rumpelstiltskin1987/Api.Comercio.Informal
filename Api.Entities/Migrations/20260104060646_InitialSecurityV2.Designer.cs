@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Entities.Migrations
 {
     [DbContext(typeof(MySQLiteContext))]
-    [Migration("20251220010243_InicializarSeguridadInt")]
-    partial class InicializarSeguridadInt
+    [Migration("20260104060646_InitialSecurityV2")]
+    partial class InitialSecurityV2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -193,6 +193,7 @@ namespace Api.Entities.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("Id_gremio")
+                        .IsRequired()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Prefijo")
@@ -297,6 +298,7 @@ namespace Api.Entities.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Direccion")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -348,6 +350,7 @@ namespace Api.Entities.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Direccion")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -553,7 +556,7 @@ namespace Api.Entities.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Id_cobrador")
+                    b.Property<int>("Id")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Id_concepto")
@@ -573,7 +576,7 @@ namespace Api.Entities.Migrations
 
                     b.HasKey("Id_recaudacion");
 
-                    b.HasIndex("Id_cobrador");
+                    b.HasIndex("Id");
 
                     b.HasIndex("Id_concepto");
 
@@ -666,12 +669,18 @@ namespace Api.Entities.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("A_materno")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("A_paterno")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Alias")
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -684,13 +693,29 @@ namespace Api.Entities.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("Id_cobrador")
+                    b.Property<bool>("EsPasswordTemporal")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("Fecha_alta")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("Fecha_modificacion")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NormalizedEmail")
@@ -720,9 +745,16 @@ namespace Api.Entities.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.Property<string>("Usuario_alta")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
 
-                    b.HasIndex("Id_cobrador");
+                    b.Property<string>("Usuario_modificacion")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -864,7 +896,9 @@ namespace Api.Entities.Migrations
                 {
                     b.HasOne("Api.Entities.Gremio", "Gremio")
                         .WithMany()
-                        .HasForeignKey("Id_gremio");
+                        .HasForeignKey("Id_gremio")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Gremio");
                 });
@@ -893,9 +927,9 @@ namespace Api.Entities.Migrations
 
             modelBuilder.Entity("Api.Entities.Recaudacion", b =>
                 {
-                    b.HasOne("Api.Entities.Cobrador", "Cobrador")
+                    b.HasOne("Api.Entities.Usuario", "Cobrador")
                         .WithMany()
-                        .HasForeignKey("Id_cobrador")
+                        .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -935,16 +969,6 @@ namespace Api.Entities.Migrations
                     b.Navigation("Concepto");
 
                     b.Navigation("Gremio");
-                });
-
-            modelBuilder.Entity("Api.Entities.Usuario", b =>
-                {
-                    b.HasOne("Api.Entities.Cobrador", "Cobrador")
-                        .WithMany()
-                        .HasForeignKey("Id_cobrador")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Cobrador");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

@@ -10,12 +10,12 @@ namespace Api.Entities
     {
         public int Id_movimiento { get; set; }
         public int Id_tarifa { get; set; }
-        public int Id_concepto { get; set; }
-        public int? Id_gremio { get; set; }
+        public string? Concepto { get; set; }
+        public string? Gremio { get; set; }
         public decimal Monto { get; set; }
-        public string Estado { get; set; }
-        public string Tipo_movimiento { get; set; }
-        public string Usuario_modificacion { get; set; }
-        public DateTime Fecha_modificacion { get; set; }
+        public required string Estado { get; set; }
+        public required string Tipo_movimiento { get; set; }
+        public required string Usuario_modificacion { get; set; }
+        public required DateTime Fecha_modificacion { get; set; }
     }
 }

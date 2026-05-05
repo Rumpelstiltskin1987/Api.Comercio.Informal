@@ -1,32 +1,47 @@
 ﻿@page "/conceptos"
+@page "/auditoria/conceptos"
 @using Api.Comercio.Informal.Components.Layout
+@using Api.Comercio.Informal.Helpers
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Api.Entities
-@using Api.Business
-@inject BusinessConcepto _conceptoService
+@using Api.Entities.DTO
 @inject IJSRuntime JSRuntime
+@inject BusinessConcepto _conceptoService
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin, Supervisor, IT Manager")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
+@if (EsModoAuditoria)
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Historial de Conceptos de Pago</h3>
+}
+else
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Conceptos de Pago</h3>
+}
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Conceptos de Pago</h3>
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
-    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
-        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
-    </button>
+    @if (!EsModoAuditoria)
+    {
+        <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+        </button>
 
-    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
-        @if (mostrarActivos)
-        {
-            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
-        }
-        else
-        {
-            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
-        }
-    </button>
+        <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+            @if (mostrarActivos)
+            {
+                <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+            }
+            else
+            {
+                <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+            }
+        </button>
+    }
+
 </div>
 
 <div class="card shadow-sm border-0">
@@ -36,28 +51,40 @@
 
             <TemplateColumn Title="Gestión">
                 <div class="d-flex gap-2">
-                    @if (mostrarActivos)
+                    @if (EsModoAuditoria)
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
-                            <i class="bi bi-pencil-square fs-6"></i>
+                        @* BOTÓN SOLO PARA AUDITORÍA *@
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none"
+                                title="Ver Historial de Cambios"
+                                @onclick="() => VerHistorial(context)">
+                            <i class="bi bi-clock-history fs-5"></i>
                         </button>
                     }
                     else
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
-                            <i class="bi bi-box-arrow-up fs-6"></i>
-                        </button>
-                    }
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                                <i class="bi bi-pencil-square fs-6"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                                <i class="bi bi-box-arrow-up fs-6"></i>
+                            </button>
+                        }
 
-                    @* <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
-                    </button> *@
-
-                    @if (mostrarActivos)
-                    {
-                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
-                            <i class="bi bi-trash fs-6"></i>
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
                         </button>
+
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
+                        }
                     }
                 </div>
             </TemplateColumn>
@@ -73,12 +100,16 @@
     <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Descripción</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Descripción</label>
                 <input class="form-control" @bind="concepto.Descripcion" />
             </div>
         </div>
     </fieldset>
 </SimpleModal>
+
+<ModalHistorial @bind-Mostrar="mostrarModalHistorial"
+                Logs="historial"
+                Cargando="cargandoLogs" />
 
 @code {
     // --- Datos ---
@@ -86,7 +117,7 @@
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
-    private const string usuario = "Administrador";
+    private string usuario = "";
 
     // --- Modal ---
     private bool mostrarModal = false;
@@ -95,15 +126,26 @@
     // Inicialización segura
     private Concepto concepto = new();
 
+    // Variables para historial
+    private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
+    private bool mostrarModalHistorial = false;
+    private bool cargandoLogs = false;
+    private List<DtoHistorial>? historial;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            // Obtener el usuario logueado
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
             await CargarDatos();
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -111,6 +153,14 @@
     private async Task CargarDatos()
     {
         var lista = await _conceptoService.GetAll();
+
+        if (EsModoAuditoria)
+        {
+            // En modo auditoría mostramos todo sin filtrar
+            listado = lista.AsQueryable();
+            return;
+        }
+
         var filtrados = mostrarActivos
             ? lista.Where(c => c.Estado == "A")
             : lista.Where(c => c.Estado == "I");
@@ -127,7 +177,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -177,34 +227,43 @@
     {
         if (string.IsNullOrWhiteSpace(concepto.Descripcion))
         {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
 
-        if (concepto.Id_concepto == 0)
+        try
         {
-            await _conceptoService.Create(
-                concepto.Descripcion, usuario
-            );
+            if (concepto.Id_concepto == 0)
+            {
+                await _conceptoService.Create(
+                    concepto.Descripcion, usuario
+                );
+            }
+            else
+            {
+                await _conceptoService.Update(
+                    concepto.Id_concepto, concepto.Descripcion, concepto.Estado,
+                    usuario
+                );
+            }
+
+            mostrarModal = false;
+            await CargarDatos();
+
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "¡Éxito!",
+                text = "La información se guardó correctamente.",
+                icon = "success",
+                confirmButtonColor = "#9D2449"
+            });
         }
-        else
+        catch (Exception ex)
         {
-            await _conceptoService.Update(
-                concepto.Id_concepto, concepto.Descripcion, concepto.Estado,
-                usuario
-            );
-        }
-
-        mostrarModal = false;        
-
-        await JSRuntime.InvokeVoidAsync("Swal.fire", new
-        {
-            title = "¡Éxito!",
-            text = "La información se guardó correctamente.",
-            icon = "success",
-            confirmButtonColor = "#9D2449"
-        });
-
-        await CargarDatos();
+            string mensajeUsuario = SqliteErrorHelper.ObtenerMensajeAmigable(ex);
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {mensajeUsuario}", "error");
+            return;
+        }        
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)
@@ -213,17 +272,37 @@
         try
         {
             await _conceptoService.Update(
-            item.Id_concepto, item.Descripcion, estado, usuario
-        );
+            item.Id_concepto, item.Descripcion, estado, usuario);
 
             await CargarDatos();
 
             var accion = estado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+        }
+    }
+
+    // --- Historial ---
+    private async Task VerHistorial(Concepto item)
+    {
+        mostrarModalHistorial = true;
+        cargandoLogs = true;
+
+        try
+        {
+            historial = await _conceptoService.GetHistorial(item.Id_concepto);
+        }
+        catch (Exception ex)
+        {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            mostrarModalHistorial = false;
+        }
+        finally
+        {
+            cargandoLogs = false;
         }
     }
 }

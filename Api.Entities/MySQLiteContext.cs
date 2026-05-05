@@ -17,8 +17,8 @@ namespace Api.Entities
         {
         }
 
-        public DbSet<Cobrador> Cobrador { get; set; }
-        public DbSet<CobradorLog> CobradorLog { get; set; }
+        //public DbSet<Cobrador> Cobrador { get; set; }
+        //public DbSet<CobradorLog> CobradorLog { get; set; }
         public DbSet<Concepto> Concepto { get; set; }
         public DbSet<ConceptoLog> ConceptoLog { get; set; }
         public DbSet<Folio> Folio { get; set; }
@@ -33,42 +33,45 @@ namespace Api.Entities
         public DbSet<Tarifa> Tarifa { get; set; }
         public DbSet<TarifaLog> TarifaLog { get; set; } 
         public DbSet<Usuario> Usuario { get; set; }
+        public DbSet<UsuarioLog> UsuarioLog { get; set; }
+        public DbSet<SolicitudCancelacion> SolicitudCancelacion { get; set; }
+        public DbSet<LoteFolio> LoteFolio { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Cobrador>(entity =>
-            {
-                entity.HasKey(e => e.Id_cobrador);
-                entity.Property(e => e.Id_cobrador).IsRequired();
-                entity.Property(e => e.Nombre).IsRequired();
-                entity.Property(e => e.A_paterno).IsRequired();
-                entity.Property(e => e.A_materno).IsRequired();
-                entity.Property(e => e.Telefono);
-                entity.Property(e => e.Email);
-                entity.Property(e => e.Estado).IsRequired();
-                entity.Property(e => e.Usuario_alta).IsRequired();
-                entity.Property(e => e.Fecha_alta).IsRequired();
-                entity.Property(e => e.Usuario_modificacion);
-                entity.Property(e => e.Fecha_modificacion);
-            });
+            //modelBuilder.Entity<Cobrador>(entity =>
+            //{
+            //    entity.HasKey(e => e.Id_cobrador);
+            //    entity.Property(e => e.Id_cobrador).IsRequired();
+            //    entity.Property(e => e.Nombre).IsRequired();
+            //    entity.Property(e => e.A_paterno).IsRequired();
+            //    entity.Property(e => e.A_materno).IsRequired();
+            //    entity.Property(e => e.Telefono);
+            //    entity.Property(e => e.Email);
+            //    entity.Property(e => e.Estado).IsRequired();
+            //    entity.Property(e => e.Usuario_alta).IsRequired();
+            //    entity.Property(e => e.Fecha_alta).IsRequired();
+            //    entity.Property(e => e.Usuario_modificacion);
+            //    entity.Property(e => e.Fecha_modificacion);
+            //});
 
-            modelBuilder.Entity<CobradorLog>(entity =>
-            {
-                entity.HasKey(e => new { e.Id_movimiento, e.Id_cobrador });
-                entity.Property(e => e.Id_movimiento).IsRequired();
-                entity.Property(e => e.Id_cobrador).IsRequired();
-                entity.Property(e => e.Nombre).IsRequired();
-                entity.Property(e => e.A_paterno).IsRequired();
-                entity.Property(e => e.A_materno).IsRequired();
-                entity.Property(e => e.Telefono);
-                entity.Property(e => e.Email);
-                entity.Property(e => e.Estado).IsRequired();
-                entity.Property(e => e.Tipo_movimiento).IsRequired();
-                entity.Property(e => e.Usuario_modificacion).IsRequired();
-                entity.Property(e => e.Fecha_modificacion).IsRequired();
-            });
+            //modelBuilder.Entity<CobradorLog>(entity =>
+            //{
+            //    entity.HasKey(e => new { e.Id_movimiento, e.Id_cobrador });
+            //    entity.Property(e => e.Id_movimiento).IsRequired();
+            //    entity.Property(e => e.Id_cobrador).IsRequired();
+            //    entity.Property(e => e.Nombre).IsRequired();
+            //    entity.Property(e => e.A_paterno).IsRequired();
+            //    entity.Property(e => e.A_materno).IsRequired();
+            //    entity.Property(e => e.Telefono);
+            //    entity.Property(e => e.Email);
+            //    entity.Property(e => e.Estado).IsRequired();
+            //    entity.Property(e => e.Tipo_movimiento).IsRequired();
+            //    entity.Property(e => e.Usuario_modificacion).IsRequired();
+            //    entity.Property(e => e.Fecha_modificacion).IsRequired();
+            //});
 
             modelBuilder.Entity<Concepto>(entity =>
             {
@@ -96,11 +99,12 @@ namespace Api.Entities
             modelBuilder.Entity<Folio>(entity =>
             {
                 entity.HasKey(e => e.Id_folio_serie);
-                entity.Property(e => e.Id_gremio);
+                entity.Property(e => e.Id_gremio).IsRequired();
                 entity.Property(e => e.Descripcion).IsRequired();
                 entity.Property(e => e.Prefijo).IsRequired();
                 entity.Property(e => e.Siguiente_folio).IsRequired();
                 entity.Property(e => e.Anio_vigente).IsRequired();
+                entity.Property(e => e.Cantidad_lote);
             });
 
             modelBuilder.Entity<Gremio>(entity =>
@@ -108,6 +112,7 @@ namespace Api.Entities
                 entity.HasKey(e => e.Id_gremio);
                 entity.Property(e => e.Descripcion).IsRequired();
                 entity.Property(e => e.Id_lider).IsRequired();
+                entity.Property(e => e.Prefijo).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
@@ -121,7 +126,8 @@ namespace Api.Entities
                 entity.Property(e => e.Id_movimiento).IsRequired();
                 entity.Property(e => e.Id_gremio).IsRequired();
                 entity.Property(e => e.Descripcion).IsRequired();
-                entity.Property(e => e.Id_lider).IsRequired();
+                entity.Property(e => e.Lider).IsRequired();
+                entity.Property(e => e.Prefijo).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
@@ -136,7 +142,7 @@ namespace Api.Entities
                 entity.Property(e => e.A_materno).IsRequired();
                 entity.Property(e => e.Telefono);
                 entity.Property(e => e.Email);
-                entity.Property(e => e.Direccion);
+                entity.Property(e => e.Direccion).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
@@ -154,7 +160,7 @@ namespace Api.Entities
                 entity.Property(e => e.A_materno).IsRequired();
                 entity.Property(e => e.Telefono);
                 entity.Property(e => e.Email);
-                entity.Property(e => e.Direccion);
+                entity.Property(e => e.Direccion).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
@@ -196,7 +202,7 @@ namespace Api.Entities
                 entity.Property(e => e.Telefono).IsRequired();
                 entity.Property(e => e.Email);
                 entity.Property(e => e.Matricula_anterior);
-                entity.Property(e => e.Id_gremio).IsRequired();
+                entity.Property(e => e.Gremio).IsRequired();
                 entity.Property(e => e.Tipo_vendedor).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
@@ -209,21 +215,23 @@ namespace Api.Entities
                 entity.HasKey(e => e.Id_recaudacion);
                 entity.Property(e => e.Id_padron).IsRequired();
                 entity.Property(e => e.Id_concepto).IsRequired();
-                entity.Property(e => e.Monto).IsRequired();
+                entity.Property(e => e.Monto).IsRequired().HasConversion<string>();
                 entity.Property(e => e.Id_cobrador).IsRequired();
                 entity.Property(e => e.Fecha_cobro).IsRequired();
                 entity.Property(e => e.Folio_Recibo).IsRequired();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Latitud);
                 entity.Property(e => e.Longitud);
+                entity.Property(e => e.Fecha_Alta).IsRequired();
+                entity.Property(e => e.Fecha_Modificacion);
             });
-
+                
             modelBuilder.Entity<Tarifa>(entity =>
             {
                 entity.HasKey(e => e.Id_tarifa);
                 entity.Property(e => e.Id_concepto).IsRequired();
-                entity.Property(e => e.Id_gremio);
-                entity.Property(e => e.Monto).IsRequired();
+                entity.Property(e => e.Id_gremio).IsRequired();
+                entity.Property(e => e.Monto).IsRequired().HasConversion<string>();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Usuario_alta).IsRequired();
                 entity.Property(e => e.Fecha_alta).IsRequired();
@@ -236,9 +244,9 @@ namespace Api.Entities
                 entity.HasKey(e => new { e.Id_movimiento, e.Id_tarifa });
                 entity.Property(e => e.Id_movimiento).IsRequired();
                 entity.Property(e => e.Id_tarifa).IsRequired();
-                entity.Property(e => e.Id_concepto).IsRequired();
-                entity.Property(e => e.Id_gremio);
-                entity.Property(e => e.Monto).IsRequired();
+                entity.Property(e => e.Concepto).IsRequired();
+                entity.Property(e => e.Gremio).IsRequired();
+                entity.Property(e => e.Monto).IsRequired().HasConversion<string>();
                 entity.Property(e => e.Estado).IsRequired();
                 entity.Property(e => e.Tipo_movimiento).IsRequired();
                 entity.Property(e => e.Usuario_modificacion).IsRequired();
@@ -255,18 +263,60 @@ namespace Api.Entities
             });
 
             modelBuilder.Entity<Usuario>(entity =>
-            {
-                // Si quieres que el Alias sea obligatorio o tenga un largo máximo
-                entity.Property(u => u.Alias).HasMaxLength(50);
-
-                // Configurar explícitamente la relación con Cobrador
-                entity.HasOne(u => u.Cobrador)
-                      .WithMany() // Un cobrador puede no tener usuarios o tener varios
-                      .HasForeignKey(u => u.Id_cobrador)
-                      .OnDelete(DeleteBehavior.SetNull); // Si se borra el cobrador, el usuario queda pero sin ID_cobrador
+            {                
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.A_paterno).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.A_materno).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Usuario_alta).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Fecha_alta).IsRequired();
+                entity.Property(e => e.Usuario_modificacion).HasMaxLength(50);
+                entity.Property(e => e.Fecha_modificacion);                
             });
 
+            modelBuilder.Entity<UsuarioLog>(entity =>
+            {
+                entity.HasKey(e => new { e.Id_movimiento, e.Id });
+                entity.Property(e => e.Id_movimiento).IsRequired();
+                entity.Property(e => e.Id).IsRequired();
+                entity.Property(e => e.UserName).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.A_paterno).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.A_materno).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Email).HasMaxLength(100);
+                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+                entity.Property(e => e.Rol).IsRequired();
+                entity.Property(e => e.Estado).IsRequired();
+                entity.Property(e => e.Tipo_movimiento).IsRequired();
+                entity.Property(e => e.Usuario_modificacion).HasMaxLength(50);
+                entity.Property(e => e.Fecha_modificacion).IsRequired();
+                
+            });
 
+            modelBuilder.Entity<SolicitudCancelacion>(entity =>
+            {
+                entity.HasKey(e => e.Id_solicitud);
+                entity.Property(e => e.Id_recaudacion).IsRequired();
+                entity.Property(e => e.Id_usuario_solicita).IsRequired();
+                entity.Property(e => e.Fecha_solicitud).IsRequired();
+                entity.Property(e => e.Motivo_solicitud).IsRequired();
+                entity.Property(e => e.Estado_solicitud).IsRequired();
+                entity.Property(e => e.Id_usuario_responde);
+                entity.Property(e => e.Fecha_respuesta);
+                entity.Property(e => e.Motivo_respuesta);
+            });
+
+            modelBuilder.Entity<LoteFolio>(entity =>
+            {
+                entity.HasKey(e => e.Id_lote);
+                entity.Property(e => e.Id_usuario).IsRequired();
+                entity.Property(e => e.Id_gremio).IsRequired();
+                entity.Property(e => e.Rango_inicial).IsRequired();
+                entity.Property(e => e.Rango_final).IsRequired();
+                entity.Property(e => e.Ultimo_usado).IsRequired();
+                entity.Property(e => e.Anio).IsRequired();
+                entity.Property(e => e.Estado);
+                entity.Property(e => e.Fecha_asignacion);
+            });
         }
     }
 }

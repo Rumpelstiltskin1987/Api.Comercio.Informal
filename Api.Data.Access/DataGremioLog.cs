@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Api.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Api.Entities;
 
 namespace Api.Data.Access
 {
@@ -18,6 +19,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(gremioLog).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el log del gremio: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el log del gremio: " + ex.Message);
@@ -42,6 +44,22 @@ namespace Api.Data.Access
                 throw new Exception("Error al obtener el id de movimiento: " + ex.Message);
             }
             return id_movimiento;
+        }
+
+        public async Task<IEnumerable<GremioLog>> GetLogsByGremioId(int id)
+        {
+            IEnumerable<GremioLog> historial;
+            try
+            {
+                historial = await context.GremioLog.Where(x => x.Id_gremio == id).ToListAsync();
+                return historial;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el historial: " + ex.InnerException.Message);
+                throw new Exception("Error al obtener el historial: " + ex.Message);
+            }
         }
     }
 }

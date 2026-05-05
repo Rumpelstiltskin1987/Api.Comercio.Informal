@@ -1,48 +1,29 @@
-﻿/* CorteCaja.razor.css */
-
-/* Contenedor gris de fondo (Mesa de trabajo) */
-.reporte-wrapper {
-    background-color: #f0f2f5;
-    /* --- CAMBIOS PARA SCROLL INTERNO --- */
-    height: calc(100vh - 270px); /* Ajusta este valor según el tamaño de tus filtros */
-    overflow-y: auto; /* Habilita scroll vertical solo aquí */
-    padding: 2rem;
-    display: flex;
-    justify-content: center;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-    flex-direction: column;
+﻿/* Eliminamos el concepto de "Hoja de Papel" HTML ya que ahora usamos el PDF real */
+.pdf-viewer-container {
+    background-color: #fff; /* Fondo gris oscuro tipo visor de Adobe/Chrome */
+    padding: 2px;
+    border-radius: 12px;
+    margin-top: 1rem;
 }
 
-/* La Hoja de Papel */
-.hoja-reporte {
-    background-color: white;
-    width: 100%;
-    max-width: 1000px;
-    padding: 3rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    position: relative;
-    height: fit-content; /* Permite que la hoja crezca según el contenido */
-    box-sizing: border-box;
+/* Estilo para los botones en la barra de filtros */
+.btn-lg {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
 }
 
-/* ... (el resto de tus estilos: separador, total-general-bg, etc, se mantienen igual) ... */
+.animate__fadeIn {
+    animation-duration: 0.5s;
+}
 
-/* === AJUSTE VITAL PARA IMPRESIÓN === */
 @media print {
-    .reporte-wrapper {
-        background-color: white;
-        padding: 0;
-        display: block;
-        height: auto !important; /* Quitamos la altura fija para que salga todo en papel */
-        overflow: visible !important; /* Quitamos el scroll */
+    .no-print {
+        display: none !important;
     }
-
-    .hoja-reporte {
-        width: 100%;
-        max-width: 100%;
-        box-shadow: none;
-        padding: 0;
-        margin: 0;
-    }
+    /* El visor de PDF por defecto maneja su propia impresión, 
+       pero esto asegura que el resto de la web no estorbe */
 }

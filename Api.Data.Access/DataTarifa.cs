@@ -73,12 +73,10 @@ namespace Api.Data.Access
                 context.Tarifa.Add(tarifa);
                 await context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al crear la tarifa: " + ex.InnerException.Message);
-
-                throw new Exception("Error al crear la tarifa: " + ex.Message);
+                context.Entry(tarifa).State = EntityState.Detached;
+                throw;
             }
         }
 
@@ -89,12 +87,10 @@ namespace Api.Data.Access
                 context.Tarifa.Update(tarifa);
                 await context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar la tarifa: " + ex.InnerException.Message);
-
-                throw new Exception("Error al actualizar la tarifa: " + ex.Message);
+                context.Entry(tarifa).State = EntityState.Detached;
+                throw;
             }
         }
 
@@ -112,6 +108,27 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al eliminar la tarifa: " + ex.Message);
             }
+        }
+
+        public async Task<IEnumerable<Tarifa>> Sincronizar(DateTime? fSincronizacion)
+        {
+            IEnumerable<Tarifa> lista;
+
+            try
+            {
+                lista = await context.Tarifa
+                    .Where(p => p.Fecha_modificacion >= fSincronizacion || p.Fecha_alta >= fSincronizacion)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el padron: " + ex.Message);
+            }
+
+            return lista;
         }
     }
 }

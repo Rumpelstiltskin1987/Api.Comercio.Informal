@@ -149,14 +149,18 @@
 
 /* 1. Definición de anchos de columnas (Total = 100%) */
 .grid-gremios th:nth-child(1) {
-    width: 40%;
+    width: 35;
 }
 /* Descripción */
 .grid-gremios th:nth-child(2) {
-    width: 40%;
+    width: 35;
 }
 /* Líder */
 .grid-gremios th:nth-child(3) {
+    width: 35;
+}
+/* Prefijo */
+.grid-gremios th:nth-child(4) {
     width: 20%;
 }
 /* Gestión */
@@ -229,3 +233,35 @@
     .grid-tarifas td:last-child .d-flex {
         justify-content: center !important;
     }
+
+/* =========================================
+   ESTILOS ESPECÍFICOS: Usuarios
+   ========================================= */
+
+/* --- DISTRIBUCIÓN DE ANCHOS (Total = 100%) --- */
+/* Usuario */
+.grid-usuarios th:nth-child(1) {
+    width: 11%;
+}
+/* Nombre */
+.grid-usuarios th:nth-child(2) {
+    width: 20%;
+}
+/* A. Paterno */
+.grid-usuarios th:nth-child(3) {
+    width: 24%;
+}
+/* A. Materno */
+.grid-usuarios th:nth-child(4) {
+    width: 24%;
+}
+/* Rol */
+.grid-usuarios th:nth-child(5) {
+    width: 9%;
+}
+/* Columna Gestión */
+.grid-usuarios th:nth-child(6) {
+    width: 12%;
+    text-align: left !important;
+}
+

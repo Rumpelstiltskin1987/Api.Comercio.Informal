@@ -1,0 +1,251 @@
+﻿@page "/cancelaciones"
+@using Api.Comercio.Informal.Components.Layout
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Api.Entities.DTO
+@using System.Text.Json
+@using System.Security.Claims
+@inject IJSRuntime JSRuntime
+@inject BusinessSolicitudCancelacion _cancelacionService
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin, Supervisor")]
+@rendermode InteractiveServer
+
+<link href="css/general.css" rel="stylesheet" />
+
+<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Bandeja de Solicitudes de Cancelación</h3>
+<hr />
+
+<div class="d-flex justify-content-between mb-4 align-items-center">
+
+    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+        @if (mostrarActivos)
+        {
+            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+        }
+        else
+        {
+            <span><i class="bi bi-check2-circle me-2"></i> Consultar Pendientes</span>
+        }
+    </button>
+
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid">
+            <PropertyColumn Property="@(c => c.Folio_recibo)" Sortable="true" Title="Folio Recibo" />
+            <PropertyColumn Property="@(c => c.Concepto)" Sortable="true" Title="Concepto" />
+            <PropertyColumn Property="@(c => c.Monto)" Sortable="true" Title="Monto" />
+            <PropertyColumn Property="@(c => c.Nombre_cobrador)" Sortable="true" Title="Cobrador" />
+            <PropertyColumn Property="@(c => c.Motivo_solicitud)" Sortable="true" Title="Motivo Solicitud" />
+            <TemplateColumn Title="@(mostrarActivos ? "Gestión" : "Estado")" Class="text-center">
+                @if (mostrarActivos)
+                {
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-success" title="Aprobar Cancelación"
+                                @onclick="() => ConfirmarProceso(context, true)">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+
+                        <button class="btn btn-sm btn-danger" title="Rechazar Cancelación"
+                                @onclick="() => ConfirmarProceso(context, false)">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    @if (context.Estado_solicitud == "A")
+                    {
+                        <span class="fw-bold d-inline-flex align-items-center" title="Solicitud Aprobada">
+                            <i class="bi bi-circle-fill me-2" style="color: #198754; font-size: 0.6rem;"></i> Aprobada
+                        </span>
+                    }
+                    else if (context.Estado_solicitud == "R")
+                    {
+                        <span class="fw-bold d-inline-flex align-items-center" title="Solicitud Rechazada">
+                            <i class="bi bi-circle-fill me-2" style="color: #dc3545; font-size: 0.6rem;"></i> Rechazada
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i> Desconocido
+                        </span>
+                    }
+                }
+            </TemplateColumn>
+        </QuickGrid>
+
+        <div class="paginator-container p-2 border-top bg-light">
+            <PaginadorEsp State="@paginationState" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private IQueryable<DtoBandejaSolicitud>? listado;
+    private DtoProcesarSolicitud respuestaSolicitud = new();
+    private bool mostrarActivos = true;
+    private string usuario = "";
+    private int idUsuario = 0;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Obtener el usuario logueado
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
+            // 2. --- LÓGICA AÑADIDA: OBTENER EL ID ---
+            // Buscamos el Claim que representa el Identificador Único (Primary Key)
+            var claimId = user.FindFirst(ClaimTypes.NameIdentifier);
+
+            // Verificamos que exista y que sea convertible a int
+            if (claimId != null && int.TryParse(claimId.Value, out int idParseado))
+            {
+                idUsuario = idParseado;
+            }
+            else
+            {
+                // Opcional: Manejo si no se encuentra el ID (ej. es un Admin del sistema sin ID numérico)
+                // Console.WriteLine("No se encontró el Claim de ID o no es numérico");
+            }
+            // ----------------------------------------
+
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
+        }
+    }
+
+    private async Task CargarDatos()
+    {
+        IEnumerable<DtoBandejaSolicitud> lista;
+
+        if (mostrarActivos)
+        {
+            // Solo se muestran solicitudes pendientes (Estado = 'P')
+            lista = await _cancelacionService.GetPending();
+        }
+        else
+        {
+            // Mostrmos todo lo que no está pendiente (Estado != 'P')
+            lista = await _cancelacionService.GetHistory();
+        }
+
+        listado = lista.AsQueryable();
+    }
+
+    private async Task AlternarVista()
+    {
+        mostrarActivos = !mostrarActivos;
+        try
+        {
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            return;
+        }
+    }
+
+    private async Task ConfirmarProceso(DtoBandejaSolicitud solicitud, bool aprobar)
+    {
+        // string accion = aprobar ? "aprobar" : "rechazar";
+        // var result = await JSRuntime.InvokeAsync<bool>("Swal.fire",
+        //     aprobar ? "¿Confirmas aprobar esta solicitud de cancelación?" : "¿Confirmas rechazar esta solicitud de cancelación?",
+        //     aprobar ? "Esta acción no se puede deshacer." : "Esta acción no se puede deshacer.");
+
+        string accionTexto = aprobar ? "aprobada" : "rechazada";
+        string colorBoton = aprobar ? "#198754" : "#dc3545"; // Verde (Success) o Rojo (Danger)
+        object opciones;
+
+        if (aprobar)
+        {
+            opciones = new
+            {
+                // --- CONFIGURACIÓN DE LA ALERTA CON BOTÓN CANCELAR ---
+                title = aprobar ? "¿Confirmas aprobar esta solicitud?" : "¿Confirmas rechazar esta solicitud?",
+                text = aprobar ? "Esta acción es irreversible y afectará la recaudación." : "La solicitud será denegada.",
+                icon = "warning",
+
+                // AQUÍ ACTIVAMOS EL BOTÓN CANCELAR
+                showCancelButton = true,
+                confirmButtonColor = colorBoton,
+                cancelButtonColor = "#6c757d", // Color gris para cancelar
+                confirmButtonText = aprobar ? "Sí, aprobar" : "Sí, rechazar",
+                cancelButtonText = "Cancelar"
+            };
+        }
+        else
+        {
+            // Alerta con Textarea para el motivo de rechazo
+            opciones = new
+            {
+                title = "¿Confirmas rechazar esta solicitud?",
+                text = "Debes ingresar el motivo del rechazo:",
+                icon = "warning",
+                input = "textarea", // Activa el campo de texto
+                inputPlaceholder = "Escribe el motivo detallado aquí...",
+                showCancelButton = true,
+                confirmButtonColor = colorBoton,
+                cancelButtonColor = "#6c757d",
+                confirmButtonText = "Sí, rechazar",
+                cancelButtonText = "Cancelar",
+                inputAttributes = new { required = "true" } // Ayuda a que el navegador exija el campo
+            };            
+        }
+
+        // Invocamos Swal.fire recibiendo un elemento JSON (no bool)
+        var resultado = await JSRuntime.InvokeAsync<JsonElement>("Swal.fire", opciones);
+
+        // --- VERIFICACIÓN DE LA RESPUESTA ---
+        // Verificamos si la propiedad "isConfirmed" existe y es verdadera
+        if (resultado.TryGetProperty("isConfirmed", out var isConfirmed) && isConfirmed.GetBoolean())
+        {
+            string motivoRechazo = "";
+
+            // Si es un rechazo, extraemos y validamos el texto del textarea
+            if (!aprobar)
+            {
+                if (resultado.TryGetProperty("value", out var valorJson))
+                {
+                    motivoRechazo = valorJson.GetString() ?? "";
+                }
+
+                // Validación estricta en C# para evitar rechazos en blanco
+                if (string.IsNullOrWhiteSpace(motivoRechazo))
+                {
+                    _ =  JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El motivo de rechazo es obligatorio.", "warning");
+                    return; // Detenemos el flujo
+                }
+            }
+
+            try
+            {
+                solicitud.Estado_solicitud = aprobar ? "A" : "R";
+                respuestaSolicitud.Id_solicidud = solicitud.Id_solicidud;
+                respuestaSolicitud.Id_usuario_responde = idUsuario;
+                respuestaSolicitud.Accion = aprobar ? "Aprobar" : "Rechazar";
+                respuestaSolicitud.Motivo_respuesta = motivoRechazo; // Solo se llenará si es un rechazo
+
+                await _cancelacionService.UpdateSolicitud(solicitud, respuestaSolicitud);
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"La solicitud ha sido {accionTexto} correctamente.", "success");
+                await CargarDatos();
+            }
+            catch (Exception ex)
+            {
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al procesar la solicitud: {ex.Message}", "error");
+            }
+        }
+    }
+
+}

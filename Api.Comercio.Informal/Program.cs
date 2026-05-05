@@ -1,12 +1,17 @@
 // Necesitarás agregar el using donde ubicarás tus componentes (explicado abajo)
 using Api.Comercio.Informal.Components;
+using Api.Comercio.Informal.Helpers;
 using Api.Entities;
+using Api.Business.Services;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +24,7 @@ builder.Services.AddSwaggerGen();
 // [NUEVO] Agregamos los servicios de Blazor (Razor Components)
 // AddInteractiveServerComponents habilita la interactividad vía SignalR (Blazor Server)
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options => options.DetailedErrors = true); // <--- AGREGA ESTO
 
 #region Configuracion del Contexto de la Base de Datos
 
@@ -33,23 +38,76 @@ builder.Services.AddDbContext<MySQLiteContext>(options =>
 
 // --- 1. CONFIGURACIÓN ÚNICA DE IDENTITY ---
 // Usamos AddIdentity porque configura Cookies, Roles y UI de una sola vez.
-builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options => {
+builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
+{
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
 })
 .AddEntityFrameworkStores<MySQLiteContext>()
 .AddApiEndpoints() // Habilita los endpoints para Android (/login)
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddErrorDescriber<SpanishIdentityErrorDescriber>();
+
+// 2. ¡AGREGA ESTA LÍNEA OBLIGATORIA! 
+// Sin esto, el componente <CascadingAuthenticationState> no funciona.
+builder.Services.AddCascadingAuthenticationState();
 
 // --- 2. CONFIGURACIÓN DE AUTENTICACIÓN HÍBRIDA (WEB + ANDROID) ---
+// ... (Tu configuración de AddIdentity existente va aquí arriba) ...
+
+// --- INICIO DEL AJUSTE: CONFIGURACIÓN JWT Y API ---
+
+// 1. Configurar JWT para que la API entienda el Token de Android
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "TuClaveSecretaSuperSeguraDebeSerLarga123!";
+var key = Encoding.ASCII.GetBytes(jwtKey);
+
 builder.Services.AddAuthentication(options =>
 {
-    // Esquema por defecto para la Web
+    // Esto permite que convivan Cookies (Blazor) y Tokens (Android)
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
 })
-.AddBearerToken(IdentityConstants.BearerScheme); // Esquema para Android
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
 
+// 2. EVITAR QUE LA API REDIRIJA AL LOGIN (HTML) EN CASO DE ERROR
+// Esto es CRÍTICO para que Android reciba errores JSON reales y no HTML
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 403;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
+
+// --- FIN DEL AJUSTE ---
 // --- 3. CONFIGURACIÓN DE TIEMPOS (330 MINUTOS) ---
 
 // Para la aplicación WEB (Cookies)
@@ -57,21 +115,22 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.Name = "SISCOIN_Auth";
     options.LoginPath = "/login";
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // 330 min exactos
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;
 });
 
 // Para la aplicación ANDROID (Tokens)
-builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme, options => {
+builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme, options =>
+{
     options.BearerTokenExpiration = TimeSpan.FromMinutes(330);
 });
 
 #endregion
 
-#region Injeccion de la capa de negocios  
+#region Injeccion de dependencias
 
 // Tus Servicios de Negocio (Se reutilizan perfectamente en Blazor)
-builder.Services.AddScoped<Api.Business.BusinessCobrador>();
+//builder.Services.AddScoped<Api.Business.BusinessCobrador>();
 builder.Services.AddScoped<Api.Business.BusinessConcepto>();
 builder.Services.AddScoped<Api.Business.BusinessFolio>();
 builder.Services.AddScoped<Api.Business.BusinessGremio>();
@@ -79,6 +138,10 @@ builder.Services.AddScoped<Api.Business.BusinessLider>();
 builder.Services.AddScoped<Api.Business.BusinessPadron>();
 builder.Services.AddScoped<Api.Business.BusinessRecaudacion>();
 builder.Services.AddScoped<Api.Business.BusinessTarifa>();
+builder.Services.AddScoped<Api.Business.BusinessUsuario>();
+builder.Services.AddScoped<Api.Business.BusinessRol>();
+builder.Services.AddScoped<Api.Business.BusinessSolicitudCancelacion>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 #endregion
 
@@ -132,37 +195,40 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<Usuario>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
-        // 1. Crear los Roles si no existen
-        string[] roles = { "Cobrador", "Administrador", "IT Manager" };
-        foreach (var roleName in roles)
+        // Crear los Roles si no existen
+        string[] roles = { "Superadmin", "IT Manager", "Supervisor", "Cobrador" };
+
+        foreach (var role in roles)
         {
-            if (!await roleManager.RoleExistsAsync(roleName))
-            {
-                await roleManager.CreateAsync(new IdentityRole<int>(roleName));
-            }
+            if (!await roleManager.RoleExistsAsync(role))
+                await roleManager.CreateAsync(new IdentityRole<int>(role));
         }
 
-        // 2. Crear el Usuario Administrador Maestro        
-        var emailAdmin = "admin@siscoin.com";
-        var adminUser = await userManager.FindByEmailAsync(emailAdmin);
+        // Crear el Usuario Administrador Maestro
+        var adminEmail = "superadmin@siscoin.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
         if (adminUser == null)
         {
             var user = new Usuario
             {
-                UserName = emailAdmin,
-                Email = emailAdmin,
-                Alias = "SuperUsuario",
+                Nombre = "SuperUsuario",
+                A_paterno = "SISCOIN",
+                A_materno = "ADMIN",
+                UserName = "SuperUsuario",
+                Email = adminEmail,
+                Usuario_alta = "System",
+                EsPasswordTemporal = false,
                 EmailConfirmed = true
             };
 
             // Definimos una contraseña segura temporal
-            var result = await userManager.CreateAsync(user, "Admin123!");
+            var result = await userManager.CreateAsync(user, "Admin123!ñ");
 
             if (result.Succeeded)
             {
                 // Le asignamos el rol más alto
-                await userManager.AddToRoleAsync(user, "IT Manager");
+                await userManager.AddToRoleAsync(user, "Superadmin");
             }
         }
     }
@@ -170,6 +236,173 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Ocurrió un error al inicializar la base de datos.");
+    }
+}
+
+#endregion
+
+#region Crear Gremio y Lider para cobradores Eventuales
+
+// --- INICIO DE SEEDING PARA EVENTUALES ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Necesitamos el Contexto de Datos normal, no el UserManager
+        var context = services.GetRequiredService<MySQLiteContext>();
+
+        // 1. Asegurar que exista el LÍDER EVENTUAL
+        // Buscamos por nombre para no duplicar
+        var liderEventual = await context.Lider
+            .FirstOrDefaultAsync(l => l.Nombre == "LIDER" && l.A_paterno == "EVENTUAL");
+
+        if (liderEventual == null)
+        {
+            liderEventual = new Api.Entities.Lider
+            {
+                Nombre = "LIDER",
+                A_paterno = "EVENTUAL",
+                A_materno = "SISTEMA",
+                Telefono = "-",
+                Email = "-",
+                Direccion = "-",
+                Estado = "A",
+                Usuario_alta = "System",
+                Fecha_alta = DateTime.UtcNow
+            };
+
+            context.Lider.Add(liderEventual);
+            await context.SaveChangesAsync(); // Guardamos para generar el ID_LIDER
+
+            var log = new Api.Entities.LiderLog
+            {
+                Id_movimiento = 1,
+                Id_lider = liderEventual.Id_lider,
+                Nombre = liderEventual.Nombre,
+                A_paterno = liderEventual.A_paterno,
+                A_materno = liderEventual.A_materno,
+                Telefono = liderEventual.Telefono,
+                Email = liderEventual.Email,
+                Direccion = liderEventual.Direccion,
+                Estado = liderEventual.Estado,
+                Tipo_movimiento = "A",
+                Usuario_modificacion = liderEventual.Usuario_alta,
+                Fecha_modificacion = liderEventual.Fecha_alta
+            };
+
+            context.LiderLog.Add(log);
+            await context.SaveChangesAsync();
+        }
+
+        // 2. Asegurar que exista el GREMIO EVENTUALES
+        var gremioEventual = await context.Gremio
+            .FirstOrDefaultAsync(g => g.Descripcion == "EVENTUALES");
+
+        if (gremioEventual == null)
+        {
+            gremioEventual = new Api.Entities.Gremio
+            {
+                Descripcion = "EVENTUALES",
+                Id_lider = liderEventual.Id_lider,
+                Prefijo = "EVT",
+                Estado = "A",
+                Usuario_alta = "System"
+            };
+
+            context.Gremio.Add(gremioEventual);
+            await context.SaveChangesAsync();
+
+            var log = new Api.Entities.GremioLog
+            {
+                Id_movimiento = 1,
+                Id_gremio = gremioEventual.Id_gremio,
+                Descripcion = gremioEventual.Descripcion,
+                Lider = $"{liderEventual.Nombre} {liderEventual.A_paterno} {liderEventual.A_materno}",
+                Prefijo = gremioEventual.Prefijo,
+                Estado = gremioEventual.Estado,
+                Tipo_movimiento = "A",
+                Usuario_modificacion = gremioEventual.Usuario_alta,
+                Fecha_modificacion = gremioEventual.Fecha_alta
+            };
+
+            context.GremioLog.Add(log);
+            await context.SaveChangesAsync();
+        }
+
+        // 3. Crear el folio para el gremio EVENTUALES si no existe
+        var folioEventual = await context.Folio
+            .FirstOrDefaultAsync(f => f.Id_gremio == gremioEventual.Id_gremio &&
+            f.Anio_vigente == DateTime.Now.Year);
+
+        if (folioEventual == null)
+        {
+            folioEventual = new Api.Entities.Folio
+            {
+                Id_gremio = gremioEventual.Id_gremio,
+                Descripcion = "Folio para cobradores eventuales",
+                Prefijo = "EVT",
+                Anio_vigente = DateTime.Now.Year,
+                Siguiente_folio = 1
+            };
+            context.Folio.Add(folioEventual);
+            await context.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Error al crear los datos semilla de Eventuales.");
+    }
+}
+// --- FIN DE SEEDING PARA EVENTUALES ---
+
+#endregion
+
+#region Crear contadores para matriculas del padron
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<MySQLiteContext>();
+
+        // 1. Definimos el año actual una sola vez
+        int anioActual = DateTime.Now.Year;
+
+        // 2. Lista de tipos que necesitamos validar/crear
+        string[] tiposRequeridos = ["E", "P"];
+
+        foreach (var tipo in tiposRequeridos)
+        {
+            // 3. LA CLAVE: Buscamos por Tipo Y por Año al mismo tiempo
+            bool existeRegistro = await context.MatriculaContador
+                .AnyAsync(c => c.Tipo_vendedor == tipo && c.Anio == anioActual);
+
+            if (!existeRegistro)
+            {
+                MatriculaContador nuevoContador = new()
+                {
+                    Tipo_vendedor = tipo,
+                    Anio = anioActual,
+                    Siguiente_numero = 1
+                };
+
+                context.MatriculaContador.Add(nuevoContador);
+                // Guardamos dentro del loop o al final, depende de tu preferencia. 
+                // Hacerlo aquí asegura que si uno falla, se intente el otro.
+            }
+        }
+
+        // Guardamos todos los cambios de golpe
+        await context.SaveChangesAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Error al inicializar los contadores anuales.");
     }
 }
 

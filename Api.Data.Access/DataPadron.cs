@@ -52,6 +52,27 @@ namespace Api.Data.Access
             return contribuyente;
         }
 
+        public async Task<Padron> GetByMatricula(string matricula)
+        {
+            Padron contribuyente;
+
+            try
+            {
+                contribuyente = await context.Padron
+                    .Include(x => x.Gremio)
+                    .FirstOrDefaultAsync(x => x.Matricula == matricula) ?? throw new Exception("Contribuyente no encontrado");
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el afiliado: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el afiliado: " + ex.Message);
+            }
+
+            return contribuyente;
+        }
+
         public async Task<IEnumerable<Padron>> Search(IQueryable<Padron> query)
         {
             try
@@ -76,6 +97,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(contribuyente).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el afiliado: " + ex.InnerException.Message);
 
@@ -92,6 +114,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(contribuyente).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar el afiliado: " + ex.InnerException.Message);
 
@@ -113,6 +136,28 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al eliminar la afiliado: " + ex.Message);
             }
-        }        
+        }
+
+        public async Task<IEnumerable<Padron>> Sincronizar(DateTime? fSincronizacion)
+        {
+            IEnumerable<Padron> lista;
+
+            try
+            {
+                lista = await context.Padron
+                    .Where(p => p.Fecha_modificacion >= fSincronizacion || p.Fecha_alta >= fSincronizacion)
+                    .Include(p => p.Gremio)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el padron: " + ex.Message);
+            }
+
+            return lista;
+        }
     }
 }

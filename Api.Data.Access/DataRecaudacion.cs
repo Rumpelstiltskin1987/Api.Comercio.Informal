@@ -66,14 +66,15 @@ namespace Api.Data.Access
                     .Include(x => x.Cobrador)
                     .Include(x => x.Padron)
                     .Include(x => x.Concepto)
+                    .Include(x => x.Padron.Gremio)
                     .FirstOrDefaultAsync() ?? throw new Exception("Folio no encontrado");
             }
             catch (Exception ex)
             {
                 if (ex.InnerException != null)
-                    throw new Exception("Error al obtener el folio: " + ex.InnerException.Message);
+                    throw new Exception("Data Access: " + ex.InnerException.Message);
 
-                throw new Exception("Error al obtener el folio: " + ex.Message);
+                throw new Exception("Data Access: " + ex.Message);
             }
 
             return cobro;
@@ -86,6 +87,7 @@ namespace Api.Data.Access
                 return await query
                     .Include(x => x.Cobrador)
                     .Include(x => x.Padron)
+                    .Include(x => x.Padron.Gremio)
                     .Include(x=> x.Concepto)
                     .ToListAsync();
             }
@@ -107,6 +109,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(recaudacion).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al registrar la recaudación: " + ex.InnerException.Message);
                 throw new Exception("Error al registrar la recaudación: " + ex.Message);
@@ -122,6 +125,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(recaudacion).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar la recaudación: " + ex.InnerException.Message);
 

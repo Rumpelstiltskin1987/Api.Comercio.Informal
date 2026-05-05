@@ -1,0 +1,72 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+@HostAddress = https://localhost:7011
+
+### 1. Crear Contribuyente (Caso Exitoso)
+POST {{HostAddress}}/api/padron/Create
+Content-Type: application/json
+
+{
+  "nombre": "Ricardo",
+  "aPaterno": "López",
+  "aMaterno": "García",
+  "curp": "LOGR850101HDFRRN01",
+  "direccion": "Av. Independencia #45, Centro",
+  "telefono": "2741112233",
+  "email": "ricardo.lopez@ejemplo.com",
+  "idGremio": 1,
+  "tipo": "E",
+  "usuario": "PRUEBA"
+}
+
+### 2. Prueba de Validación (Error intencional: CURP corta y falta Nombre)
+# Esto sirve para probar tu bloque: if (!ModelState.IsValid)
+POST {{HostAddress}}/api/padron/Create
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "aPaterno": "Pérez",
+  "aMaterno": "Sosa",
+  "curp": "CURP_INVALIDA",
+  "direccion": "Conocido",
+  "telefono": "0000000000",
+  "idGremio": 1,
+  "tipo": "P",
+  "usuario": "admin"
+}
+
+### 3. Request de andriod (Error 404 : Badrequest)
+# Esto sirve para probar tu bloque: if (!ModelState.IsValid)
+POST {{HostAddress}}/api/padron/Create
+Content-Type: application/json
+{"aMaterno":"fnffj","aPaterno":"xnxjxfj","curp":"fkffj","direccion":"fjfj","email":"xkxj","idGremio":1,"nombre":"djfjfj","telefono":"xkxjx","tipo":"E","usuario":"MDELFIN"}
+
+### 4. Buscar contribuyente existente
+
+POST {{HostAddress}}/api/padron/Search
+Content-Type: application/json
+{
+  "nombre": "",
+  "aPaterno": "",
+  "aMaterno": "",
+  "curp": "",
+  "matricula": "E2600001",
+  "idGremio": "",
+  "tipo": "",
+  "estado": ""
+}
+
+### Consultar por matricula
+
+GET {{HostAddress}}/api/padron/GetByMatricula?matricula=E2600001
+Accpet: application/json
+
+### Sincronizar  catálogo en la app android primeva vez 
+
+Get {{HostAddress}}/api/padron/Sincronizar
+Accept: application/json
+
+### Sincronizar  catálogo en la app android con fecha de última sincronización
+
+Get {{HostAddress}}/api/padron/Sincronizar?fechaUltimaSincronizacion=1900-01-01T00:00:00
+Accept: application/json

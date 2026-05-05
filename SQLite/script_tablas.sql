@@ -1,3 +1,4 @@
+/*
 DROP TABLE IF EXISTS CobradorLog;
 DROP TABLE IF EXISTS Cobrador;
 
@@ -30,13 +31,11 @@ CREATE TABLE CobradorLog (
 	PRIMARY KEY (Id_movimiento, Id_cobrador),
 	FOREIGN KEY (Id_cobrador) REFERENCES Cobrador(Id_cobrador)
 );
-
-DROP TABLE IF EXISTS ConceptoLog;
-DROP TABLE IF EXISTS Concepto;
+*/
 
 CREATE TABLE Concepto (
 	Id_concepto INTEGER PRIMARY KEY AUTOINCREMENT,
-	Descripcion TEXT NOT NULL,
+	Descripcion TEXT NOT NULL UNIQUE,
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Usuario_alta TEXT NOT NULL,
 	Fecha_alta TEXT NOT NULL,
@@ -46,7 +45,7 @@ CREATE TABLE Concepto (
 
 CREATE TABLE ConceptoLog (
 	Id_movimiento INTEGER NOT NULL,
-	Id_concepto INTEGER NOT NULL ,
+	Id_concepto INTEGER NOT NULL,
 	Descripcion TEXT NOT NULL,
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
@@ -56,30 +55,28 @@ CREATE TABLE ConceptoLog (
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto)
 );
 
-DROP TABLE IF EXISTS Tarifa;
-
 CREATE TABLE Tarifa (
     Id_tarifa INTEGER PRIMARY KEY AUTOINCREMENT,
     Id_concepto INTEGER NOT NULL,
     Id_gremio INTEGER,
-    Monto REAL NOT NULL CHECK(Monto >= 0),
+    Monto TEXT NOT NULL,
     Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
     Usuario_alta TEXT NOT NULL,
     Fecha_alta TEXT NOT NULL,
     Usuario_modificacion TEXT,
     Fecha_modificacion TEXT,
     FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
-    FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
+    FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio),
+	CONSTRAINT UQ_Tarifa_Concepto_Gremio UNIQUE (Id_concepto, Id_gremio),
+	CONSTRAINT CK_Monto_Positivo CHECK (CAST(monto AS REAL) >= 0)
 );
-
-DROP TABLE IF EXISTS TarifaLog;
 
 CREATE TABLE TarifaLog (
     Id_movimiento INTEGER NOT NULL,
     Id_tarifa INTEGER NOT NULL,
-    Id_concepto INTEGER NOT NULL,
-    Id_gremio INTEGER,
-    Monto REAL NOT NULL,
+    Concepto TEXT NOT NULL,
+    Gremio TEXT NOT NULL,
+    Monto TEXT NOT NULL,
     Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
     Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
     Usuario_modificacion TEXT,
@@ -88,19 +85,17 @@ CREATE TABLE TarifaLog (
     FOREIGN KEY (Id_tarifa) REFERENCES Tarifa(Id_tarifa)
 );
 
-DROP TABLE IF EXISTS Folio;
-
 CREATE TABLE Folio (
     Id_folio_serie INTEGER PRIMARY KEY AUTOINCREMENT,
     Id_gremio INTEGER, 
     Descripcion TEXT NOT NULL,
-    Prefijo TEXT NOT NULL UNIQUE, 
+    Prefijo TEXT NOT NULL, 
     Siguiente_folio INTEGER NOT NULL DEFAULT 1 CHECK(Siguiente_Folio > 0),
-    Anio_vigente INTEGER NOT NULL,    
-    FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
+    Anio_vigente INTEGER NOT NULL,
+	Cantidad_lote INTEGER,
+    FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio),
+	CONSTRAINT UQ_Gremio_Anio UNIQUE (Id_gremio, Anio_vigente)
 );
-
-DROP TABLE IF EXISTS MatriculaContador;
 
 CREATE TABLE MatriculaContador (
     Tipo_vendedor TEXT NOT NULL CHECK(Tipo_Vendedor IN ('P', 'E')),
@@ -108,8 +103,6 @@ CREATE TABLE MatriculaContador (
     Siguiente_numero INTEGER NOT NULL DEFAULT 1 CHECK(Siguiente_Numero > 0),    
     PRIMARY KEY (Tipo_Vendedor, Anio)
 );
-
-DROP TABLE IF EXISTS Lider;
 
 CREATE TABLE Lider (
 	Id_lider INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,8 +118,6 @@ CREATE TABLE Lider (
 	Usuario_modificacion TEXT,
 	Fecha_modificacion TEXT
 );
-
-DROP TABLE IF EXISTS LiderLog;
 
 CREATE TABLE LiderLog (
 	Id_movimiento INTEGER NOT NULL,
@@ -145,12 +136,11 @@ CREATE TABLE LiderLog (
 	FOREIGN KEY (Id_lider) REFERENCES Lider(Id_lider)
 );
 
-DROP TABLE IF EXISTS Gremio;
-
 CREATE TABLE Gremio (
 	Id_gremio INTEGER PRIMARY KEY AUTOINCREMENT,
 	Descripcion TEXT NOT NULL,
 	Id_lider INTEGER NOT NULL,
+	Prefijo TEXT NOT NULL UNIQUE,
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Usuario_alta TEXT NOT NULL,
 	Fecha_alta TEXT NOT NULL,
@@ -159,34 +149,30 @@ CREATE TABLE Gremio (
 	FOREIGN KEY (Id_lider) REFERENCES Lider(Id_lider)
 );
 
-DROP TABLE IF EXISTS GremioLog;
-
 CREATE TABLE GremioLog (
 	Id_movimiento INTEGER NOT NULL,
 	Id_gremio INTEGER NOT NULL,
 	Descripcion TEXT NOT NULL,
-	Id_lider INTEGER NOT NULL,
+	Lider TEXT NOT NULL,
+	Prefijo TEXT NOT NULL,
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
 	Usuario_modificacion TEXT,
 	Fecha_modificacion TEXT,
 	PRIMARY KEY (Id_movimiento, Id_gremio),
 	FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
-	FOREIGN KEY (Id_lider) REFERENCES Lider(Id_lider)	
 );
-
-DROP TABLE IF EXISTS Padron;
 
 CREATE TABLE Padron (
 	Id_padron INTEGER PRIMARY KEY AUTOINCREMENT,	
 	Nombre TEXT NOT NULL,
-	A_paterno TEXT,
-	A_materno TEXT,
-	Curp TEXT,
+	A_paterno TEXT NOT NULL,
+	A_materno TEXT NOT NULL,
+	Curp TEXT NOT NULL UNIQUE,
 	Direccion TEXT,
 	Telefono TEXT,
 	Email TEXT,
-	Matricula TEXT,
+	Matricula TEXT NOT NULL UNIQUE,
 	Matricula_anterior TEXT,
 	Id_gremio INTEGER,
     Tipo_Vendedor TEXT NOT NULL CHECK(Tipo_Vendedor IN ('P', 'E')), --P=Padron, E=Eventual    
@@ -198,46 +184,89 @@ CREATE TABLE Padron (
     FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
 );
 
-DROP TABLE IF EXISTS PadronLog;
-
 CREATE TABLE PadronLog (
 	Id_movimiento INTEGER NOT NULL,
 	Id_padron INTEGER NOT NULL,	
 	Nombre TEXT NOT NULL,
-	A_paterno TEXT,
-	A_materno TEXT,
-	Curp TEXT,
+	A_paterno TEXT NOT NULL,
+	A_materno TEXT NOT NULL,
+	Curp TEXT NOT NULL,
 	Direccion TEXT,
 	Telefono TEXT,
 	Email TEXT,
 	Matricula TEXT,
 	Matricula_anterior TEXT,
-	Id_gremio INTEGER,
+	Gremio Text,
     Tipo_Vendedor TEXT NOT NULL CHECK(Tipo_Vendedor IN ('P', 'E')),
 	Estado TEXT NOT NULL CHECK(Estado IN ('A', 'I')),
 	Tipo_movimiento TEXT NOT NULL CHECK(Tipo_movimiento IN ('A','B','M')),
 	Usuario_modificacion TEXT,
 	Fecha_modificacion TEXT,    
-	PRIMARY KEY (Id_movimiento, Id_padron),
-	FOREIGN KEY (Id_gremio) REFERENCES Gremio(Id_gremio)
+	PRIMARY KEY (Id_movimiento, Id_padron)
+	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron)
 );
 
-DROP TABLE IF EXISTS Recaudacion;
-
+CREATE TABLE UsuarioLog (
+	Id_movimiento	INTEGER NOT NULL,
+	Id	INTEGER NOT NULL,
+	UserName	TEXT NOT NULL,
+	Nombre	TEXT NOT NULL,
+	A_paterno	TEXT NOT NULL,
+	A_materno	TEXT NOT NULL,
+	Email	TEXT,
+	PhoneNumber	TEXT,
+	Rol TEXT NOT NULL,
+	Estado	TEXT NOT NULL CHECK("Estado" IN ('A', 'I')),
+	Tipo_movimiento	TEXT NOT NULL CHECK("Tipo_movimiento" IN ('A', 'B', 'M')),
+	Usuario_modificacion	TEXT,
+	Fecha_modificacion	TEXT,
+	PRIMARY KEY("Id_movimiento","Id"),
+	FOREIGN KEY("Id") REFERENCES "AspNetUsers"("Id")
+);
+drop table Recaudacion;
 CREATE TABLE Recaudacion (
 	Id_recaudacion INTEGER PRIMARY KEY AUTOINCREMENT,
 	Id_padron INTEGER NOT NULL,
 	Id_concepto INTEGER NOT NULL,
-	Monto REAL NOT NULL,
+	Monto TEXT NOT NULL,
 	Id_cobrador INTEGER NOT NULL,
 	Fecha_cobro TEXT NOT NULL,
     Folio_Recibo TEXT NOT NULL UNIQUE,
     Estado TEXT NOT NULL DEFAULT 'A' CHECK(Estado IN ('A', 'C')), -- A=Activo, C=Cancelado
     Latitud REAL,
-    Longitud REAL,	
+    Longitud REAL,
+	Fecha_alta TEXT NOT NULL,
+	Fecha_modificacion TEXT NOT NULL,
 	FOREIGN KEY (Id_padron) REFERENCES Padron(Id_padron),
 	FOREIGN KEY (Id_concepto) REFERENCES Concepto(Id_concepto),
-	FOREIGN KEY (Id_cobrador) REFERENCES Cobrador(Id_cobrador)
+	FOREIGN KEY (Id_cobrador) REFERENCES AspNetUsers(Id),
+	CONSTRAINT CK_Monto_Positivo CHECK (CAST(monto AS REAL) >= 0)
+);
+
+CREATE TABLE SolicitudCancelacion(
+	Id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
+	Id_recaudacion INTEGER NOT NULL UNIQUE,
+	Id_usuario_solicita INTEGER NOT NULL,
+	Fecha_solicitud TEXT NOT NULL,
+	Motivo_solicitud TEXT NOT NULL,
+	Estado_Solicitud TEXT NOT NULL CHECK (Estado_solicitud IN ('P','A','R')),
+	Id_usuario_responde INTEGER,
+	Fecha_respuesta TEXT,
+	Motivo_respuesta TEXT ,	
+	FOREIGN KEY (Id_usuario_solicita) REFERENCES AspNetUsers(Id)
+);
+
+CREATE TABLE LoteFolio (
+    Id_lote INTEGER PRIMARY KEY AUTOINCREMENT,
+    Id_usuario INTEGER NOT NULL,
+    Id_gremio INTEGER NOT NULL,
+    Rango_inicial INTEGER NOT NULL, -- Ej: 1
+    Rango_final INTEGER NOT NULL,   -- Ej: 50
+    Ultimo_usado INTEGER NOT NULL,  -- Para saber por cuál va
+    Anio INTEGER NOT NULL,
+    Estado TEXT DEFAULT 'ACTIVO',   -- ACTIVO, AGOTADO
+    Fecha_asignacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+	Fecha_modificacion DATETIME
 );
 
 

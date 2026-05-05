@@ -1,12 +1,15 @@
-﻿using System;
+﻿using Api.Data.Access;
+using Api.Entities;
+using Api.Entities.DTO;
+using Api.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.XPath;
-using Api.Data.Access;
-using Api.Entities;
-using Api.Interfaces;
 
 namespace Api.Business
 {
@@ -16,6 +19,7 @@ namespace Api.Business
         private readonly DataPadron _dataPadron;
         private readonly DataPadronLog _dataPadronLog;
         private readonly DataMatriculaContador _dataMatriculaContador;
+        private readonly DataGremio _gremio;
 
         public BusinessPadron(MySQLiteContext context)
         {
@@ -23,6 +27,7 @@ namespace Api.Business
             _dataPadron = new(_context);
             _dataPadronLog = new(_context);
             _dataMatriculaContador = new(_context);
+            _gremio = new(_context);
         }
 
         public async Task<IEnumerable<Padron>> GetAll()
@@ -33,6 +38,35 @@ namespace Api.Business
         public async Task<Padron> GetById(int id)
         {
             return await _dataPadron.GetById(id);
+        }
+
+        public async Task<DtoContribuyente> GetByMatricula(string matricula)
+        {
+            Padron contribuyenteDb;
+            DtoContribuyente contribuyente;
+            try
+            {
+                contribuyenteDb = await _dataPadron.GetByMatricula(matricula);
+
+                contribuyente = new()
+                {
+                    IdContribuyente = contribuyenteDb.Id_padron,
+                    Nombre = contribuyenteDb.Nombre,
+                    APaterno = contribuyenteDb.A_paterno,
+                    AMaterno = contribuyenteDb.A_materno,
+                    Curp = contribuyenteDb.Curp,
+                    Matricula = contribuyenteDb.Matricula,
+                    Tipo = contribuyenteDb.Tipo_vendedor,
+                    IdGremio = contribuyenteDb?.Gremio?.Id_gremio ?? 0,
+                    Gremio = contribuyenteDb?.Gremio?.Descripcion ?? string.Empty,
+                };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return contribuyente;
         }
 
         public async Task<IEnumerable<Padron>> Search(string? nombre, string? aPaterno, string? aMaterno,
@@ -78,7 +112,7 @@ namespace Api.Business
             if (!string.IsNullOrEmpty(estado))
             {
                 query = query.Where(c => c.Estado == estado);
-            }            
+            }
 
             return await _dataPadron.Search(query);
         }
@@ -87,7 +121,17 @@ namespace Api.Business
             string direccion, string telefono, string? email, int id_gremio, string tipo, string usuario)
         {
             MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
-            string matricula;            
+            string matricula;
+            bool curpExiste;
+
+            // Validar si ya existe la CURP en la base de datos
+            curpExiste = await _context.Padron.AnyAsync(c => c.Curp == curp);
+
+            // Detener el proceso si hay duplicado
+            if (curpExiste)
+            {
+                throw new Exception("Ya existe un contribuyente registrado en el padrón con esta CURP.");
+            }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -101,19 +145,18 @@ namespace Api.Business
                         Siguiente_numero = 1
                     };
                     matricula = tipo + (DateTime.Now.Year % 100) + matriculaContador.Siguiente_numero.ToString("D5");
+                    matriculaContador.Siguiente_numero += 1;
                     await _dataMatriculaContador.Create(matriculaContador);
-
-
                 }
                 else
                 {
-                    matriculaContador.Siguiente_numero += 1;
                     matricula = tipo + DateTime.Now.Year % 100 + matriculaContador.Siguiente_numero.ToString("D5");
+                    matriculaContador.Siguiente_numero += 1;
                     await _dataMatriculaContador.Update(matriculaContador);
                 }
 
                 Padron contribuyente = new()
-                {                    
+                {
                     Nombre = nombre,
                     A_paterno = a_paterno,
                     A_materno = a_materno,
@@ -125,15 +168,16 @@ namespace Api.Business
                     Id_gremio = id_gremio,
                     Tipo_vendedor = tipo,
                     Estado = "A",
-                    Usuario_alta = usuario,
-                    Fecha_alta = DateTime.Now
+                    Usuario_alta = usuario
                 };
                 await _dataPadron.Create(contribuyente);
+
+                var gremio = await _gremio.GetById(id_gremio);
 
                 PadronLog padronLog = new()
                 {
                     Id_movimiento = 1,
-                    Id_padron = contribuyente.Id_padron,                    
+                    Id_padron = contribuyente.Id_padron,
                     Nombre = contribuyente.Nombre,
                     A_paterno = contribuyente.A_paterno,
                     A_materno = contribuyente.A_materno,
@@ -143,7 +187,7 @@ namespace Api.Business
                     Email = contribuyente.Email,
                     Matricula = contribuyente.Matricula,
                     Matricula_anterior = contribuyente.Matricula_anterior,
-                    Id_gremio = contribuyente.Id_gremio,                    
+                    Gremio = gremio.Descripcion,
                     Tipo_vendedor = contribuyente.Tipo_vendedor,
                     Estado = contribuyente.Estado,
                     Tipo_movimiento = "A",
@@ -161,36 +205,86 @@ namespace Api.Business
             }
         }
 
-        public async Task Update(int id, string nombre, string a_paterno, string a_materno, string curp, 
-            string direccion, string telefono, string? email, string matricula, string? matricula_anterior, 
-            int id_gremio, string status, string usuario)
+        public async Task Update(int id, string nombre, string a_paterno, string a_materno, string curp,
+            string direccion, string telefono, string? email, string matricula, string? matricula_anterior,
+            int id_gremio, string tipo, string status, string usuario)
         {
             Padron padron = await _dataPadron.GetById(id);
+            string matriculaActual = padron.Matricula;
+            string tipoActual = padron.Tipo_vendedor;
+            bool curpExiste;
 
-            padron.Matricula = matricula;
-            padron.Nombre = nombre;
-            padron.A_paterno = a_paterno;
-            padron.A_materno = a_materno;
-            padron.Curp = curp;
-            padron.Direccion = direccion;
-            padron.Telefono = telefono;
-            padron.Email = email;
-            padron.Id_gremio = id_gremio;
-            padron.Estado = status;
-            padron.Usuario_modificacion = usuario;
-            padron.Fecha_modificacion = DateTime.Now;
+            // Validar si ya existe la CURP en la base de datos descartando el id actual
+            curpExiste = await _context.Padron.AnyAsync(c => c.Curp == curp && c.Id_padron != id);
+
+            // Detener el proceso si hay duplicado
+            if (curpExiste)
+            {
+                throw new Exception("Ya existe un contribuyente registrado en el padrón con esta CURP.");
+            }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // =========================================================
+                // LÓGICA DE MATRÍCULAS (ENFOQUE: INTERCAMBIO O CREACIÓN)
+                // =========================================================
+                if (tipoActual != tipo)
+                {
+                    // 1. Verificamos si la matrícula anterior ya pertenece al tipo al que quiere cambiar (ej. empieza con 'E' o 'P')
+                    if (!string.IsNullOrEmpty(padron.Matricula_anterior) && padron.Matricula_anterior.StartsWith(tipo))
+                    {
+                        // ESCENARIO A: Hacemos el "Ping-Pong" (Swap)
+                        padron.Matricula = padron.Matricula_anterior;
+                        padron.Matricula_anterior = matriculaActual;
+                    }
+                    else
+                    {
+                        // ESCENARIO B: No tiene historial de este tipo, creamos una nueva
+                        MatriculaContador matriculaContador = await _dataMatriculaContador.GetByType(tipo);
+
+                        // Formateamos el año a 2 dígitos por seguridad (ej. "05" en lugar de "5")
+                        string matriculaNueva = tipo + (DateTime.Now.Year % 100) + matriculaContador.Siguiente_numero.ToString("D5");
+
+                        padron.Matricula = matriculaNueva;
+                        padron.Matricula_anterior = matriculaActual;
+
+                        // Sumamos 1 al contador y lo actualizamos en la BD para que el siguiente no se duplique
+                        matriculaContador.Siguiente_numero++;
+                        await _dataMatriculaContador.Update(matriculaContador);
+                    }
+                }
+                else
+                {
+                    // No hubo cambio de giro, conserva su matrícula actual
+                    padron.Matricula = matricula;
+                }
+                // =========================================================
+
+                padron.Nombre = nombre;
+                padron.A_paterno = a_paterno;
+                padron.A_materno = a_materno;
+                padron.Curp = curp;
+                padron.Direccion = direccion;
+                padron.Telefono = telefono;
+                padron.Email = email;
+                padron.Id_gremio = id_gremio;
+                padron.Tipo_vendedor = tipo;
+                padron.Estado = status;
+                padron.Usuario_modificacion = usuario;
+                padron.Fecha_modificacion = DateTime.UtcNow;
+
                 await _dataPadron.Update(padron);
+
                 int idMovimiento = await _dataPadronLog.GetIdMovement(id) + 1;
+                var gremio = await _gremio.GetById(id_gremio);
 
                 PadronLog padronLog = new()
                 {
                     Id_movimiento = idMovimiento,
                     Id_padron = padron.Id_padron,
                     Matricula = padron.Matricula,
+                    Matricula_anterior = padron.Matricula_anterior,
                     Nombre = padron.Nombre,
                     A_paterno = padron.A_paterno,
                     A_materno = padron.A_materno,
@@ -198,19 +292,21 @@ namespace Api.Business
                     Direccion = padron.Direccion,
                     Telefono = padron.Telefono,
                     Email = padron.Email,
-                    Id_gremio = padron.Id_gremio,
+                    Gremio = gremio.Descripcion,
                     Estado = padron.Estado,
+                    Tipo_vendedor = padron.Tipo_vendedor,
                     Tipo_movimiento = "M",
                     Usuario_modificacion = padron.Usuario_modificacion,
                     Fecha_modificacion = padron.Fecha_modificacion
                 };
 
                 await _dataPadronLog.AddLog(padronLog);
-                transaction.Commit();
+
+                await transaction.CommitAsync(); // Mejor práctica en métodos asíncronos
             }
             catch (Exception)
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync(); // Mejor práctica en métodos asíncronos
                 throw;
             }
         }
@@ -218,7 +314,7 @@ namespace Api.Business
         public async Task Delete(int id)
         {
             _ = await _dataPadron.GetById(id);
-            
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -230,6 +326,71 @@ namespace Api.Business
                 transaction.Rollback();
                 throw;
             }
-        }   
+        }
+
+        public async Task<List<DtoHistorial>> GetHistorial(int id)
+        {
+            try
+            {
+                // 1. Obtenemos la lista cruda de la base de datos
+                var logs = await _dataPadronLog.GetLogsByPadronId(id);
+
+                // 2. Transformamos (Mapeamos) cada UsuarioLog a DtoHistorial
+                var historial = logs.Select(log => new DtoHistorial
+                {
+                    Fecha = log.Fecha_modificacion,
+                    Usuario = log.Usuario_modificacion ?? string.Empty,
+                    Movimiento = log.Tipo_movimiento.ToUpper() switch
+                    {
+                        "A" => "Alta",
+                        "M" => "Modificación",
+                        _ => log.Tipo_movimiento
+                    },
+                    Detalles = $"Matrícula: {log.Matricula} " +
+                               $"| Nombre: {log.Nombre} {log.A_paterno} {log.A_materno} " +
+                               $"| CURP: {log.Curp} " +
+                               $"| Dirección: {log.Direccion} " +
+                               $"| Gremio: {log.Gremio} " +
+                               $"| Teléfono: {log.Telefono} " +
+                               $"| Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))} " +
+                               $"| Email: {log.Email}"
+                }).ToList();
+
+                return historial;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DtoContribuyente>> Sincronizar(DateTime? fSincronizacion)
+        {
+            IEnumerable<Padron> listaDb;
+            IEnumerable<DtoContribuyente> lista;
+
+            if (fSincronizacion == null)
+            {
+                listaDb = await _dataPadron.GetAll();
+            }
+            else
+            {
+                listaDb = await _dataPadron.Sincronizar(fSincronizacion);
+            }
+
+            lista = listaDb.Select(p => new DtoContribuyente
+            {
+                IdContribuyente = p.Id_padron,
+                Matricula = p.Matricula,
+                Nombre = p.Nombre,
+                APaterno = p.A_paterno,
+                AMaterno = p.A_materno,
+                Curp = p.Curp,
+                Tipo = p.Tipo_vendedor,
+                IdGremio = p.Gremio?.Id_gremio ?? 0,
+                Gremio = p.Gremio?.Descripcion ?? string.Empty
+            });
+            return lista;
+        }
     }
 }

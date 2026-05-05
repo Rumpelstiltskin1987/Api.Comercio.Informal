@@ -1,34 +1,47 @@
 ﻿@* Este archivo no puede llamarse Padron porque causaría conflicto con la clase Api.Entities.Padron *@
 @page "/padron"
-@using Api.Comercio.Informal.Components.Layout
+@page "/auditoria/padron"
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Api.Entities
-@using Api.Business
+@using Api.Comercio.Informal.Components.Layout
+@using Api.Entities.DTO
+@inject IJSRuntime JSRuntime
 @inject BusinessPadron _padronService
 @inject BusinessGremio _gremioService
-@inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin, Supervisor, IT Manager")]
 @rendermode InteractiveServer
 
 <link href="css/personas.css" rel="stylesheet" />
+@if (EsModoAuditoria)
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Historial de registros del Padron</h3>
+}
+else
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Padron de Contribuyentes</h3>
+}
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Padron de Vendedores</h3>
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
-    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
-        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
-    </button>
+    @if (!EsModoAuditoria)
+    {
+        <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+        </button>
 
-    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
-        @if (mostrarActivos)
-        {
-            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
-        }
-        else
-        {
-            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
-        }
-    </button>
+        <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+            @if (mostrarActivos)
+            {
+                <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+            }
+            else
+            {
+                <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+            }
+        </button>
+    }
 </div>
 
 <div class="card shadow-sm border-0">
@@ -41,26 +54,43 @@
             <PropertyColumn Property="@(c => c.Matricula)" Sortable="true" Title="Matrícula" />
             <TemplateColumn Title="Gestión" Align="Align.Right">
                 <div class="d-flex gap-2 justify-content-end">
-                    @if (mostrarActivos)
-                    {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
-                            <i class="bi bi-pencil-square fs-6"></i>
+                    @if (EsModoAuditoria)
+                    {@* BOTÓN SOLO PARA AUDITORÍA *@
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none"
+                                title="Ver Historial de Cambios"
+                                @onclick="() => VerHistorial(context)">
+                            <i class="bi bi-clock-history fs-5"></i>
                         </button>
+
                     }
                     else
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
-                            <i class="bi bi-box-arrow-up fs-6"></i>
+                        @if (mostrarActivos)
+                        {
+                            @* --- NUEVO BOTÓN QR --- *@
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Imprimir Código QR" @onclick="() => AbrirQr(context)">
+                                <i class="bi bi-qr-code fs-6"></i>
+                            </button>
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                                <i class="bi bi-pencil-square fs-6"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                                <i class="bi bi-box-arrow-up fs-6"></i>
+                            </button>
+                        }
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
                         </button>
-                    }
-                    <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
-                    </button>
-                    @if (mostrarActivos)
-                    {
-                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
-                            <i class="bi bi-trash fs-6"></i>
-                        </button>
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
+                        }
+
                     }
                 </div>
             </TemplateColumn>
@@ -73,7 +103,7 @@
 </div>
 
 <SimpleModal Show="mostrarModal" Title="@tituloModal" OnCancel="CerrarModal" OnConfirm="GuardarPadron" HideSaveButton="@soloLectura">
-    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0">
+    <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             @if (soloLectura)
             {
@@ -107,12 +137,12 @@
             {
                 <div class="col-12">
                     <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Matricula Anterior</label>
-                    <input class="form-control lbl-required" @bind="registro.Matricula" />
+                    <input class="form-control lbl-required" @bind="registro.Matricula_anterior" />
                 </div>
             }
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Gremio Asignado</label>
-                <select class="form-select" @bind="registro.Id_gremio">
+                <select class="form-select" @bind="GremioProxy">
                     <option value="0">-- Seleccione un gremio --</option>
                     @if (gremios != null)
                     {
@@ -125,7 +155,7 @@
             </div>
             <div class="col-12">
                 <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Tipo Vendedor</label>
-                <select class="form-select" @bind="registro.Tipo_vendedor">
+                <select class="form-select" @bind="registro.Tipo_vendedor" disabled="@bloquearTipoVendedor">
                     <option value="0">-- Seleccione un tipo --</option>
                     @if (tipos != null)
                     {
@@ -154,6 +184,14 @@
     </fieldset>
 </SimpleModal>
 
+<ModalHistorial @bind-Mostrar="mostrarModalHistorial"
+                Logs="historial"
+                Cargando="cargandoLogs" />
+
+<ModalQr @bind-Mostrar="mostrarModalQr"
+         Matricula="@qrMatricula"
+         NombreContribuyente="@qrNombre" />
+
 @code {
     // --- Datos ---
     private IQueryable<Padron>? listado;
@@ -161,12 +199,13 @@
     private class TipoOpcion { public string Id { get; set; } public string Descripcion { get; set; } }
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
+    private bool bloquearTipoVendedor = false;
     private List<TipoOpcion> tipos = new()
     {
         new TipoOpcion { Id = "P", Descripcion = "Padron" },
         new TipoOpcion { Id = "E", Descripcion = "Eventual" }
     };
-    private const string usuario = "Administrador";
+    private string usuario = "";
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
 
     // --- Modal ---
@@ -174,18 +213,46 @@
     private string tituloModal = "";
 
     // Inicialización segura
-    private Padron registro = new();
+    private Padron registro = new()
+    {
+        Id_padron = 0,
+        Nombre = string.Empty,
+        A_paterno = string.Empty,
+        A_materno = string.Empty,
+        Curp = string.Empty,
+        Direccion = string.Empty,
+        Telefono = string.Empty,
+        Email = string.Empty,
+        Matricula = string.Empty,
+        Estado = string.Empty
+    };
+
+    // Variables para historial
+    private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
+    private bool mostrarModalHistorial = false;
+    private bool cargandoLogs = false;
+    private List<DtoHistorial>? historial;
+
+    // --- Variables para QR ---
+    private bool mostrarModalQr = false;
+    private string qrMatricula = "";
+    private string qrNombre = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            // Obtener el usuario logueado
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
             await CargarDatos();
             await CargarGremios();
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -193,6 +260,13 @@
     private async Task CargarDatos()
     {
         var lista = await _padronService.GetAll();
+
+        if (EsModoAuditoria)
+        {
+            // En modo auditoría mostramos todo sin filtrar
+            listado = lista.AsQueryable();
+            return;
+        }
 
         var filtrados = mostrarActivos
             ? lista.Where(c => c.Estado == "A")
@@ -216,7 +290,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
 
@@ -226,9 +300,22 @@
     private void AbrirModalCrear()
     {
         soloLectura = false;
-        registro = new();
-        tituloModal = "REGISTRO DE NUEVO VENDEDOR";
+        tituloModal = "REGISTRO DE NUEVO CONTRIBUYENTE";
         mostrarModal = true;
+
+        registro = new()
+        {
+            Id_padron = 0,
+            Nombre = string.Empty,
+            A_paterno = string.Empty,
+            A_materno = string.Empty,
+            Curp = string.Empty,
+            Direccion = string.Empty,
+            Telefono = string.Empty,
+            Email = string.Empty,
+            Matricula = string.Empty,
+            Estado = string.Empty
+        };
     }
 
     private void AbrirModalEditar(Padron item)
@@ -237,6 +324,7 @@
         // Clonación manual para edición segura
         registro = new()
         {
+            Id_padron = item.Id_padron,
             Nombre = item.Nombre,
             A_paterno = item.A_paterno,
             A_materno = item.A_materno,
@@ -258,7 +346,7 @@
     {
         soloLectura = true;
         registro = item;
-        tituloModal = "DETALLES DEL VENDEDOR";
+        tituloModal = "DETALLES DEL CONTRIBUYENTE";
         mostrarModal = true;
     }
 
@@ -273,19 +361,31 @@
         string.IsNullOrWhiteSpace(registro.Direccion) ||
         string.IsNullOrWhiteSpace(registro.Telefono))
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
 
         if (registro.Id_gremio == 0)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un gremio", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un gremio", "warning");
             return;
         }
 
         if (registro.Tipo_vendedor == "0")
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un tipo de vendedor", "warning");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un tipo de vendedor", "warning");
+            return;
+        }
+
+        if (registro.Telefono.Length != 10 || !registro.Telefono.All(char.IsDigit))
+        {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "El número de teléfono debe tener 10 dígitos numéricos", "warning");
+            return;
+        }
+
+        if (registro.Curp.Length != 18)
+        {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "La CURP debe tener 18 caracteres", "warning");
             return;
         }
 
@@ -305,25 +405,24 @@
                     registro.Id_padron, registro.Nombre, registro.A_paterno,
                     registro.A_materno, registro.Curp, registro.Direccion, registro.Telefono,
                     registro.Email, registro.Matricula, registro.Matricula_anterior, registro.Id_gremio,
-                    registro.Estado, usuario
+                    registro.Tipo_vendedor, registro.Estado, usuario
                 );
             }
 
             mostrarModal = false;
+            await CargarDatos();
 
-            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
             {
                 title = "¡Éxito!",
                 text = "La información se guardó correctamente.",
                 icon = "success",
-                confirmButtonColor = "#9D2449" 
-            });
-
-            await CargarDatos();
+                confirmButtonColor = "#9D2449"
+            });            
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -338,18 +437,90 @@
                 item.Id_padron, item.Nombre, item.A_paterno,
                 item.A_materno, item.Curp, item.Direccion, item.Telefono,
                 item.Email, item.Matricula, item.Matricula_anterior, item.Id_gremio,
-                nuevoEstado, usuario
+                item.Tipo_vendedor, nuevoEstado, usuario
             );
 
             await CargarDatos();
 
             // Mensaje dinámico según la acción
             var accion = nuevoEstado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al actualizar el estado: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al actualizar el estado: {ex.Message}", "error");
         }
+    }
+
+    // Esta propiedad actúa como puente
+    private int GremioProxy
+    {
+        get => registro.Id_gremio;
+        set
+        {
+            // 1. Asignamos el valor al modelo real
+            registro.Id_gremio = value;
+
+            // 2. Ejecutamos la lógica de validación aquí mismo
+            ValidarReglasNegocio(value);
+        }
+    }
+
+    private void ValidarReglasNegocio(int idGremio)
+    {
+        // Buscamos el gremio seleccionado
+        var gremioObj = gremios?.FirstOrDefault(g => g.Id_gremio == idGremio);
+
+        if (gremioObj != null && gremioObj.Descripcion.ToUpper().Contains("EVENTUAL"))
+        {
+            // --- CASO EVENTUALES ---
+            if (tipos != null)
+            {
+                var tipoEventual = tipos.FirstOrDefault(t =>
+                    t.Descripcion != null &&
+                    t.Descripcion.ToUpper().Contains("EVENTUAL"));
+
+                if (tipoEventual != null)
+                {
+                    registro.Tipo_vendedor = tipoEventual.Id;
+                    bloquearTipoVendedor = true;
+                }
+            }
+        }
+        else
+        {
+            // --- CUALQUIER OTRO CASO ---
+            bloquearTipoVendedor = false;
+        }
+    }
+
+    // --- Historial ---
+    private async Task VerHistorial(Padron item)
+    {
+        mostrarModalHistorial = true;
+        cargandoLogs = true;
+
+        try
+        {
+            historial = await _padronService.GetHistorial(item.Id_padron);
+        }
+        catch (Exception ex)
+        {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            mostrarModalHistorial = false;
+        }
+        finally
+        {
+            cargandoLogs = false;
+        }
+    }
+
+    // --- QR Modal ---
+    private void AbrirQr(Padron item)
+    {
+        qrMatricula = item.Matricula;
+        // Concatenamos el nombre para que salga bonito en la impresión
+        qrNombre = $"{item.Nombre} {item.A_paterno} {item.A_materno}";
+        mostrarModalQr = true;
     }
 }

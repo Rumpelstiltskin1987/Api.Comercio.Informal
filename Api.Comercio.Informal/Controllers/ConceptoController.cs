@@ -1,5 +1,6 @@
 ﻿using Api.Business;
 using Api.Entities;
+using Api.Entities.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,7 +41,7 @@ namespace Api.Comercio.Informal.Controllers
                 return BadRequest("Id incorrecto.");
             }
 
-            Entities.Concepto Concepto;
+            Concepto Concepto;
 
             try
             {
@@ -117,6 +118,23 @@ namespace Api.Comercio.Informal.Controllers
 
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        [Route("Sincronizar")]
+        [HttpGet]
+        public async Task<IActionResult> SincronizarCatalogo(DateTime? fechaUltimaSincronizacion)
+        {
+            IEnumerable<DtoConcepto> lista;
+
+            try
+            {
+                lista = await _concepto.Sincronizar(fechaUltimaSincronizacion);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            return Ok(lista);
         }
 
     }

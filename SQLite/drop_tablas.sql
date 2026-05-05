@@ -1,0 +1,17 @@
+DROP TABLE SolicitudCancelacion;
+DROP TABLE Recaudacion;
+DROP TABLE PadronLog;
+DROP TABLE Padron;
+DROP TABLE TariFaLog;
+DROP TABLE Tarifa;
+DROP TABLE ConceptoLog;
+DROP TABLE Concepto;
+DROP TABLE Folio;
+DROP TABLE MatriculaContador;
+DROP TABLE GremioLog;
+DROP TABLE Gremio;
+DROP TABLE LiderLog;
+DROP TABLE Lider;
+DROP TABLE UsuarioLog;
+DROP TABLE LoteFolio;
+VACUUM;

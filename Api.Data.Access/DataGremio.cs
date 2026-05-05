@@ -76,6 +76,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(gremio).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al crear el gremio: " + ex.InnerException.Message);
                 throw new Exception("Error al crear el gremio: " + ex.Message);
@@ -96,6 +97,7 @@ namespace Api.Data.Access
             }
             catch (Exception ex)
             {
+                context.Entry(gremio).State = EntityState.Detached;
                 if (ex.InnerException != null)
                     throw new Exception("Error al actualizar el gremio: " + ex.InnerException.Message);
 
@@ -124,6 +126,27 @@ namespace Api.Data.Access
             }
 
             return result;
-        }        
+        }
+
+        public async Task<IEnumerable<Gremio>> Sincronizar(DateTime? fSincronizacion)
+        {
+            IEnumerable<Gremio> lista;
+
+            try
+            {
+                lista = await context.Gremio
+                    .Where(p => p.Fecha_modificacion >= fSincronizacion || p.Fecha_alta >= fSincronizacion)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el padron: " + ex.Message);
+            }
+
+            return lista;
+        }
     }
 }

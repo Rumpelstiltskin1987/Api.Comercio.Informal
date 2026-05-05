@@ -1,32 +1,48 @@
 ﻿@page "/gremios"
+@page "/auditoria/gremios"
 @using Api.Comercio.Informal.Components.Layout
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Api.Entities.DTO
+@inject IJSRuntime JSRuntime
 @inject BusinessGremio _gremioService
 @inject BusinessLider _liderService
 @inject BusinessFolio _folioService
-@inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin, Supervisor, IT Manager")]
 @rendermode InteractiveServer
 
 <link href="css/general.css" rel="stylesheet" />
 
-<h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Directorio de Gremios</h3>
+@if (EsModoAuditoria)
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Historial de Gremios</h3>
+}
+else
+{
+    <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Directorio de Gremios</h3>
+}
+
 <hr />
 
 <div class="d-flex justify-content-between mb-4 align-items-center">
-    <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
-        <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
-    </button>
+    @if (!EsModoAuditoria)
+    {
+        <button class="btn official-btn-primary btn-lg" @onclick="AbrirModalCrear">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo
+        </button>
 
-    <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
-        @if (mostrarActivos)
-        {
-            <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
-        }
-        else
-        {
-            <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
-        }
-    </button>
+        <button class="btn official-btn-outline-secondary" @onclick="AlternarVista">
+            @if (mostrarActivos)
+            {
+                <span><i class="bi bi-archive me-2"></i> Consultar Archivo Muerto</span>
+            }
+            else
+            {
+                <span><i class="bi bi-check2-circle me-2"></i> Consultar Activos</span>
+            }
+        </button>
+    }
 </div>
 
 <div class="card shadow-sm border-0">
@@ -34,32 +50,46 @@
         <QuickGrid Items="@listado" Pagination="@paginationState" Class="table mb-0 official-grid grid-gremios">
             <PropertyColumn Property="@(c => c.Descripcion)" Sortable="true" Title="Descripción" />
             <PropertyColumn Property="@(c => c.Lider != null ? $"{c.Lider.Nombre} {c.Lider.A_paterno} {c.Lider.A_materno}" : string.Empty)" Sortable="true" Title="Lider" />
+            <PropertyColumn Property="@(c => c.Prefijo)" Title="Prefijo" />
 
             <TemplateColumn Title="Gestión">
                 <div class="d-flex gap-2">
-                    @if (mostrarActivos)
+                    @if (EsModoAuditoria)
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
-                            <i class="bi bi-pencil-square fs-6"></i>
+                        @* BOTÓN SOLO PARA AUDITORÍA *@
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none"
+                                title="Ver Historial de Cambios"
+                                @onclick="() => VerHistorial(context)">
+                            <i class="bi bi-clock-history fs-5"></i>
                         </button>
                     }
                     else
                     {
-                        <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
-                            <i class="bi bi-box-arrow-up fs-6"></i>
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none" title="Editar Información" @onclick="() => AbrirModalEditar(context)">
+                                <i class="bi bi-pencil-square fs-6"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none text-success" title="Reincorporar" @onclick='() => CambiarEstado(context, "A")'>
+                                <i class="bi bi-box-arrow-up fs-6"></i>
+                            </button>
+                        }
+
+                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
+                            <i class="bi bi-eye fs-6"></i>
                         </button>
+
+                        @if (mostrarActivos)
+                        {
+                            <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
+                        }
                     }
 
-                    @* <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none" title="Ver Detalles" @onclick="() => AbrirModalDetalle(context)">
-                        <i class="bi bi-eye fs-6"></i>
-                    </button> *@
-
-                    @if (mostrarActivos)
-                    {
-                        <button class="btn btn-sm btn-link p-0 m-0 text-decoration-none text-danger" title="Dar de Baja" @onclick='() => CambiarEstado(context, "I")'>
-                            <i class="bi bi-trash fs-6"></i>
-                        </button>
-                    }
                 </div>
             </TemplateColumn>
         </QuickGrid>
@@ -74,11 +104,11 @@
     <fieldset disabled="@soloLectura" class="border-0 p-0 m-0" style="border: none;">
         <div class="row g-3">
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Nombre del Gremio</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Nombre</label>
                 <input class="form-control" @bind="gremio.Descripcion" />
             </div>
             <div class="col-12">
-                <label class="form-label small text-muted text-uppercase fw-bold lblwidth">Líder Asignado</label>
+                <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Líder Asignado</label>
                 <select class="form-select" @bind="gremio.Id_lider">
                     <option value="0">-- Seleccione un líder --</option>
                     @if (lideres != null)
@@ -90,9 +120,25 @@
                     }
                 </select>
             </div>
+            @if (mostrarInputPrefijo)
+            {
+                <div class="col-12 mt-3">
+                    <label class="form-label small text-muted text-uppercase fw-bold lblwidth lbl-required">Prefijo Manual</label>
+                    <input type="text"
+                           class="form-control text-uppercase"
+                           maxlength="3"
+                           placeholder="EJ: UGC"
+                           @bind="gremio.Prefijo" />
+                    <small class="text-danger mt-1 d-block"><i class="bi bi-exclamation-triangle"></i> El prefijo automático ya existe. Asigne un código de 3 letras.</small>
+                </div>
+            }
         </div>
-    </fieldset>    
+    </fieldset>
 </SimpleModal>
+
+<ModalHistorial @bind-Mostrar="mostrarModalHistorial"
+                Logs="historial"
+                Cargando="cargandoLogs" />
 
 @code {
     // --- Datos ---
@@ -100,7 +146,7 @@
     private IEnumerable<Lider>? lideres = new List<Lider>();
     private bool mostrarActivos = true;
     private bool soloLectura = false; // Bandera para controlar el modo del modal
-    private const string usuario = "Administrador";
+    private string usuario = "";
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
 
     // --- Modal ---
@@ -110,16 +156,29 @@
     // Inicialización segura
     private Gremio gremio = new();
 
+    // Variables para historial
+    private bool EsModoAuditoria => NavManager.Uri.Contains("/auditoria/");
+    private bool mostrarModalHistorial = false;
+    private bool cargandoLogs = false;
+    private List<DtoHistorial>? historial;
+
+    private bool mostrarInputPrefijo = false;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            // Obtener el usuario logueado
+            var authState = await GetAuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            usuario = user.Identity?.Name ?? "System";
+
             await CargarDatos();
             await CargarLideres();
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -127,6 +186,14 @@
     private async Task CargarDatos()
     {
         var lista = await _gremioService.GetAll();
+
+        if (EsModoAuditoria)
+        {
+            // En modo auditoría mostramos todo sin filtrar
+            listado = lista.AsQueryable();
+            return;
+        }
+
         var filtrados = mostrarActivos
             ? lista.Where(c => c.Estado == "A")
             : lista.Where(c => c.Estado == "I");
@@ -149,7 +216,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al cargar la información: {ex.Message}", "error");
             return;
         }
     }
@@ -161,6 +228,7 @@
         gremio = new();
         tituloModal = "REGISTRO DE NUEVO GREMIO";
         mostrarModal = true;
+        mostrarInputPrefijo = false;
     }
 
     private void AbrirModalEditar(Gremio item)
@@ -175,6 +243,7 @@
         };
         tituloModal = "ACTUALIZACIÓN DE DATOS";
         mostrarModal = true;
+        mostrarInputPrefijo = false;
     }
 
     private void AbrirModalDetalle(Gremio item)
@@ -191,6 +260,7 @@
     {
         if (string.IsNullOrWhiteSpace(gremio.Descripcion) || gremio.Id_lider == 0)
         {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Faltan datos obligatorios", "warning");
             return;
         }
         try
@@ -198,7 +268,7 @@
             if (gremio.Id_gremio == 0)
             {
                 await _gremioService.Create(
-                    gremio.Descripcion, gremio.Id_lider, usuario
+                    gremio.Descripcion, gremio.Id_lider, gremio.Prefijo, usuario
                 );
             }
             else
@@ -207,24 +277,29 @@
                     gremio.Id_gremio, gremio.Descripcion, gremio.Id_lider, gremio.Estado, usuario
                 );
             }
+
+            mostrarModal = false;
+            await CargarDatos();
+
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "¡Éxito!",
+                text = "La información se guardó correctamente.",
+                icon = "success",
+                confirmButtonColor = "#9D2449"
+            });
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
+            if (ex.Message.Contains("ocupado por otro gremio") || ex.Message.Contains("ya está ocupado"))
+            {
+                mostrarInputPrefijo = true;
+                _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Prefijo Duplicado", ex.Message, "warning");
+                return;
+            }
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Ocurrió un error al guardar la información: {ex.Message}", "error");
             return;
         }
-
-        mostrarModal = false;
-
-        await JSRuntime.InvokeVoidAsync("Swal.fire", new
-        {
-            title = "¡Éxito!",
-            text = "La información se guardó correctamente.",
-            icon = "success",
-            confirmButtonColor = "#9D2449"
-        });
-
-        await CargarDatos();
     }
 
     // Método unificado para cambiar estado (Baja / Reincorporar)
@@ -237,11 +312,32 @@
             );
             await CargarDatos();
             var accion = estado == "A" ? "reactivó" : "dio de baja";
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", $"El registro se {accion} correctamente.", "success");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"Error al actualizar estado: {ex.Message}", "error");
+        }
+    }
+
+    // --- Historial ---
+    private async Task VerHistorial(Gremio item)
+    {
+        mostrarModalHistorial = true;
+        cargandoLogs = true;
+
+        try
+        {
+            historial = await _gremioService.GetHistorial(item.Id_gremio);
+        }
+        catch (Exception ex)
+        {
+            _ = JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo cargar el historial: {ex.Message}", "error");
+            mostrarModalHistorial = false;
+        }
+        finally
+        {
+            cargandoLogs = false;
         }
     }
 }

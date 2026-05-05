@@ -65,11 +65,10 @@ namespace Api.Data.Access
                 context.Concepto.Add(Concepto);
                 await context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al crear el Concepto: " + ex.InnerException.Message);
-                throw new Exception("Error al crear el Concepto: " + ex.Message);
+                context.Entry(Concepto).State = EntityState.Detached;
+                throw;
             }
         }
 
@@ -80,12 +79,10 @@ namespace Api.Data.Access
                 context.Concepto.Update(Concepto);
                 await context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception )
             {
-                if (ex.InnerException != null)
-                    throw new Exception("Error al actualizar el Concepto: " + ex.InnerException.Message);
-
-                throw new Exception("Error al actualizar el Concepto: " + ex.Message);
+                context.Entry(Concepto).State = EntityState.Detached;
+                throw;
             }
         }
 
@@ -103,6 +100,27 @@ namespace Api.Data.Access
 
                 throw new Exception("Error al eliminar el Concepto: " + ex.Message);
             }
+        }
+
+        public async Task<IEnumerable<Concepto>> Sincronizar(DateTime? fSincronizacion)
+        {
+            IEnumerable<Concepto> lista;
+
+            try
+            {
+                lista = await context.Concepto
+                    .Where(p => p.Fecha_modificacion >= fSincronizacion || p.Fecha_alta >= fSincronizacion)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    throw new Exception("Error al obtener el padron: " + ex.InnerException.Message);
+
+                throw new Exception("Error al obtener el padron: " + ex.Message);
+            }
+
+            return lista;
         }
     }
 }

@@ -1,32 +1,41 @@
 ﻿@page "/cortedecaja"
 @using Api.Comercio.Informal.Components.Layout
 @using Api.Entities
+@using Api.Entities.DTO
 @using Api.Business
-@inject BusinessRecaudacion _recaudacionService
-@inject BusinessCobrador _cobradorService
+@using Api.Entities.Helpers
+@using QuestPDF.Fluent
+@using QuestPDF.Helpers
+@using QuestPDF.Infrastructure
 @inject IJSRuntime JSRuntime
+@inject IWebHostEnvironment HostEnvironment
+@inject BusinessRecaudacion _recaudacionService
+@inject BusinessUsuario _usuarioService
+@inject AuthenticationStateProvider GetAuthenticationStateProvider
+@attribute [Authorize(Roles = "Superadmin , Supervisor, Cobrador")]
 @rendermode InteractiveServer
 
 <h3 class="mb-4 text-uppercase" style="color: #333; letter-spacing: 1px;">Generar Corte de Caja</h3>
 <hr />
 
 <div class="no-print mb-4">
-
     <div class="card shadow-sm border-0">
         <div class="card-body bg-light">
             <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: flex-end; gap: 1rem; width: auto; ">
 
+                @* SELECTOR DE COBRADOR *@
                 <div style="width: auto; min-width: 160px; padding-bottom:12px; padding-left:10px;">
                     <label class="form-label fw-bold small text-uppercase mb-1">Cobrador</label>
                     <select class="form-select" @bind="idCobradorSeleccionado">
                         <option value="0">-- Seleccione --</option>
                         @foreach (var cob in cobradores)
                         {
-                            <option value="@cob.Id_cobrador">@cob.Nombre @cob.A_paterno</option>
+                            <option value="@cob.Id">@cob.Nombre @cob.A_paterno</option>
                         }
                     </select>
                 </div>
 
+                @* FECHAS *@
                 <div style="width: auto; min-width: 160px; padding-bottom:12px">
                     <label class="form-label fw-bold small text-uppercase mb-1">Fecha Inicio</label>
                     <input type="date" class="form-control" @bind="fechaInicio" />
@@ -37,225 +46,74 @@
                     <input type="date" class="form-control" @bind="fechaFin" />
                 </div>
 
-                <div style="width: auto; margin-bottom:7px">
-                    <button class="btn official-btn-primary btn-lg" @onclick="GenerarCorte" disabled="@cargando">
-                        @if (cargando)
-                        {
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        }
-                        else
-                        {
-                            <span><i class="bi bi-search me-2"></i> Generar</span>
-                        }
+                @* BOTÓN GENERAR *@
+                <div class="d-flex gap-2 pb-1">
+                    <button class="btn official-btn-primary" @onclick="GenerarCorte" disabled="@cargando">
+                        <span><i class="bi bi-search me-2"></i> Consultar</span>
                     </button>
+                    @if (mostrarReporte && pdfBase64 != null)
+                    {
+                        <button class="btn official-btn-outline-secondary" @onclick="DescargarPDF">
+                            <i class="bi bi-file-pdf me-2"></i> Descargar
+                        </button>
+
+                        @* <button class="btn official-btn-outline-secondary" onclick="window.print()">
+                            <i class="bi bi-printer me-2"></i> Imprimir
+                        </button> *@
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@if (mostrarReporte && recaudacion != null && recaudacion.Any())
+@* VISOR DE PDF *@
+@if (mostrarReporte && pdfBase64 != null)
 {
-    <div class="reporte-wrapper mt-3">
-
-        <div class="hoja-reporte">
-            <div class="d-flex justify-content-end mb-3 no-print">
-                <button class="btn btn-dark btn-sm" @onclick="Imprimir">
-                    <i class="bi bi-printer-fill me-2"></i> Imprimir
-                </button>
-            </div>
-
-            <div class="text-center">
-                <img src="/img/escudo_armas.jpg" style="height: 80px; opacity: 0.8;" class="mb-2" alt="Logo" />
-                <h5 class="text-uppercase fw-bold mb-0">H. Ayuntamiento Constitucional de Tierra Blanca, Veracruz.</h5>
-                <h6 class="fw-light mb-0">Tesorería Municipal - Dirección de Comercio</h6>
-
-                <hr class="separador-institucional" />
-
-                <h3 class="mt-2 fw-bold text-uppercase">Corte de Caja General</h3>
-
-                <div class="row mt-4 mb-4 small text-muted text-uppercase border-bottom pb-3">
-                    <div class="col-6 text-start">
-                        <p class="mb-1"><strong>Cobrador:</strong> <span class="text-dark">@NombreCobradorSeleccionado()</span></p>
-                        <p class="mb-0"><strong>Emisión:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
-                    </div>
-                    <div class="col-6 text-end">
-                        <p class="mb-1"><strong>Periodo:</strong> Del @fechaInicio.ToShortDateString() al @fechaFin.ToShortDateString()</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered w-100" style="table-layout: fixed;">
-                    <thead class="text-white text-center" style="background-color: #333;">
-                        <tr>
-                            <th style="width: 10%">Folio</th>
-                            <th style="width: 20%">Fecha</th>
-                            <th style="width: 50%">Contribuyente</th>
-                            <th style="width: 20%">Importe</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{
-                            decimal granTotal = 0;
-                        }
-
-                        @foreach (var grupo in recaudacion.GroupBy(r => r.Concepto?.Descripcion ?? "OTROS"))
-                        {
-                            var subtotal = grupo.Sum(x => x.Monto);
-                            granTotal += subtotal;
-
-                            <tr style="background-color: #f8f9fa;">
-                                <td colspan="4" class="fw-bold text-uppercase py-2 ps-3 text-secondary">
-                                    <i class="bi bi-tag-fill me-2"></i> @grupo.Key
-                                </td>
-                            </tr>
-
-                            @foreach (var item in grupo)
-                            {
-                                <tr>
-                                    <td class="text-center small">@item.Id_recaudacion</td>
-                                    <td class="text-center small">@item.Fecha_cobro.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td class="small text-truncate" style="max-width: 300px;">
-                                        @(item.Padron != null
-                                                                    ? $"{item.Padron.Nombre} {item.Padron.A_paterno} {item.Padron.A_materno}"
-                                                                    : "Público en General")
-                        </td>
-                        <td class="text-end fw-bold">@item.Monto.ToString("C2")</td>
-                    </tr>
-                                        }
-
-                            <tr>
-                                <td colspan="3" class="text-end small text-uppercase fw-bold pt-2 pe-3">
-                                    Subtotal @grupo.Key:
-                                </td>
-                                <td class="text-end fw-bold pt-2" style="color: #9D2449;">
-                                    @subtotal.ToString("C2")
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" class="text-end py-3 fw-bold text-uppercase fs-5 pe-3">Total Recaudado:</td>
-                            <td class="text-end py-3 fw-bold fs-5 total-general-bg">@granTotal.ToString("C2")</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <div class="row mt-5 pt-4 text-center" style="page-break-inside: avoid;">
-                <div class="col-6">
-                    <div class="firma-line">
-                        <strong>@NombreCobradorSeleccionado()</strong><br />
-                        <span class="text-muted small text-uppercase">Firma del Cobrador</span>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="firma-line">
-                        <strong>Vo. Bo.</strong><br />
-                        <span class="text-muted small text-uppercase">Director de Comercio</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-}
-else if (mostrarReporte && !recaudacion.Any())
-{
-    <div class="alert alert-warning text-center mt-4 no-print shadow-sm">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        No se encontraron cobros registrados para los criterios seleccionados.
+    <div class="pdf-viewer-container shadow-lg animate__animated animate__zoomIn">
+        <iframe src="data:application/pdf;base64,@pdfBase64" width="100%" height="800px" style="border: none; border-radius: 8px;"></iframe>
     </div>
 }
 
 @code {
-    // === Variables de Estado ===
+    private IEnumerable<DtoUsuario> cobradores = new List<DtoUsuario>();
+    private List<Recaudacion> recaudacion = new();
     private DateTime fechaInicio = DateTime.Today;
     private DateTime fechaFin = DateTime.Today;
     private int idCobradorSeleccionado = 0;
-
     private bool cargando = false;
     private bool mostrarReporte = false;
+    private string? pdfBase64 = null;    
 
-    // === LISTAS DE DATOS ===
-    private IEnumerable<Cobrador>? cobradores;
-    private IEnumerable<Recaudacion>? recaudacion;
-
-    // === INICIALIZACIÓN ===
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            // Carga inicial del combo cobradores
-            await CargarCobradores();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al cargar cobradores: {ex.Message}");
-        }
+        QuestPDF.Settings.License = LicenseType.Community;
+        await CargarCobradores();
     }
 
     private async Task CargarCobradores()
     {
-        var lista = await _cobradorService.GetAll();
-        cobradores = lista.ToList();
-    }
-
-    private async Task ConsultaRecaudacion()
-    {
-        // Llamada al Business usando parámetros: (idCobrador, idConcepto, fInicio, fFin)
-        // Enviamos 'null' en idConcepto porque queremos TODOS los conceptos.
-        var lista = await _recaudacionService.Search(
-            idCobradorSeleccionado,
-            null,
-            fechaInicio,
-            fechaFin
-        );
-
-        recaudacion = lista.ToList();
-    }
-
-
-    // === MÉTODOS ===
-    private async Task GenerarCorte()
-    {
-        // Validaciones
-        if (idCobradorSeleccionado <= 0)
-        {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un cobrador.", "warning");
-            return;
-        }
-
-        if (fechaFin < fechaInicio)
-        {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error de Fechas", "La fecha final no puede ser menor a la inicial.", "error");
-            return;
-        }
-
-        cargando = true;
-        mostrarReporte = false;
-        recaudacion = null;
-
         try
         {
-            await ConsultaRecaudacion();
-            mostrarReporte = true;
-
-            if (recaudacion.Any())
+            var usuariosdb = await _usuarioService.GetByRol("Cobrador");
+            cobradores = usuariosdb.Select(u => new DtoUsuario
             {
-                await JSRuntime.InvokeVoidAsync("Swal.fire", "Corte Generado", "Datos cargados correctamente.", "success");
-            }
+                Id = u.Id,
+                Nombre = u.Nombre,
+                A_paterno = u.A_paterno,
+                A_materno = u.A_materno
+            }).ToList();
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", $"No se pudo generar el reporte: {ex.Message}", "error");
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", "No se pudo cargar la lista de cobradores: " + ex.Message, "error");
         }
-        finally
-        {
-            cargando = false;
-        }
+    }
+
+    private string NombreCobradorSeleccionado()
+    {
+        var cob = cobradores.FirstOrDefault(c => c.Id == idCobradorSeleccionado);
+        return cob != null ? $"{cob.Nombre} {cob.A_paterno} {cob.A_materno}".Trim() : "Todos los cobradores";
     }
 
     private async Task Imprimir()
@@ -263,10 +121,195 @@ else if (mostrarReporte && !recaudacion.Any())
         await JSRuntime.InvokeVoidAsync("print");
     }
 
-    // Helper para obtener nombre del combo
-    private string NombreCobradorSeleccionado()
+    private async Task GenerarCorte()
     {
-        var cob = cobradores.FirstOrDefault(c => c.Id_cobrador == idCobradorSeleccionado);
-        return cob != null ? $"{cob.Nombre} {cob.A_paterno} {cob.A_materno}" : "DESCONOCIDO";
+        if (idCobradorSeleccionado <= 0) 
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Atención", "Debe seleccionar un cobrador.", "warning");
+            return; 
+        }
+
+        cargando = true;
+        mostrarReporte = false;
+        pdfBase64 = null;
+
+        try
+        {
+            // 1. Identificamos la zona horaria de México
+            var zonaMexico = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+
+            // 2. Definimos el inicio del día local (00:00:00) y lo pasamos a UTC
+            // Forzamos que la propiedad Kind sea 'Unspecified' usando DateTime.SpecifyKind
+            // Esto le dice a .NET: "No asumas que esta es la hora del servidor, trátala como una hora neutra"
+            //DateTime inicioLocal = fechaInicio.Date;
+            DateTime inicioLocal = DateTime.SpecifyKind(fechaInicio.Date, DateTimeKind.Unspecified);
+            DateTime inicioUtc = TimeZoneInfo.ConvertTimeToUtc(inicioLocal, zonaMexico);
+
+            // 3. Definimos el fin del día local (23:59:59) y lo pasamos a UTC
+            //DateTime finLocal = fechaFin.Date.AddDays(1).AddTicks(-1);
+            DateTime finLocal = DateTime.SpecifyKind(fechaFin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Unspecified);
+            DateTime finUtc = TimeZoneInfo.ConvertTimeToUtc(finLocal, zonaMexico);
+
+
+            var resultado = await _recaudacionService.Search(idCobradorSeleccionado, null, inicioUtc, finUtc, "A");
+            recaudacion = resultado.ToList();
+
+            if (recaudacion.Any())
+            {
+                // Generamos el PDF automáticamente para el visor
+                byte[] pdfBytes = CrearDocumentoPDF();
+                pdfBase64 = Convert.ToBase64String(pdfBytes);
+                mostrarReporte = true;
+            }
+        }
+        catch (Exception ex) 
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", "Ocurrió un error al generar el PDF: " + ex.Message, "error"); 
+        }
+        finally 
+        {
+            cargando = false; 
+        }
+    }
+
+    // Factorizamos la lógica de QuestPDF en un método que devuelva byte[]
+    private byte[] CrearDocumentoPDF()
+    {
+        QuestPDF.Settings.License = LicenseType.Community;
+
+        string rootPath = HostEnvironment.WebRootPath;
+        string imagePath = Path.Combine(rootPath, "img", "escudo.png");
+
+        return Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.Letter);
+                page.Margin(1, Unit.Centimetre);
+                page.PageColor(Colors.White);
+                page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Helvetica"));
+
+                // 1. ENCABEZADO (Header)
+                page.Header().Column(col =>
+                {
+                    col.Item().Row(row =>
+                    {
+                        if (File.Exists(imagePath))
+                        {
+                            row.ConstantItem(50).Image(imagePath);
+                        }
+
+                        row.RelativeItem().Column(titles =>
+                        {
+                            titles.Item().AlignCenter().Text("H. AYUNTAMIENTO CONSTITUCIONAL").Bold().FontSize(12);
+                            titles.Item().AlignCenter().Text("TESORERÍA MUNICIPAL - TIERRA BLANCA, VER.").FontSize(10);
+                            titles.Item().AlignCenter().Text("DIRECCIÓN DE INGRESOS").FontSize(10);
+                        });
+
+                        row.ConstantItem(50);
+                    });
+
+                    col.Item().PaddingVertical(5).LineHorizontal(1).LineColor("#9D2449");
+
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("REPORTE: CORTE DE CAJA GENERAL").Bold();
+                            c.Item().Text($"COBRADOR: {NombreCobradorSeleccionado()}");
+                        });
+                        row.RelativeItem().AlignRight().Column(c =>
+                        {
+                            c.Item().Text($"FECHA EMISIÓN: {DateTime.UtcNow.ToLocalString()}");
+                            c.Item().Text($"PERIODO: {fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}");
+                        });
+                    });
+                });
+
+                // 2. CUERPO ÚNICO (Content) - Aquí agrupamos Tabla y Firma
+                page.Content().PaddingVertical(10).Column(mainCol =>
+                {
+                    // Elemento 1: La Tabla
+                    mainCol.Item().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.ConstantColumn(90);
+                            columns.ConstantColumn(90);
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.ConstantColumn(80);
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(ApplyHeaderStyle).Text("FECHA");
+                            header.Cell().Element(ApplyHeaderStyle).Text("FOLIO");
+                            header.Cell().Element(ApplyHeaderStyle).Text("CONTRIBUYENTE");
+                            header.Cell().Element(ApplyHeaderStyle).Text("CONCEPTO");
+                            header.Cell().Element(ApplyHeaderStyle).AlignRight().Text("IMPORTE");
+                        });
+
+                        foreach (var item in recaudacion)
+                        {
+                            table.Cell().Element(ApplyCellStyle).Text(item.Fecha_cobro.ToLocalString("dd/MM/yyyy HH:mm"));
+                            table.Cell().Element(ApplyCellStyle).Text(item.Folio_Recibo?.ToString() ?? "");
+                            table.Cell().Element(ApplyCellStyle).Text(item.Padron != null
+                                ? $"{item.Padron.Nombre} {item.Padron.A_paterno} {item.Padron.A_materno}"
+                                : "");
+                            table.Cell().Element(ApplyCellStyle).Text(item.Concepto?.Descripcion ?? "");
+                            table.Cell().Element(ApplyCellStyle).AlignRight().Text(item.Monto.ToString("C2"));
+                        }
+                    });
+
+                    // Elementi 2: EL TOTAL ÚNICO 
+                    mainCol.Item().PaddingTop(5).AlignRight().Row(row =>
+                    {
+                        row.Spacing(10);
+                        row.RelativeItem().AlignRight().Text("TOTAL RECAUDADO:").Bold();
+                        row.ConstantItem(80).AlignRight().Text(recaudacion.Sum(x => (decimal)x.Monto).ToString("C2"))
+                           .Bold().FontSize(10).FontColor("#9D2449");
+                    });
+
+                    // Elemento 3: Área de Firma 
+                    mainCol.Item().PaddingTop(100).AlignCenter().Column(sigCol =>
+                    {
+                        sigCol.Item().Width(200).LineHorizontal(0.5f).LineColor(Colors.Black);
+                        sigCol.Item().PaddingTop(5).AlignCenter().Text("FIRMA DEL CAJERO").Bold();
+                        sigCol.Item().AlignCenter().Text(NombreCobradorSeleccionado()).FontSize(9);
+                    });
+                });
+
+                // 3. PIE DE PÁGINA (Footer)
+                page.Footer().AlignCenter().Text(x =>
+                {
+                    x.Span("Página ");
+                    x.CurrentPageNumber();
+                    x.Span(" de ");
+                    x.TotalPages();
+                });
+            });
+        }).GeneratePdf();
+    }
+
+    private async Task DescargarPDF()
+    {
+        if (string.IsNullOrEmpty(pdfBase64)) return;
+
+        using var stream = new MemoryStream(Convert.FromBase64String(pdfBase64));
+        using var streamRef = new DotNetStreamReference(stream);
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", $"Corte_{DateTime.Now:yyyyMMdd}.pdf", streamRef);
+    }
+
+    // CORRECCIÓN DE ESTILOS: Ahora retornan el contenedor para permitir el encadenamiento (.)
+    private IContainer ApplyHeaderStyle(IContainer container)
+    {
+        return container.BorderBottom(1).PaddingVertical(5).DefaultTextStyle(x => x.Bold());
+    }
+
+    private IContainer ApplyCellStyle(IContainer container)
+    {
+        //return container.BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).PaddingVertical(3);
+        return container.PaddingVertical(3);
     }
 }

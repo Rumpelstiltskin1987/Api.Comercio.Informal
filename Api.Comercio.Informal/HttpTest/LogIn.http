@@ -7,8 +7,8 @@ POST {{HostAddress}}/api/auth/Login
 Content-Type: application/json
 
 {
-  "userName": "admin@siscoin.com",
-  "password": "Admin123!"
+  "userName": "SuperUsuario",
+  "password": "Admin123!ñ"
 }
 
 ### Prueba de acceso a un endpoint protegido (GetAll Conceptos)

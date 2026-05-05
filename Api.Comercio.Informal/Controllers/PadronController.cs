@@ -22,7 +22,7 @@ namespace Api.Comercio.Informal.Controllers
 
             try
             {
-               padron = await _padron.GetAll();
+                padron = await _padron.GetAll();
 
                 if (!padron.Any())
                     throw new Exception("No existen registros en la base de datos.");
@@ -56,6 +56,28 @@ namespace Api.Comercio.Informal.Controllers
             return Ok(vendedor);
         }
 
+        [Route("GetByMatricula")]
+        [HttpGet]
+        public async Task<IActionResult> GetByMatricula(string matricula)
+        {
+            if (string.IsNullOrEmpty(matricula))
+            {
+                return BadRequest("Matricula incorrecta.");
+            }
+
+            DtoContribuyente contribuyente;
+
+            try
+            {
+                contribuyente = await _padron.GetByMatricula(matricula);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            return Ok(contribuyente);
+        }
+
         [Route("Search")]
         [HttpGet]
         public async Task<IActionResult> Search(string? nombre, string? aPaterno, string? aMaterno,
@@ -63,7 +85,7 @@ namespace Api.Comercio.Informal.Controllers
         {
             try
             {
-                var afiliados = await _padron.Search(nombre, aPaterno,  aMaterno,
+                var afiliados = await _padron.Search(nombre, aPaterno, aMaterno,
             curp, matricula, idGremio, tipo, estado);
 
                 if (!afiliados.Any())
@@ -83,11 +105,6 @@ namespace Api.Comercio.Informal.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DtoPadron request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
                 await _padron.Create(
@@ -114,14 +131,14 @@ namespace Api.Comercio.Informal.Controllers
         [Route("Update")]
         [HttpPost]
         public async Task<IActionResult> Update(int id, string nombre, string a_paterno, string a_materno, string curp,
-            string direccion, string telefono, string email, string matricula, string matricula_anterior, int id_gremio, 
-            string status, string usuario)
+            string direccion, string telefono, string email, string matricula, string matricula_anterior, int id_gremio,
+            string tipo, string status, string usuario)
         {
             try
-            {                
+            {
                 await _padron.Update(id, nombre, a_paterno, a_materno, curp,
                     direccion, telefono, email, matricula, matricula_anterior,
-                    id_gremio, status, usuario);
+                    id_gremio, tipo, status, usuario);
                 return Ok("Contribuyente actualizado correctamente");
             }
             catch (Exception ex)
@@ -154,6 +171,23 @@ namespace Api.Comercio.Informal.Controllers
 
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        [Route("Sincronizar")]
+        [HttpGet]
+        public async Task<IActionResult> SincronizarCatalogo(DateTime? fechaUltimaSincronizacion)
+        {
+            IEnumerable<DtoContribuyente> lista;
+
+            try
+            {
+                lista = await _padron.Sincronizar(fechaUltimaSincronizacion);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            return Ok(lista);
         }
     }
 }

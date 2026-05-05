@@ -2,7 +2,6 @@
 using Api.Entities;
 using Api.Entities.DTO;
 using Microsoft.AspNetCore.Identity;
-//using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -28,6 +27,13 @@ public class AuthController : ControllerBase
         //var user = await _userManager.FindByEmailAsync(model.Email);
         var user = await _userManager.FindByNameAsync(model.UserName);
 
+        // 1. NUEVA VALIDACIÓN: Si el usuario existe pero está inactivo, lo bloqueamos de inmediato
+        if (user != null && user.Estado == "I")
+        {
+            // Devolvemos Unauthorized (401) o Forbidden (403) con el mensaje exacto
+            return Unauthorized(new { mensaje = "Su cuenta ha sido dada de baja. Contacte al administrador." });
+        }
+
         if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
         {
             // Obtenemos los roles para incluirlos en el token
@@ -41,7 +47,8 @@ public class AuthController : ControllerBase
             {
                 Token = tokenString,
                 IdCobrador = user.Id,
-                Alias = user.Alias
+                User = user.UserName,
+                Rol = roles.FirstOrDefault() 
             });
         }
 
@@ -57,8 +64,7 @@ public class AuthController : ControllerBase
         new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Este es tu idCobrador
-        new Claim(ClaimTypes.Email, user.Email!),
-        new Claim("Alias", user.Alias ?? "")
+        new Claim(ClaimTypes.Email, user.Email!)
     };
 
         // Agregar los roles del usuario al token

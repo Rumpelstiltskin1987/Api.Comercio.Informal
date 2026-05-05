@@ -10,18 +10,14 @@ namespace Api.Entities
 {
     public class Usuario : IdentityUser<int>
     {
-        // Campo para vincular el login con tu tabla de Cobradores
-        public int? Id_cobrador { get; set; }
-
-        // Propiedad de navegación (Opcional, para traer datos del cobrador fácilmente)
-        [ForeignKey("Id_cobrador")]
-        public virtual Cobrador? Cobrador { get; set; }
-
-        // Campo adicional para la App de Android (ejemplo: un alias o nombre corto)
-        public string? Alias { get; set; }
-
-        // Podrías agregar otros campos como:
-        // public string? Turno { get; set; }
-        // public bool EsAdministrador { get; set; }
+        public string Nombre { get; set; }
+        public string A_paterno { get; set; }
+        public string A_materno { get; set; }
+        public string Estado { get; set; } = "A";   // A=Activo, I=Inactivo
+        public string Usuario_alta { get; set; }
+        public DateTime Fecha_alta { get; set; } = DateTime.UtcNow;
+        public string? Usuario_modificacion { get; set; }
+        public DateTime? Fecha_modificacion { get; set; }
+        public bool EsPasswordTemporal { get; set; } = false;
     }
 }

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Api.Data.Access;
+using Api.Entities;
+using Api.Entities.DTO;
+using Api.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Api.Data.Access;
-using Api.Entities;
-using Api.Interfaces;
 
 namespace Api.Business
 {
@@ -37,8 +38,7 @@ namespace Api.Business
             Concepto concepto = new()
             {
                 Descripcion = descripcion,
-                Usuario_alta = usuario,
-                Fecha_alta = DateTime.Now
+                Usuario_alta = usuario
             };
 
             using var transaction = _context.Database.BeginTransaction();
@@ -73,7 +73,7 @@ namespace Api.Business
             concepto.Descripcion = descripcion;
             concepto.Estado = estado;
             concepto.Usuario_modificacion = usuario;
-            concepto.Fecha_modificacion = DateTime.Now;
+            concepto.Fecha_modificacion = DateTime.UtcNow;
 
             using var transaction = _context.Database.BeginTransaction();
             try 
@@ -117,6 +117,62 @@ namespace Api.Business
                 transaction.Rollback();
                 throw;
             }
+        }
+
+        public async Task<List<DtoHistorial>> GetHistorial(int id)
+        {
+            try
+            {
+                // 1. Obtenemos la lista cruda de la base de datos
+                var logs = await _conceptoLog.GetLogsByGremioId(id);
+
+                // 2. Transformamos (Mapeamos) cada UsuarioLog a DtoHistorial
+                var historial = logs.Select(log => new DtoHistorial
+                {
+                    Fecha = log.Fecha_modificacion,
+                    Usuario = log.Usuario_modificacion,
+                    Movimiento = log.Tipo_movimiento.ToUpper() switch
+                    {
+                        "A" => "Alta",
+                        "M" => "Modificación",
+                        _ => log.Tipo_movimiento
+                    },
+                    Detalles = new StringBuilder()
+                    .AppendLine($"Descripcion: {log.Descripcion} | ")
+                    .AppendLine($"Estado: {(log.Estado == "A" ? "Activo" : (log.Estado == "I" ? "Inactivo" : log.Estado))}")
+                    .ToString()
+                }).ToList();
+
+                return historial;
+            }
+            catch (Exception ex)
+            {
+                // Es buena práctica loguear el error antes de lanzarlo, si tienes un logger
+                throw new Exception("Error al obtener el historial", ex);
+            }
+        }
+
+        public async Task<IEnumerable<DtoConcepto>> Sincronizar(DateTime? fSincronizacion)
+        {
+            IEnumerable<Concepto> listaDb;
+            IEnumerable<DtoConcepto> lista;
+
+            if (fSincronizacion == null)
+            {
+                listaDb = await _concepto.GetAll();
+            }
+            else
+            {
+                listaDb = await _concepto.Sincronizar(fSincronizacion);
+            }
+
+            lista = listaDb.Select(p => new DtoConcepto
+            {
+                IdConcepto = p.Id_concepto,
+                Descripcion = p.Descripcion ?? string.Empty,
+            });
+
+            return lista;
         }
     }
 }
